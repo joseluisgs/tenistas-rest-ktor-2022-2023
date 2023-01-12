@@ -12,6 +12,9 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Descripción](#descripción)
     - [Tecnologías](#tecnologías)
   - [Problema](#problema)
+  - [Ktor](#ktor)
+    - [Punto de Entrada](#punto-de-entrada)
+    - [Creando rutas](#creando-rutas)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -35,6 +38,26 @@ Además que permita escuchar cambios en tiempo real usando websocket y tener una
 
 ## Problema
 Gestionar tenistas, raquetas y representantes de marcas de raquetas.
+
+
+## Ktor
+[Ktor](https://ktor.io/) es el framework para desarrollar servicios y clientes asincrónicos. Es 100% [Kotlin](https://kotlinlang.org/) y se ejecuta en usando [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html). Admite proyectos multiplataforma, lo que significa que puede usarlo para cualquier proyecto dirigido a JVM, Android, iOS, nativo o Javascript. En este proyecto aprovecharemos Ktor para crear un servicio web para consumir una API REST. Además, aplicaremos Ktor para devolver páginas web.
+
+### Punto de Entrada
+El servidor tiene su entrada y configuración en la clase Application. Esta lee la configuración en base al [fichero de configuración](./src/main/resources/application.conf) y a partir de aquí se crea una instancia de la clase Application en base a la configuración de module().
+
+### Creando rutas
+Las rutas se definen creando una función de extensión sobre Route. A su vez, usando DSL se definen las rutase en base a las petición HTTP sobre ella. Podemos responder a la petición usando call.respondText(), para texto; call.respondHTML(), para contenido HTML usando [Kotlin HTML DSL](https://github.com/Kotlin/kotlinx.html); o call.respond() para devolver una respuesta en formato JSON o XML.
+finalmente asignamos esas rutas a la instancia de Application, es decir, dentro del método module(). Un ejemplo de ruta puede ser:
+
+```kotlin
+routing {
+    // Entrada en la api
+    get("/") {
+        call.respondText("👋 Hola Kotlin REST Service con Kotlin-Ktor")
+    }
+}
+```
 
 ## Recursos
 - Twitter: https://twitter.com/joseluisgonsan
