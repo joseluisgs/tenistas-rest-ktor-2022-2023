@@ -23,6 +23,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
       - [Enviando datos serializados](#enviando-datos-serializados)
       - [Recibiendo datos serializados](#recibiendo-datos-serializados)
+      - [Request validation](#request-validation)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -204,6 +205,18 @@ data class Customer(val id: Int, val firstName: String, val lastName: String)
 post("/customer") {
     val customer = call.receive<Customer>()
     call.respondText("Customer: $customer")
+}
+```
+
+#### Request validation
+Ktor tiene una [API de validación](https://ktor.io/docs/request-validation.html) que nos permite validar los datos del body de una petición. En este caso lanzando RequestValidationException si no es correcto.
+```kotlin
+install(RequestValidation) {
+    validate<Customer> { customer ->
+        if (customer.id <= 0)
+            ValidationResult.Invalid("A customer ID should be greater than 0")
+        else ValidationResult.Valid
+    }
 }
 ```
 
