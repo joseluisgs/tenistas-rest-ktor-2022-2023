@@ -9,7 +9,7 @@ import java.util.*
 @Serializable
 data class Raqueta(
     // Identificador
-    val id: Long,
+    val id: Long = 0,
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID = UUID.randomUUID(),
 
