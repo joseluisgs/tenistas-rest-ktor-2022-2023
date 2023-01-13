@@ -17,7 +17,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Punto de Entrada](#punto-de-entrada)
     - [Parametrizando la aplicación](#parametrizando-la-aplicación)
     - [Creando rutas](#creando-rutas)
-    - [Responses](#responses)
+      - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
     - [Request](#request)
   - [Recursos](#recursos)
   - [Autor](#autor)
@@ -47,7 +47,22 @@ Además que permita escuchar cambios en tiempo real usando websocket y tener una
 
 ## Problema
 
-Gestionar tenistas, raquetas y representantes de marcas de raquetas.
+Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que:
+- Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1).
+- Un tenista solo usa una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N).
+
+De esta forma, tenemos que gestionar los siguientes datos:
+- Raqueta:
+  - id: Long
+  - marca: String
+  - precio: Double
+  - representante: Representante
+
+- Representante:
+  - id: Long
+  - nombre: String
+  - email: String
+
 
 ## Ktor
 
@@ -113,6 +128,12 @@ routing {
     }
 }
 ```
+#### Type-Safe Routing y Locations
+Ktor te permite hacer [Type-Safe Routing](https://ktor.io/docs/type-safe-routing.html), es decir, que puedes definir una clase que represente una ruta y que tenga las operaciones a realizar. 
+
+También podemos crear rutas de manera tipada con [Locations](https://ktor.io/docs/locations.html), pero esta siendo sustituida por Type-Safe Routing.
+
+```kotlin
 
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
