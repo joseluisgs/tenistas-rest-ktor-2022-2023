@@ -1,7 +1,7 @@
 package joseluisgs.es.db
 
-import models.Raqueta
-import models.Representante
+import joseluisgs.es.models.Raqueta
+import joseluisgs.es.models.Representante
 
 // Datos de prueba
 fun getRepresentantesInit() = listOf(
