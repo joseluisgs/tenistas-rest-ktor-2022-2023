@@ -11,6 +11,8 @@ import joseluisgs.es.routes.webRoutes
 fun Application.configureRouting() {
 
     routing {
+        // Defínelas por orden de prioridad y sin que se solapen
+
         // Ruta raíz
         get("/") {
             call.respondText("Tenistas API REST Ktor. 2º DAM")

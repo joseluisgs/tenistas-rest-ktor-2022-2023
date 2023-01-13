@@ -7,13 +7,16 @@ import io.ktor.server.routing.*
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
-fun Application.testRoutes() {
 
+private const val ENDPOINT = "rest/test" // Ruta de acceso, puede aunar un recurso
+
+fun Application.testRoutes() {
     routing {
-        route("rest/test") {
+        route("/$ENDPOINT") {
             // Get all -> /
             get {
                 logger.debug { "GET /test" }
+                // respond
                 call.respond(HttpStatusCode.OK, "TEST OK GET")
             }
 
@@ -22,8 +25,12 @@ fun Application.testRoutes() {
                 logger.debug { "GET /test/{id}" }
                 val id = call.parameters["id"]
                 when (id) {
+                    // Ejemplos de codigos de respuesta
                     null -> call.respond(HttpStatusCode.BadRequest, "No se ha mandado id")
                     "kaka" -> call.respond(HttpStatusCode.NotFound, "No se ha encontrado el recurso")
+                    "admin" -> call.respond(HttpStatusCode.Forbidden, "No tienes permisos")
+                    "nopuedes" -> call.respond(HttpStatusCode.Unauthorized, "Timeout")
+                    "error" -> call.respond(HttpStatusCode.InternalServerError, "Error interno")
                     else -> call.respond(HttpStatusCode.OK, "TEST OK GET $id")
                 }
             }
@@ -38,33 +45,21 @@ fun Application.testRoutes() {
             put("{id}") {
                 logger.debug { "PUT /test/{id}" }
                 val id = call.parameters["id"]
-                when (id) {
-                    null -> call.respond(HttpStatusCode.BadRequest, "No se ha mandado id")
-                    "kaka" -> call.respond(HttpStatusCode.NotFound, "No se ha encontrado el recurso")
-                    else -> call.respond(HttpStatusCode.OK, "TEST OK PUT $id")
-                }
+                call.respond(HttpStatusCode.OK, "TEST OK PUT $id")
             }
 
             // Patch -> /{id}
             patch("{id}") {
                 logger.debug { "PATCH /test/{id}" }
                 val id = call.parameters["id"]
-                when (id) {
-                    null -> call.respond(HttpStatusCode.BadRequest, "No se ha mandado id")
-                    "kaka" -> call.respond(HttpStatusCode.NotFound, "No se ha encontrado el recurso")
-                    else -> call.respond(HttpStatusCode.OK, "TEST OK PATCH $id")
-                }
+                call.respond(HttpStatusCode.OK, "TEST OK PATCH $id")
             }
 
             // Delete -> /{id}
             delete("{id}") {
                 logger.debug { "DELETE /test/{id}" }
                 val id = call.parameters["id"]
-                when (id) {
-                    null -> call.respond(HttpStatusCode.BadRequest, "No se ha mandado id")
-                    "kaka" -> call.respond(HttpStatusCode.NotFound, "No se ha encontrado el recurso")
-                    else -> call.respond(HttpStatusCode.OK, "TEST OK DELETE $id")
-                }
+                call.respond(HttpStatusCode.OK, "TEST OK DELETE $id")
             }
         }
     }
