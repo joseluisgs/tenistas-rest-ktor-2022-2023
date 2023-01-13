@@ -31,6 +31,7 @@ fun Application.testRoutes() {
                     "admin" -> call.respond(HttpStatusCode.Forbidden, "No tienes permisos")
                     "nopuedes" -> call.respond(HttpStatusCode.Unauthorized, "Timeout")
                     "error" -> call.respond(HttpStatusCode.InternalServerError, "Error interno")
+                    "json" -> call.respond(HttpStatusCode.OK, mapOf("id" to id, "message" to "TEST OK GET $id"))
                     else -> call.respond(HttpStatusCode.OK, "TEST OK GET $id")
                 }
             }
