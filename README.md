@@ -18,7 +18,11 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Parametrizando la aplicación](#parametrizando-la-aplicación)
     - [Creando rutas](#creando-rutas)
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
+    - [Responses](#responses)
     - [Request](#request)
+    - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
+      - [Enviando datos serializados](#enviando-datos-serializados)
+      - [Recibiendo datos serializados](#recibiendo-datos-serializados)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -132,9 +136,6 @@ routing {
 Ktor te permite hacer [Type-Safe Routing](https://ktor.io/docs/type-safe-routing.html), es decir, que puedes definir una clase que represente una ruta y que tenga las operaciones a realizar. 
 
 También podemos crear rutas de manera tipada con [Locations](https://ktor.io/docs/locations.html), pero esta siendo sustituida por Type-Safe Routing.
-
-```kotlin
-
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
 ```kotlin
@@ -173,6 +174,40 @@ post("/products") {
     call.respondText("Product: $product")
 }
 ```
+
+### Serialización y Content Negotiation
+Ktor soporta [Content Negotiation](https://ktor.io/docs/serialization.html), es decir, que puede devolver distintos tipos de contenido, como JSON, XML, HTML, etc. En este caso, usaremos JSON. Para ello, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+install(ContentNegotiation) {
+    json(Json {
+        prettyPrint = true
+        isLenient = true
+    })
+}
+```
+#### Enviando datos serializados
+Simplemente usa una data class y la función call.respond() para enviar datos serializados. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+@Serializable
+data class Customer(val id: Int, val firstName: String, val lastName: String)
+
+get("/customer") {
+    call.respond(Customer(1, "José Luis", "García Sánchez"))
+}
+```
+#### Recibiendo datos serializados
+Para recibir datos serializados, usa la función call.receive() y la data class que representa el tipo de datos que se espera recibir con la que casteamos el body de la petición. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+@Serializable
+data class Customer(val id: Int, val firstName: String, val lastName: String)
+
+post("/customer") {
+    val customer = call.receive<Customer>()
+    call.respondText("Customer: $customer")
+}
+```
+
+
 ## Recursos
 
 - Twitter: https://twitter.com/joseluisgonsan
