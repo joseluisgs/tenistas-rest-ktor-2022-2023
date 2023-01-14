@@ -13,7 +13,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Advertencia](#advertencia)
     - [Tecnologías](#tecnologías)
   - [Problema](#problema)
-  - [Proyectos anteriores](#proyectos-anteriores)
+  - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
   - [Arquitectura](#arquitectura)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
@@ -56,7 +56,9 @@ Tendrá una página web de presentación como devolución de recursos estáticos
 ### Advertencia
 Esta API REST no está pensada para ser usada en producción. Es un proyecto de aprendizaje y por tanto algunas cosas no se profundizan y otras están pensadas para poder realizarlas en clase de una manera más simple con el objetivo que el alumnado pueda entenderlas mejor. No se trata de montar la mejor arquitectura o el mejor servicio, sino de aprender a crear un servicio REST en el tiempo exigido por el calendario escolar.
 
-Este proyecto está en constante evolución y se irán añadiendo nuevas funcionalidades y mejoras para el alumnado. Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
+Este proyecto está en constante evolución y se irán añadiendo nuevas funcionalidades y mejoras para el alumnado. De la misma manera se irá completando la documentación asociada. 
+
+Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 
 ### Tecnologías
 
@@ -64,6 +66,9 @@ Este proyecto está en constante evolución y se irán añadiendo nuevas funcion
 - Autenticación: [JWT](https://jwt.io/) - JSON Web Token para la autenticación y autorización.
 - Encriptado: [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) - Algoritmo de hash para encriptar contraseñas.
 - Proveedor de dependencias: [Koin](https://insert-koin.io/) - Framework para la inyección de dependencias.
+- Asincronía: [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Librería de Kotlin para la programación asíncrona.
+- Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
+- Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
 
 ## Problema
 
@@ -85,10 +90,12 @@ De esta forma, tenemos que gestionar los siguientes datos:
 
 
 
-## Proyectos anteriores
+## Proyectos y documentación anteriores
 Parte de los contenidos a desarrollar en este proyecto se han desarrollado en proyectos anteriores. En este caso:
 - [Kotlin-Ktor-REST-Service](https://github.com/joseluisgs/Kotlin-Ktor-REST-Service)
 - [SpringBoot-Productos-REST-DAM-2021-2022](https://github.com/joseluisgs/SpringBoot-Productos-REST-DAM-2021-2022)
+
+Para la parte de reactividad te recomiendo leer: ["Ya no sé programar si no es reactivo"](https://joseluisgs.dev/blogs/2022/2022-12-06-ya-no-se-programar-sin-reactividad.html)
 
 ## Arquitectura
 Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patrón de diseño MVC (Modelo Vista Controlador) en capas.

@@ -4,6 +4,7 @@ val kotlin_version: String by project
 // val logback_version: String by project
 val micrologging_version: String by project
 val logbackclassic_version: String by project
+val cache_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -44,6 +45,9 @@ dependencies {
     // implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("ch.qos.logback:logback-classic:$logbackclassic_version")
     implementation("io.github.microutils:kotlin-logging-jvm:$micrologging_version")
+
+    // Cache
+    implementation("io.github.reactivecircus.cache4k:cache4k:$cache_version")
 
     // Para testear
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
