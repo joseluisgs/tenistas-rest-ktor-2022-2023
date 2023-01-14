@@ -32,6 +32,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Enviando datos serializados](#enviando-datos-serializados)
       - [Recibiendo datos serializados](#recibiendo-datos-serializados)
       - [Request validation](#request-validation)
+  - [Caché](#caché)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -284,6 +285,18 @@ install(RequestValidation) {
     }
 }
 ```
+
+## Caché
+La [caché](https://es.wikipedia.org/wiki/Cach%C3%A9_(inform%C3%A1tica)) es una forma de almacenar datos en memoria/disco para que se puedan recuperar rápidamente. Además de ser una forma de optimizar el rendimiento, también es una forma de reducir el coste de almacenamiento de datos y tiempo de respuesta pues los datos se almacenan en memoria y no en disco o base de datos que pueden estar en otro servidor y con ello aumentar el tiempo de respuesta. 
+
+Además la caché nos ofrece automáticamente distintos mecanismos de actuación, como por ejemplo, que los elementos en cache tenga un tiempo de vida máximo y se eliminen automáticamente cuando se cumpla. Lo que nos permite tener datos actualizados Y/o los más usados en memoria y eliminar los que no se usan.
+
+En nuestro proyecto tenemos dos repositorios, uno para la caché y otro para la base de datos. Para ello todas las consultas usamos la caché y si no está, se consulta a la base de datos y se guarda en la caché. Además, podemos tener un proceso en background que actualice la caché cada cierto tiempo.
+
+
+El diagrama seguido es el siguiente
+
+![cache](./images/cache.jpg)
 
 
 ## Recursos
