@@ -5,7 +5,8 @@ import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import java.time.LocalDateTime
@@ -26,21 +27,22 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         }
     }
 
-    override fun findAll(): Flow<Representante> {
+    override suspend fun findAll(): Flow<List<Representante>> {
         logger.debug { "findAll: Buscando todos los representantes" }
 
         // Filtramos por página y por perPage
-        return representantes.values.asFlow()
+        return flowOf(representantes.values.toList())
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Representante>> {
         logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
         // Filtramos por página y por perPage
-        return representantes.values
-            .drop(page * perPage)
-            .take(perPage)
-            .asFlow()
+        return flow {
+            representantes.values
+                .drop(page * perPage)
+                .take(perPage)
+        }
     }
 
     override suspend fun findById(id: UUID): Representante = withContext(Dispatchers.IO) {
@@ -51,18 +53,19 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
     }
 
 
-    override fun findByNombre(nombre: String): Flow<Representante> {
+    override fun findByNombre(nombre: String): Flow<List<Representante>> {
         logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
-        return representantes.values.filter { it.nombre == nombre }.asFlow()
+        return flow { representantes.values.filter { it.nombre == nombre } }
     }
 
 
     override suspend fun save(entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando representante: $entity" }
 
+        val time = LocalDateTime.now()
         val representante =
-            entity.copy(id = UUID.randomUUID(), createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
+            entity.copy(id = UUID.randomUUID(), createdAt = time, updatedAt = time)
         representantes[representante.id] = representante
         return@withContext representante
 

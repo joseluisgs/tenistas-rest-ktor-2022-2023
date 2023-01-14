@@ -5,7 +5,7 @@ import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.models.Raqueta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import java.time.LocalDateTime
@@ -26,21 +26,22 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         }
     }
 
-    override fun findAll(): Flow<Raqueta> {
+    override suspend fun findAll(): Flow<List<Raqueta>> {
         logger.debug { "findAll: Buscando todas las raquetas" }
 
         // Filtramos por página y por perPage
-        return raquetas.values.asFlow()
+        return flowOf(raquetas.values.toList())
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Raqueta> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Raqueta>> {
         logger.debug { "findAllPageable: Buscando todas las raquetas con página: $page y cantidad: $perPage" }
 
         // Filtramos por página y por perPage
-        return raquetas.values
-            .drop(page * perPage)
-            .take(perPage)
-            .asFlow()
+        return flowOf(
+            raquetas.values
+                .drop(page * perPage)
+                .take(perPage)
+        )
     }
 
     override suspend fun findById(id: UUID): Raqueta = withContext(Dispatchers.IO) {
@@ -50,10 +51,10 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         return@withContext raquetas[id] ?: throw RaquetaException("No existe la raqueta con id $id")
     }
 
-    override fun findByMarca(marca: String): Flow<Raqueta> {
+    override fun findByMarca(marca: String): Flow<List<Raqueta>> {
         logger.debug { "findByMarca: Buscando raqueta con marca: $marca" }
 
-        return raquetas.values.filter { it.marca == marca }.asFlow()
+        return flowOf(raquetas.values.filter { it.marca == marca })
     }
 
     override suspend fun save(entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {

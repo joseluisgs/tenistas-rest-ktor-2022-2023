@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 interface RaquetasRepository : CrudRepository<Raqueta, UUID> {
-    fun findAllPageable(page: Int = 0, perPage: Int = 10): Flow<Raqueta>
-    fun findByMarca(marca: String): Flow<Raqueta>
+    fun findAllPageable(page: Int = 0, perPage: Int = 10): Flow<List<Raqueta>>
+    fun findByMarca(marca: String): Flow<List<Raqueta>>
 
 }
