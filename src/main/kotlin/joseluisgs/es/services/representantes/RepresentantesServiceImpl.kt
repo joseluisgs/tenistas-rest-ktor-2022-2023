@@ -12,6 +12,11 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesServiceImpl(
     private val repository: RepresentantesRepository
 ) : RepresentantesService {
+
+    init {
+        logger.debug { "Inicializando el servicio de representantes" }
+    }
+
     override suspend fun findAll(): Flow<List<Representante>> {
         logger.debug { "findAll: Buscando todos los representantes en servicio" }
 

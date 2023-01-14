@@ -17,6 +17,7 @@ private val logger = KotlinLogging.logger {}
 
 class RepresentantesCachedRepositoryImpl(
     private val repository: RepresentantesRepository, // Repositorio de datos originales
+    private val refreshJob: Job? = null // Job para cancelar la ejecución
 ) : RepresentantesRepository {
     @OptIn(ExperimentalTime::class)
     private val cache = Cache.Builder()
@@ -25,9 +26,19 @@ class RepresentantesCachedRepositoryImpl(
 
     private val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos
 
-    suspend fun refreshCache() {
-        // Si tenemos muchos datos, solo se mete en el cache los que se van a usar: create, findById, update, delete
+    init {
+        logger.debug { "Inicializando el repositorio cache representantes" }
+        // Iniciamos el proceso de refresco de datos
+        refreshCache()
+    }
+
+    private fun refreshCache() {
+        // Background job para refrescar el cache
+        // Si tenemos muchos datos, solo se mete en el cache los que se van a usar:
+        // create, findById, update, delete
+        // Creamos un Scope propio para que no se enlazado con el actual.
         CoroutineScope(Dispatchers.IO).launch {
+            refreshJob?.cancel() // Cancelamos el job si existe
             do {
                 logger.debug { "refreshCache: Refrescando cache de Representantes" }
                 repository.findAll().collect { representantes ->
@@ -44,12 +55,9 @@ class RepresentantesCachedRepositoryImpl(
     override suspend fun findAll(): Flow<List<Representante>> {
         logger.debug { "findAll: Buscando todos los representantes en cache" }
 
-        // La primera vez, podemos ir a buscar a la base de datos y/o lanzanr una corrutina para que se quede
-        // actualizando la cache en background
-        refreshCache()
-
-        // si esta vacía porque aun no hemos recuperado nada, vamos a la base de datos
+        // Si por alguna razón no tenemos datos en el cache, los buscamos en el repositorio
         return if (cache.asMap().values.isEmpty()) {
+            // refreshCache()
             logger.debug { "findAll: Cache vacía, buscando en base de datos" }
             repository.findAll()
         } else {
