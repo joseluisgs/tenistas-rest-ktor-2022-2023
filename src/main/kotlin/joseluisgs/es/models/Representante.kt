@@ -9,9 +9,8 @@ import java.util.*
 @Serializable
 data class Representante(
     // Identificador
-    val id: Long = 0,
     @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID = UUID.randomUUID(),
+    val id: UUID = UUID.randomUUID(),
 
     // Datos
     val nombre: String,

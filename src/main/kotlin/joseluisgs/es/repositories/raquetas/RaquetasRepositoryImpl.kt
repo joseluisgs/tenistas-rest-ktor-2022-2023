@@ -16,7 +16,7 @@ private val logger = KotlinLogging.logger {}
 class RaquetasRepositoryImpl : RaquetasRepository {
 
     // Fuente de datos
-    private val raquetas: MutableMap<Long, Raqueta> = mutableMapOf()
+    private val raquetas: MutableMap<UUID, Raqueta> = mutableMapOf()
 
     init {
         logger.debug { "Iniciando Repositorio de Raquetas" }
@@ -43,10 +43,11 @@ class RaquetasRepositoryImpl : RaquetasRepository {
             .asFlow()
     }
 
-    override suspend fun findByUuid(uuid: UUID): Raqueta? = withContext(Dispatchers.IO) {
-        logger.debug { "findByUuid: Buscando raqueta con uuid: $uuid" }
+    override suspend fun findById(id: UUID): Raqueta = withContext(Dispatchers.IO) {
+        logger.debug { "findById: Buscando raqueta con id: $id" }
 
-        return@withContext raquetas.values.find { it.uuid == uuid }
+        // Buscamos
+        return@withContext raquetas[id] ?: throw RaquetaException("No existe la raqueta con id $id")
     }
 
     override fun findByMarca(marca: String): Flow<Raqueta> {
@@ -55,26 +56,17 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         return raquetas.values.filter { it.marca == marca }.asFlow()
     }
 
-    override suspend fun findById(id: Long): Raqueta = withContext(Dispatchers.IO) {
-        logger.debug { "findById: Buscando raqueta con id: $id" }
-
-        // Buscamos
-        return@withContext raquetas[id] ?: throw RaquetaException("No existe la raqueta con id $id")
-    }
-
     override suspend fun save(entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando raqueta: $entity" }
 
-        // Debo saber el ultimo id para poder añadir uno nuevo
-        val id = raquetas.keys.maxOrNull() ?: 0
-        // Le sumamos 1 al id
-        val raqueta = entity.copy(id = id + 1, createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
+        val raqueta =
+            entity.copy(id = UUID.randomUUID(), createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
         raquetas[raqueta.id] = raqueta
         return@withContext raqueta
 
     }
 
-    override suspend fun update(id: Long, entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando raqueta: $entity" }
 
         // Buscamos la raqueta
@@ -89,7 +81,7 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         return@withContext raquetas[id]!!
     }
 
-    override suspend fun delete(id: Long): Raqueta = withContext(Dispatchers.IO) {
+    override suspend fun delete(id: UUID): Raqueta = withContext(Dispatchers.IO) {
         logger.debug { "delete: Guardando raqueta: $id" }
 
         // Buscamos

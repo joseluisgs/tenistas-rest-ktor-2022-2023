@@ -16,7 +16,7 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesRepositoryImpl : RepresentantesRepository {
 
     // Fuente de datos
-    private val representantes: MutableMap<Long, Representante> = mutableMapOf()
+    private val representantes: MutableMap<UUID, Representante> = mutableMapOf()
 
     init {
         logger.debug { "Iniciando Repositorio de Representantes" }
@@ -43,10 +43,11 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
             .asFlow()
     }
 
-    override suspend fun findByUuid(uuid: UUID): Representante? = withContext(Dispatchers.IO) {
-        logger.debug { "findByUuid: Buscando representante con uuid: $uuid" }
+    override suspend fun findById(id: UUID): Representante = withContext(Dispatchers.IO) {
+        logger.debug { "findById: Buscando representante con id: $id" }
 
-        return@withContext representantes.values.find { it.uuid == uuid }
+        // Buscamos
+        return@withContext representantes[id] ?: throw RaquetaException("No existe el representante con id $id")
     }
 
 
@@ -56,26 +57,18 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         return representantes.values.filter { it.nombre == nombre }.asFlow()
     }
 
-    override suspend fun findById(id: Long): Representante = withContext(Dispatchers.IO) {
-        logger.debug { "findById: Buscando representante con id: $id" }
-
-        // Buscamos
-        return@withContext representantes[id] ?: throw RaquetaException("No existe el representante con id $id")
-    }
 
     override suspend fun save(entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando representante: $entity" }
 
-        // Debo saber el ultimo id para poder añadir uno nuevo
-        val id = representantes.keys.maxOrNull() ?: 0
-        // Le sumamos 1 al id
-        val representante = entity.copy(id = id + 1, createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
+        val representante =
+            entity.copy(id = UUID.randomUUID(), createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
         representantes[representante.id] = representante
         return@withContext representante
 
     }
 
-    override suspend fun update(id: Long, entity: Representante): Representante = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando representante: $entity" }
 
         // Buscamos
@@ -89,7 +82,7 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         return@withContext representantes[id]!!
     }
 
-    override suspend fun delete(id: Long): Representante = withContext(Dispatchers.IO) {
+    override suspend fun delete(id: UUID): Representante = withContext(Dispatchers.IO) {
         logger.debug { "delete: Borrando representante con id: $id" }
 
         // Buscamos

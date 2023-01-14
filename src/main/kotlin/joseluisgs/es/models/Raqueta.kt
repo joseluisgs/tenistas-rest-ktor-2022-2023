@@ -9,16 +9,16 @@ import java.util.*
 @Serializable
 data class Raqueta(
     // Identificador
-    val id: Long = 0,
     @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID = UUID.randomUUID(),
+    val id: UUID = UUID.randomUUID(),
 
     // Datos
     val marca: String,
     val precio: Double,
 
     // Relaciones
-    val represetanteId: Long,
+    @Serializable(with = UUIDSerializer::class)
+    val represetanteId: UUID? = null,
 
     // Historicos
     @Serializable(with = LocalDateTimeSerializer::class)

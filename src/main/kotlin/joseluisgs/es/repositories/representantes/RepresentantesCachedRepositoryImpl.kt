@@ -19,7 +19,7 @@ class RepresentantesCachedRepositoryImpl(
     @OptIn(ExperimentalTime::class)
     private val cache = Cache.Builder()
         .expireAfterAccess(24.hours) // Vamos a cachear durante 1 hora
-        .build<Long, Representante>()
+        .build<UUID, Representante>()
 
     private val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos
 
@@ -65,29 +65,12 @@ class RepresentantesCachedRepositoryImpl(
     }
 
 
-    override suspend fun findById(id: Long): Representante {
+    override suspend fun findById(id: UUID): Representante {
         logger.debug { "findById: Buscando representante con id: $id en cache" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
         return cache.get(id) {
             repository.findById(id) ?: throw RepresentanteException("No se ha encontrado el representante con id: $id")
-        }
-    }
-
-    override suspend fun findByUuid(uuid: UUID): Representante {
-        logger.debug { "findByUuid: Buscando representante en cache con uuid: $uuid" }
-
-        cache.asMap().values.find { it.uuid == uuid }?.let {
-            return it
-        } ?: run {
-            // Si no está en cache, lo buscamos en el repositorio
-            val representante = repository.findByUuid(uuid)
-                ?: throw RepresentanteException("No se ha encontrado el representante con uuid: $uuid")
-            // Si lo encontramos, lo añadimos a la cache
-            representante.let {
-                cache.put(it.id, it)
-                return it
-            }
         }
     }
 
@@ -108,7 +91,7 @@ class RepresentantesCachedRepositoryImpl(
         return representante
     }
 
-    override suspend fun update(id: Long, entity: Representante): Representante {
+    override suspend fun update(id: UUID, entity: Representante): Representante {
         logger.debug { "update: Actualizando representante en cache" }
 
         // Actualizamos en el repositorio
@@ -118,7 +101,7 @@ class RepresentantesCachedRepositoryImpl(
         return representante
     }
 
-    override suspend fun delete(id: Long): Representante {
+    override suspend fun delete(id: UUID): Representante {
         logger.debug { "delete: Eliminando representante en cache" }
 
         // Eliminamos en el repositorio
