@@ -45,14 +45,18 @@ El siguiente proyecto es una API REST de Tenistas con Ktor para Programación de
 marcas de raquetas.
 
 El objetivo es que el alumnado aprenda a crear un servicio REST con Ktor, con las operaciones CRUD, securizar el
-servicio con JWT y usar un cliente para consumir el servicio.
+servicio con JWT y usar un cliente para consumir el servicio. Se pretende que el servicio completo sea asíncrono y reactivo en lo máximo posible agilizando el servicio mediante una caché.
 
-Se pretende que el servicio completo sea asíncrono y reactivo en lo máximo posible.
+Además que permita escuchar cambios en tiempo real usando websocket
 
-Además que permita escuchar cambios en tiempo real usando websocket y tener una página web de presentación.
+Se realizará inyección de dependencias y un sistema de logging.
+
+Tendrá una página web de presentación como devolución de recursos estáticos.
 
 ### Advertencia
 Esta API REST no está pensada para ser usada en producción. Es un proyecto de aprendizaje y por tanto algunas cosas no se profundizan y otras están pensadas para poder realizarlas en clase de una manera más simple con el objetivo que el alumnado pueda entenderlas mejor. No se trata de montar la mejor arquitectura o el mejor servicio, sino de aprender a crear un servicio REST en el tiempo exigido por el calendario escolar.
+
+Este proyecto está en constante evolución y se irán añadiendo nuevas funcionalidades y mejoras para el alumnado. Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 
 ### Tecnologías
 
