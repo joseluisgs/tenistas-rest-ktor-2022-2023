@@ -10,8 +10,11 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
 
 - [Tenistas REST Ktor](#tenistas-rest-ktor)
   - [Descripción](#descripción)
+    - [Advertencia](#advertencia)
     - [Tecnologías](#tecnologías)
   - [Problema](#problema)
+  - [Proyectos anteriores](#proyectos-anteriores)
+  - [Arquitectura](#arquitectura)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
@@ -20,6 +23,11 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
     - [Responses](#responses)
     - [Request](#request)
+      - [Parámetros de ruta](#parámetros-de-ruta)
+      - [Parámetros de consulta](#parámetros-de-consulta)
+      - [Procesando el cuerpo de la petición](#procesando-el-cuerpo-de-la-petición)
+      - [Peticiones con formularios](#peticiones-con-formularios)
+      - [Peticiones multiparte](#peticiones-multiparte)
     - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
       - [Enviando datos serializados](#enviando-datos-serializados)
       - [Recibiendo datos serializados](#recibiendo-datos-serializados)
@@ -41,14 +49,17 @@ servicio con JWT y usar un cliente para consumir el servicio.
 
 Se pretende que el servicio completo sea asíncrono y reactivo en lo máximo posible.
 
-Además que permita escuchar cambios en tiempo real usando websocket y tener una página web de presentación
+Además que permita escuchar cambios en tiempo real usando websocket y tener una página web de presentación.
+
+### Advertencia
+Esta API REST no está pensada para ser usada en producción. Es un proyecto de aprendizaje y por tanto algunas cosas no se profundizan y otras están pensadas para poder realizarlas en clase de una manera más simple con el objetivo que el alumnado pueda entenderlas mejor. No se trata de montar la mejor arquitectura o el mejor servicio, sino de aprender a crear un servicio REST en el tiempo exigido por el calendario escolar.
 
 ### Tecnologías
 
-- [Ktor](https://ktor.io/) - Framework para crear servicios web en Kotlin asíncronos y multiplataforma.
-- [JWT](https://jwt.io/) - JSON Web Token para la autenticación y autorización.
-- [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) - Algoritmo de hash para encriptar contraseñas.
-- [Koin](https://insert-koin.io/) - Framework para la inyección de dependencias.
+- Servidor Web: [Ktor](https://ktor.io/) - Framework para crear servicios web en Kotlin asíncronos y multiplataforma.
+- Autenticación: [JWT](https://jwt.io/) - JSON Web Token para la autenticación y autorización.
+- Encriptado: [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) - Algoritmo de hash para encriptar contraseñas.
+- Proveedor de dependencias: [Koin](https://insert-koin.io/) - Framework para la inyección de dependencias.
 
 ## Problema
 
@@ -69,6 +80,18 @@ De esta forma, tenemos que gestionar los siguientes datos:
   - email: String
 
 
+
+## Proyectos anteriores
+Parte de los contenidos a desarrollar en este proyecto se han desarrollado en proyectos anteriores. En este caso:
+- [Kotlin-Ktor-REST-Service](https://github.com/joseluisgs/Kotlin-Ktor-REST-Service)
+- [SpringBoot-Productos-REST-DAM-2021-2022](https://github.com/joseluisgs/SpringBoot-Productos-REST-DAM-2021-2022)
+
+## Arquitectura
+Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patrón de diseño MVC (Modelo Vista Controlador) en capas.
+
+![img_1.png](./images/layers.png)
+
+![img_2.png](./images/expla.png)
 ## Ktor
 
 [Ktor](https://ktor.io/) es el framework para desarrollar servicios y clientes asincrónicos. Es
@@ -77,6 +100,8 @@ usando [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html). Admit
 significa que puede usarlo para cualquier proyecto dirigido a JVM, Android, iOS, nativo o Javascript. En este proyecto
 aprovecharemos Ktor para crear un servicio web para consumir una API REST. Además, aplicaremos Ktor para devolver
 páginas web.
+
+![img_3.png](./images/ktor_logo.svg)
 
 ### Creando un proyecto
 Podemos crear un proyecto Ktor usando el plugin IntelliJ, desde su web. Con estos [asistentes](https://ktor.io/create/) podemos crear un proyecto Ktor con las opciones que queramos, destacamos el routing, el uso de json, etc.
@@ -148,6 +173,7 @@ call.respond(HttpStatusCode.NotFound, "No encontrado")
 ### Request
 En Ktor podemos recibir distintos tipos de [peticiones](https://ktor.io/docs/requests.html).
 
+#### Parámetros de ruta
 Podemos obtener los parámetros del Path, con parameters, como en el siguiente ejemplo, siempre y cuando estén definidos en la ruta {param}:
 
 ```kotlin
@@ -157,6 +183,7 @@ get("/hello/{name}") {
 }
 ```
 
+#### Parámetros de consulta
 Podemos obtener los parámetros de la Query, con queryParameters, si tenemos por ejemplo la siguiente ruta: /products?price=asc&category=1:
 
 ```kotlin
@@ -167,12 +194,39 @@ get("/products") {
 }
 ```
 
+#### Procesando el cuerpo de la petición
 Podemos obtener los parámetros del Body, por ejemplo en Json, con receive, si configurando [ContentNegotiation](https://ktor.io/docs/serialization.html) y una librería o plugin de serializacion.
 
 ```kotlin
 post("/products") {
     val product = call.receive<Product>()
     call.respondText("Product: $product")
+}
+```
+
+#### Peticiones con formularios
+Ktor soporta [peticiones con formularios](https://ktor.io/docs/requests.html#form_parameters), es decir, que podemos enviar datos de un formulario. 
+```kotlin
+post("/signup") {
+    val formParameters = call.receiveParameters()
+    val username = formParameters["username"].toString()
+    call.respondText("The '$username' account is created")
+}
+```
+
+#### Peticiones multiparte
+Ktor soporta [peticiones multipartes](https://ktor.io/docs/requests.html#form_data), es decir, que podemos enviar ficheros, imágenes, etc. 
+```kotlin
+post("/upload") {
+    //  multipart data (suspending)
+    val multipart = call.receiveMultipart()
+    multipart.forEachPart { part ->
+      val fileName = part.originalFileName as String
+      var fileBytes = part.streamProvider().readBytes()
+      File("uploads/$fileName").writeBytes(fileBytes)
+      part.dispose()
+    }
+    call.respondText("$fileName is uploaded to 'uploads/$fileName'")
 }
 ```
 
