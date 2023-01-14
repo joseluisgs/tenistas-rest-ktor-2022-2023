@@ -9,16 +9,16 @@ import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
-class RepresentanteServiceImpl(
+class RepresentantesServiceImpl(
     private val repository: RepresentantesRepository
 ) : RepresentantesService {
-    override fun findAll(): Flow<Representante> {
+    override suspend fun findAll(): Flow<List<Representante>> {
         logger.debug { "findAll: Buscando todos los representantes en servicio" }
 
         return repository.findAll()
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Representante>> {
         logger.debug { "findAllPageable: Buscando todos los representantes en servicio con página: $page y cantidad: $perPage" }
 
         return repository.findAllPageable(page, perPage)
@@ -31,7 +31,7 @@ class RepresentanteServiceImpl(
             ?: throw RepresentanteException("No se ha encontrado el representante con id: $id")
     }
 
-    override suspend fun findByNombre(nombre: String): Flow<Representante> {
+    override suspend fun findByNombre(nombre: String): Flow<List<Representante>> {
         logger.debug { "findByNombre: Buscando representante en servicio con nombre: $nombre" }
 
         return repository.findByNombre(nombre)

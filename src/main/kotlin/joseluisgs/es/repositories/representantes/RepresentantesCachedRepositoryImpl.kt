@@ -5,13 +5,15 @@ import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import mu.KotlinLogging
 import java.util.*
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
 private val logger = KotlinLogging.logger {}
+
 
 class RepresentantesCachedRepositoryImpl(
     private val repository: RepresentantesRepository, // Repositorio de datos originales
@@ -23,41 +25,42 @@ class RepresentantesCachedRepositoryImpl(
 
     private val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos
 
-
-    init {
-        logger.debug { "Iniciando Repositorio de cache de Representantes" }
-        // aunque esto no es muy recomendable, al iniciarme cargo el cache
-        // Como mejora se podría hacer con una corrutina con un temprizador
-        // Pero cargando la cache al inicio, luego "irá" viviendo con los datos que se vayan
-        // solicitando y actualizando
-        runBlocking {
-            refreshCache()
-        }
-
-    }
-
-    private suspend fun refreshCache() = withContext(Dispatchers.IO) {
-        logger.debug { "refreshCache: Refrescando cache de Representantes" }
-        launch {
+    suspend fun refreshCache() {
+        // Si tenemos muchos datos, solo se mete en el cache los que se van a usar: create, findById, update, delete
+        CoroutineScope(Dispatchers.IO).launch {
             do {
-                // Invalidamos la cache: podiramos no es necesario, pero lo hacemos para que se vea
-                repository.findAll().collect {
-                    cache.put(it.id, it) // añadimos a la cache, si ya existe lo actualiza
+                logger.debug { "refreshCache: Refrescando cache de Representantes" }
+                repository.findAll().collect { representantes ->
+                    representantes.forEach { representante ->
+                        cache.put(representante.id, representante)
+                    }
                 }
+                logger.debug { "refreshCache: Cache actualizada: ${cache.asMap().values.size}" }
                 delay(refreshTime)
             } while (true)
         }
     }
 
-    override fun findAll(): Flow<Representante> {
+    override suspend fun findAll(): Flow<List<Representante>> {
         logger.debug { "findAll: Buscando todos los representantes en cache" }
 
-        // Devolvemos la cache
-        return cache.asMap().values.asFlow()
+        // La primera vez, podemos ir a buscar a la base de datos y/o lanzanr una corrutina para que se quede
+        // actualizando la cache en background
+        refreshCache()
+
+        // si esta vacía porque aun no hemos recuperado nada, vamos a la base de datos
+        return if (cache.asMap().values.isEmpty()) {
+            logger.debug { "findAll: Cache vacía, buscando en base de datos" }
+            repository.findAll()
+        } else {
+            logger.debug { "findAll: Cache con datos, devolviendo datos de cache" }
+            flowOf(cache.asMap().values.toList())
+        }
+
     }
 
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Representante>> {
         logger.debug { "findAllPageable: Buscando todos los representantes en cache con página: $page y cantidad: $perPage" }
 
         // Aquí no se puede cachear, ya que no se puede saber si hay más páginas
@@ -74,11 +77,11 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
-    override fun findByNombre(nombre: String): Flow<Representante> {
+    override fun findByNombre(nombre: String): Flow<List<Representante>> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cache.asMap().values.filter { it.nombre == nombre }.asFlow()
+        return flow { cache.asMap().values.filter { it.nombre == nombre } }
     }
 
     override suspend fun save(entity: Representante): Representante {

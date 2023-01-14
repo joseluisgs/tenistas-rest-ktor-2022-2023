@@ -3,6 +3,7 @@ package joseluisgs.es.plugins
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import joseluisgs.es.routes.representantesRoutes
 import joseluisgs.es.routes.testRoutes
 import joseluisgs.es.routes.webRoutes
 
@@ -25,6 +26,7 @@ fun Application.configureRouting() {
     }
 
     // Definidas dentro del paquete de rutas: routes
-    webRoutes() // Rutas web
-    testRoutes() // Rutas de test
+    webRoutes() // Rutas web /web
+    testRoutes() // Rutas de api /rest/test
+    representantesRoutes() // Rutas de api /rest/representantes
 }
