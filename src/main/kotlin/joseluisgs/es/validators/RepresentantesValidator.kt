@@ -8,10 +8,8 @@ import joseluisgs.es.dto.RepresentanteDTO
 fun RequestValidationConfig.representantesValidation() {
     validate<RepresentanteDTO> { representante ->
         if (representante.nombre.isBlank()) {
-            println("Nombre no puede estar vacío")
             ValidationResult.Invalid("El nombre no puede estar vacío")
         } else if (representante.email.isBlank()) {
-            println("Email no puede estar vacío")
             ValidationResult.Invalid("El email no puede estar vacío")
             // validar email con regex
         } else if (!representante.email.contains("@")) {
