@@ -12,9 +12,11 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Descripción](#descripción)
     - [Advertencia](#advertencia)
     - [Tecnologías](#tecnologías)
-  - [Problema](#problema)
+  - [Dominio](#dominio)
   - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
   - [Arquitectura](#arquitectura)
+  - [Endpoints](#endpoints)
+    - [Representantes](#representantes)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
@@ -70,7 +72,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
 
-## Problema
+## Dominio
 
 Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que:
 - Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1). No puede haber raquetas sin representante y no puede haber representantes sin raquetas.
@@ -103,6 +105,22 @@ Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patró
 ![img_1.png](./images/layers.png)
 
 ![img_2.png](./images/expla.png)
+
+## Endpoints
+Los endpoints que vamos a usar son los siguientes:
+### Representantes
+| Método | Endpoint | Auth | Descripción | Status Code | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /api/representantes | No | Devuelve todos los representantes | 200 | JSON |
+| GET | /api/representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
+| GET | /api/representantes/{id} | No | Devuelve un representante por su id | 200 | JSON |
+| POST | /api/representantes | No | Crea un nuevo representante | 201 | JSON |
+| PUT | /api/representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
+| DELETE | /api/representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
+| GET | /api/representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
+
+
+
 ## Ktor
 
 [Ktor](https://ktor.io/) es el framework para desarrollar servicios y clientes asincrónicos. Es
