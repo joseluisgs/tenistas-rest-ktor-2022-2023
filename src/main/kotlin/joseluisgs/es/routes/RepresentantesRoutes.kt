@@ -21,7 +21,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-private const val ENDPOINT = "rest/representantes" // Ruta de acceso, puede aunar un recurso
+private const val ENDPOINT = "api/representantes" // Ruta de acceso, puede aunar un recurso
 
 fun Application.representantesRoutes() {
     // Dependencas inyectadas manualmente

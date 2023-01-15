@@ -8,7 +8,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-private const val ENDPOINT = "rest/test" // Ruta de acceso, puede aunar un recurso
+private const val ENDPOINT = "api/test" // Ruta de acceso, puede aunar un recurso
 
 fun Application.testRoutes() {
     routing {
