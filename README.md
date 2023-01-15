@@ -306,6 +306,7 @@ Además la caché nos ofrece automáticamente distintos mecanismos de actuación
 
 En nuestro proyecto tenemos dos repositorios, uno para la caché y otro para la base de datos. Para ello todas las consultas usamos la caché y si no está, se consulta a la base de datos y se guarda en la caché. Además, podemos tener un proceso en background que actualice la caché cada cierto tiempo.
 
+Además, hemos optimizado las operaciones con corrutinas para que se ejecuten en paralelo actualizando la caché y la base de datos.
 
 El diagrama seguido es el siguiente
 
