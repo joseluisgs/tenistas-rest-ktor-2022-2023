@@ -21,16 +21,15 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Parametrizando la aplicación](#parametrizando-la-aplicación)
     - [Creando rutas](#creando-rutas)
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
+    - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
     - [Responses](#responses)
-    - [Request](#request)
+      - [Enviando datos serializados](#enviando-datos-serializados)
+    - [Requests](#requests)
       - [Parámetros de ruta](#parámetros-de-ruta)
       - [Parámetros de consulta](#parámetros-de-consulta)
-      - [Procesando el cuerpo de la petición](#procesando-el-cuerpo-de-la-petición)
+      - [Peticiones datos serializados](#peticiones-datos-serializados)
       - [Peticiones con formularios](#peticiones-con-formularios)
       - [Peticiones multiparte](#peticiones-multiparte)
-    - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
-      - [Enviando datos serializados](#enviando-datos-serializados)
-      - [Recibiendo datos serializados](#recibiendo-datos-serializados)
       - [Request validation](#request-validation)
   - [Caché](#caché)
   - [Recursos](#recursos)
@@ -74,21 +73,21 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 ## Problema
 
 Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que:
-- Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1).
-- Un tenista solo usa una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N).
+- Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1). No puede haber raquetas sin representante y no puede haber representantes sin raquetas.
+- Un tenista solo puede o no tener contrato con una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N). Puede haber tenistas sin raqueta y puede haber raquetas sin tenistas.
 
 De esta forma, tenemos que gestionar los siguientes datos:
-- Raqueta:
-  - id: Long
-  - marca: String
-  - precio: Double
-  - representante: Representante
 
 - Representante:
   - id: Long
   - nombre: String
   - email: String
 
+- Raqueta:
+  - id: Long
+  - marca: String
+  - precio: Double
+  - representante: Representante (nunca es nulo)
 
 
 ## Proyectos y documentación anteriores
@@ -174,6 +173,19 @@ routing {
 Ktor te permite hacer [Type-Safe Routing](https://ktor.io/docs/type-safe-routing.html), es decir, que puedes definir una clase que represente una ruta y que tenga las operaciones a realizar. 
 
 También podemos crear rutas de manera tipada con [Locations](https://ktor.io/docs/locations.html), pero esta siendo sustituida por Type-Safe Routing.
+
+
+### Serialización y Content Negotiation
+Ktor soporta [Content Negotiation](https://ktor.io/docs/serialization.html), es decir, que puede aceptar peticiones y respuestas distintos tipos de contenido, como JSON, XML, HTML, etc. En este caso, usaremos JSON. Para ello, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+install(ContentNegotiation) {
+    json(Json {
+        prettyPrint = true
+        isLenient = true
+    })
+}
+```
+
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
 ```kotlin
@@ -181,8 +193,17 @@ call.respondText("👋 Hola Kotlin REST Service con Kotlin-Ktor")
 call.respond(HttpStatusCode.OK, "👋 Hola Kotlin REST Service con Kotlin-Ktor")
 call.respond(HttpStatusCode.NotFound, "No encontrado")
 ```
+#### Enviando datos serializados
+Simplemente usa una data class y la función call.respond() para enviar datos serializados. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+@Serializable
+data class Customer(val id: Int, val firstName: String, val lastName: String)
 
-### Request
+get("/customer") {
+    call.respond(Customer(1, "José Luis", "García Sánchez"))
+}
+```
+### Requests
 En Ktor podemos recibir distintos tipos de [peticiones](https://ktor.io/docs/requests.html).
 
 #### Parámetros de ruta
@@ -206,13 +227,15 @@ get("/products") {
 }
 ```
 
-#### Procesando el cuerpo de la petición
-Podemos obtener los parámetros del Body, por ejemplo en Json, con receive, si configurando [ContentNegotiation](https://ktor.io/docs/serialization.html) y una librería o plugin de serializacion.
-
+#### Peticiones datos serializados
+Para recibir datos serializados, usa la función call.receive() y la data class que representa el tipo de datos que se espera recibir con la que casteamos el body de la petición. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
 ```kotlin
-post("/products") {
-    val product = call.receive<Product>()
-    call.respondText("Product: $product")
+@Serializable
+data class Customer(val id: Int, val firstName: String, val lastName: String)
+
+post("/customer") {
+    val customer = call.receive<Customer>()
+    call.respondText("Customer: $customer")
 }
 ```
 
@@ -239,38 +262,6 @@ post("/upload") {
       part.dispose()
     }
     call.respondText("$fileName is uploaded to 'uploads/$fileName'")
-}
-```
-
-### Serialización y Content Negotiation
-Ktor soporta [Content Negotiation](https://ktor.io/docs/serialization.html), es decir, que puede devolver distintos tipos de contenido, como JSON, XML, HTML, etc. En este caso, usaremos JSON. Para ello, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
-```kotlin
-install(ContentNegotiation) {
-    json(Json {
-        prettyPrint = true
-        isLenient = true
-    })
-}
-```
-#### Enviando datos serializados
-Simplemente usa una data class y la función call.respond() para enviar datos serializados. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
-```kotlin
-@Serializable
-data class Customer(val id: Int, val firstName: String, val lastName: String)
-
-get("/customer") {
-    call.respond(Customer(1, "José Luis", "García Sánchez"))
-}
-```
-#### Recibiendo datos serializados
-Para recibir datos serializados, usa la función call.receive() y la data class que representa el tipo de datos que se espera recibir con la que casteamos el body de la petición. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
-```kotlin
-@Serializable
-data class Customer(val id: Int, val firstName: String, val lastName: String)
-
-post("/customer") {
-    val customer = call.receive<Customer>()
-    call.respondText("Customer: $customer")
 }
 ```
 
