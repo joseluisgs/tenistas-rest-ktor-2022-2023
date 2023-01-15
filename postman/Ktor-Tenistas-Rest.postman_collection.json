@@ -193,6 +193,33 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "FIND BY",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/rest/representantes/find?nombre=pepe",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"rest",
+								"representantes",
+								"find"
+							],
+							"query": [
+								{
+									"key": "nombre",
+									"value": "pepe"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
