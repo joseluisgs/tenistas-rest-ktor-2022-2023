@@ -1,7 +1,6 @@
 package joseluisgs.es.repositories.representantes
 
 import joseluisgs.es.db.getRepresentantesInit
-import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -45,11 +44,11 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         )
     }
 
-    override suspend fun findById(id: UUID): Representante = withContext(Dispatchers.IO) {
+    override suspend fun findById(id: UUID): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "findById: Buscando representante con id: $id" }
 
         // Buscamos
-        return@withContext representantes[id] ?: throw RaquetaException("No existe el representante con id $id")
+        return@withContext representantes[id]
     }
 
 
@@ -71,27 +70,32 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
 
     }
 
-    override suspend fun update(id: UUID, entity: Representante): Representante = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: Representante): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando representante: $entity" }
 
         // Buscamos
         val representante = findById(id)
         // Actualizamos los datos
-        representantes[id] = representante.copy(
-            nombre = entity.nombre,
-            email = entity.email,
-            updatedAt = LocalDateTime.now()
-        )
-        return@withContext representantes[id]!!
+        representante?.let {
+            val representanteUpdate = it.copy(
+                nombre = entity.nombre,
+                email = entity.email,
+                updatedAt = LocalDateTime.now()
+            )
+            representantes[id] = representanteUpdate
+            return@withContext representanteUpdate
+        }
     }
 
-    override suspend fun delete(id: UUID): Representante = withContext(Dispatchers.IO) {
+    override suspend fun delete(id: UUID): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "delete: Borrando representante con id: $id" }
 
         // Buscamos
         val representante = findById(id)
         // Borramos
-        representantes.remove(id)
-        return@withContext representante
+        representante?.let {
+            representantes.remove(id)
+            return@withContext representante
+        }
     }
 }

@@ -1,7 +1,6 @@
 package joseluisgs.es.repositories.representantes
 
 import io.github.reactivecircus.cache4k.Cache
-import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -75,22 +74,21 @@ class RepresentantesCachedRepositoryImpl(
         return repository.findAllPageable(page, perPage)
     }
 
-
-    override suspend fun findById(id: UUID): Representante {
-        logger.debug { "findById: Buscando representante con id: $id en cache" }
-
-        // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cache.get(id) {
-            repository.findById(id) ?: throw RepresentanteException("No se ha encontrado el representante con id: $id")
-        }
-    }
-
     override fun findByNombre(nombre: String): Flow<List<Representante>> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
         return flow { cache.asMap().values.filter { it.nombre == nombre } }
     }
+
+
+    override suspend fun findById(id: UUID): Representante? {
+        logger.debug { "findById: Buscando representante con id: $id en cache" }
+
+        // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
+        return cache.get(id) ?: repository.findById(id)?.also { cache.put(id, it) }
+    }
+
 
     override suspend fun save(entity: Representante): Representante {
         logger.debug { "save: Guardando representante en cache" }
@@ -102,23 +100,21 @@ class RepresentantesCachedRepositoryImpl(
         return representante
     }
 
-    override suspend fun update(id: UUID, entity: Representante): Representante {
+    override suspend fun update(id: UUID, entity: Representante): Representante? {
         logger.debug { "update: Actualizando representante en cache" }
 
         // Actualizamos en el repositorio
         val representante = repository.update(id, entity)
         // Actualizamos en la cache
-        cache.put(representante.id, representante)
-        return representante
+        return representante?.also { cache.put(id, it) }
     }
 
-    override suspend fun delete(id: UUID): Representante {
+    override suspend fun delete(id: UUID): Representante? {
         logger.debug { "delete: Eliminando representante en cache" }
 
         // Eliminamos en el repositorio
         val representante = repository.delete(id)
         // Eliminamos en la cache
-        cache.invalidate(id)
-        return representante
+        return representante?.also { cache.invalidate(id) }
     }
 }

@@ -1,7 +1,6 @@
 package joseluisgs.es.repositories.raquetas
 
 import joseluisgs.es.db.getRaquetasInit
-import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.models.Raqueta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -44,11 +43,11 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         )
     }
 
-    override suspend fun findById(id: UUID): Raqueta = withContext(Dispatchers.IO) {
+    override suspend fun findById(id: UUID): Raqueta? = withContext(Dispatchers.IO) {
         logger.debug { "findById: Buscando raqueta con id: $id" }
 
         // Buscamos
-        return@withContext raquetas[id] ?: throw RaquetaException("No existe la raqueta con id $id")
+        return@withContext raquetas[id]
     }
 
     override fun findByMarca(marca: String): Flow<List<Raqueta>> {
@@ -67,28 +66,29 @@ class RaquetasRepositoryImpl : RaquetasRepository {
 
     }
 
-    override suspend fun update(id: UUID, entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: Raqueta): Raqueta? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando raqueta: $entity" }
 
         // Buscamos la raqueta
         val raqueta = findById(id)
-        // Actualizamos los datos
-        raquetas[id] = raqueta.copy(
-            marca = entity.marca,
-            precio = entity.precio,
-            represetanteId = entity.represetanteId,
-            updatedAt = LocalDateTime.now()
-        )
-        return@withContext raquetas[id]!!
+        // Si existe la actualizamos
+        raqueta?.let {
+            val raquetaActualizada =
+                entity.copy(id = id, marca = entity.marca, precio = entity.precio, updatedAt = LocalDateTime.now())
+            raquetas[id] = raquetaActualizada
+            return@withContext raquetaActualizada
+        }
+
     }
 
-    override suspend fun delete(id: UUID): Raqueta = withContext(Dispatchers.IO) {
+    override suspend fun delete(id: UUID): Raqueta? = withContext(Dispatchers.IO) {
         logger.debug { "delete: Guardando raqueta: $id" }
 
         // Buscamos
         val raqueta = findById(id)
-        // Borramos
-        raquetas.remove(id)
-        return@withContext raqueta
+        raqueta?.let {
+            raquetas.remove(id)
+            return@withContext it
+        }
     }
 }

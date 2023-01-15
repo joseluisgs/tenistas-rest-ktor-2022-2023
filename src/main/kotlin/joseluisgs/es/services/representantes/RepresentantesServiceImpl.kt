@@ -1,6 +1,5 @@
 package joseluisgs.es.services.representantes
 
-import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.models.Representante
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
 import kotlinx.coroutines.flow.Flow
@@ -29,11 +28,11 @@ class RepresentantesServiceImpl(
         return repository.findAllPageable(page, perPage)
     }
 
-    override suspend fun findById(id: UUID): Representante {
+    override suspend fun findById(id: UUID): Representante? {
         logger.debug { "findById: Buscando representante en servicio con id: $id" }
 
         return repository.findById(id)
-            ?: throw RepresentanteException("No se ha encontrado el representante con id: $id")
+
     }
 
     override suspend fun findByNombre(nombre: String): Flow<List<Representante>> {
@@ -49,15 +48,15 @@ class RepresentantesServiceImpl(
         return repository.save(representante)
     }
 
-    override suspend fun update(id: UUID, representante: Representante): Representante {
+    override suspend fun update(id: UUID, representante: Representante): Representante? {
         logger.debug { "update: Actualizando representante en servicio" }
 
         return repository.update(id, representante)
     }
 
-    override suspend fun delete(id: UUID) {
+    override suspend fun delete(id: UUID): Representante? {
         logger.debug { "delete: Borrando representante en servicio" }
 
-        repository.delete(id)
+        return repository.delete(id)
     }
 }

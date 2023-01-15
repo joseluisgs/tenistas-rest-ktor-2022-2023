@@ -13,3 +13,9 @@ data class RepresentantesPageDTO(
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime? = LocalDateTime.now()
 )
+
+@Serializable
+data class RepresentanteDTO(
+    val nombre: String,
+    val email: String
+)

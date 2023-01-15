@@ -10,6 +10,6 @@ interface RepresentantesService {
     suspend fun findById(id: UUID): Representante?
     suspend fun findByNombre(nombre: String): Flow<List<Representante>>
     suspend fun save(representante: Representante): Representante
-    suspend fun update(id: UUID, representante: Representante): Representante
-    suspend fun delete(id: UUID)
+    suspend fun update(id: UUID, representante: Representante): Representante?
+    suspend fun delete(id: UUID): Representante?
 }
