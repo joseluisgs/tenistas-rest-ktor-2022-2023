@@ -10,15 +10,30 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
 
 - [Tenistas REST Ktor](#tenistas-rest-ktor)
   - [Descripción](#descripción)
+    - [Advertencia](#advertencia)
     - [Tecnologías](#tecnologías)
-  - [Problema](#problema)
+  - [Dominio](#dominio)
+  - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
+  - [Arquitectura](#arquitectura)
+  - [Endpoints](#endpoints)
+    - [Representantes](#representantes)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
     - [Parametrizando la aplicación](#parametrizando-la-aplicación)
     - [Creando rutas](#creando-rutas)
+      - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
+    - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
     - [Responses](#responses)
-    - [Request](#request)
+      - [Enviando datos serializados](#enviando-datos-serializados)
+    - [Requests](#requests)
+      - [Parámetros de ruta](#parámetros-de-ruta)
+      - [Parámetros de consulta](#parámetros-de-consulta)
+      - [Peticiones datos serializados](#peticiones-datos-serializados)
+      - [Peticiones con formularios](#peticiones-con-formularios)
+      - [Peticiones multiparte](#peticiones-multiparte)
+      - [Request validation](#request-validation)
+  - [Caché](#caché)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -32,22 +47,79 @@ El siguiente proyecto es una API REST de Tenistas con Ktor para Programación de
 marcas de raquetas.
 
 El objetivo es que el alumnado aprenda a crear un servicio REST con Ktor, con las operaciones CRUD, securizar el
-servicio con JWT y usar un cliente para consumir el servicio.
+servicio con JWT y usar un cliente para consumir el servicio. Se pretende que el servicio completo sea asíncrono y reactivo en lo máximo posible agilizando el servicio mediante una caché.
 
-Se pretende que el servicio completo sea asíncrono y reactivo en lo máximo posible.
+Además que permita escuchar cambios en tiempo real usando websocket
 
-Además que permita escuchar cambios en tiempo real usando websocket y tener una página web de presentación
+Se realizará inyección de dependencias y un sistema de logging.
+
+Tendrá una página web de presentación como devolución de recursos estáticos.
+
+### Advertencia
+Esta API REST no está pensada para ser usada en producción. Es un proyecto de aprendizaje y por tanto algunas cosas no se profundizan y otras están pensadas para poder realizarlas en clase de una manera más simple con el objetivo que el alumnado pueda entenderlas mejor. No se trata de montar la mejor arquitectura o el mejor servicio, sino de aprender a crear un servicio REST en el tiempo exigido por el calendario escolar.
+
+Este proyecto está en constante evolución y se irán añadiendo nuevas funcionalidades y mejoras para el alumnado. De la misma manera se irá completando la documentación asociada. 
+
+Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 
 ### Tecnologías
 
-- [Ktor](https://ktor.io/) - Framework para crear servicios web en Kotlin asíncronos y multiplataforma.
-- [JWT](https://jwt.io/) - JSON Web Token para la autenticación y autorización.
-- [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) - Algoritmo de hash para encriptar contraseñas.
-- [Koin](https://insert-koin.io/) - Framework para la inyección de dependencias.
+- Servidor Web: [Ktor](https://ktor.io/) - Framework para crear servicios web en Kotlin asíncronos y multiplataforma.
+- Autenticación: [JWT](https://jwt.io/) - JSON Web Token para la autenticación y autorización.
+- Encriptado: [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) - Algoritmo de hash para encriptar contraseñas.
+- Proveedor de dependencias: [Koin](https://insert-koin.io/) - Framework para la inyección de dependencias.
+- Asincronía: [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Librería de Kotlin para la programación asíncrona.
+- Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
+- Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
 
-## Problema
+## Dominio
 
-Gestionar tenistas, raquetas y representantes de marcas de raquetas.
+Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que:
+- Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1). No puede haber raquetas sin representante y no puede haber representantes sin raquetas.
+- Un tenista solo puede o no tener contrato con una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N). Puede haber tenistas sin raqueta y puede haber raquetas sin tenistas.
+
+De esta forma, tenemos que gestionar los siguientes datos:
+
+- Representante:
+  - id: Long
+  - nombre: String
+  - email: String
+
+- Raqueta:
+  - id: Long
+  - marca: String
+  - precio: Double
+  - representante: Representante (nunca es nulo)
+
+
+## Proyectos y documentación anteriores
+Parte de los contenidos a desarrollar en este proyecto se han desarrollado en proyectos anteriores. En este caso:
+- [Kotlin-Ktor-REST-Service](https://github.com/joseluisgs/Kotlin-Ktor-REST-Service)
+- [SpringBoot-Productos-REST-DAM-2021-2022](https://github.com/joseluisgs/SpringBoot-Productos-REST-DAM-2021-2022)
+
+Para la parte de reactividad te recomiendo leer: ["Ya no sé programar si no es reactivo"](https://joseluisgs.dev/blogs/2022/2022-12-06-ya-no-se-programar-sin-reactividad.html)
+
+## Arquitectura
+Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patrón de diseño MVC (Modelo Vista Controlador) en capas.
+
+![img_1.png](./images/layers.png)
+
+![img_2.png](./images/expla.png)
+
+## Endpoints
+Los endpoints que vamos a usar son los siguientes:
+### Representantes
+| Método | Endpoint | Auth | Descripción | Status Code | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /api/representantes | No | Devuelve todos los representantes | 200 | JSON |
+| GET | /api/representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
+| GET | /api/representantes/{id} | No | Devuelve un representante por su id | 200 | JSON |
+| POST | /api/representantes | No | Crea un nuevo representante | 201 | JSON |
+| PUT | /api/representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
+| DELETE | /api/representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
+| GET | /api/representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
+
+
 
 ## Ktor
 
@@ -57,6 +129,8 @@ usando [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html). Admit
 significa que puede usarlo para cualquier proyecto dirigido a JVM, Android, iOS, nativo o Javascript. En este proyecto
 aprovecharemos Ktor para crear un servicio web para consumir una API REST. Además, aplicaremos Ktor para devolver
 páginas web.
+
+![img_3.png](./images/ktor_logo.svg)
 
 ### Creando un proyecto
 Podemos crear un proyecto Ktor usando el plugin IntelliJ, desde su web. Con estos [asistentes](https://ktor.io/create/) podemos crear un proyecto Ktor con las opciones que queramos, destacamos el routing, el uso de json, etc.
@@ -113,6 +187,22 @@ routing {
     }
 }
 ```
+#### Type-Safe Routing y Locations
+Ktor te permite hacer [Type-Safe Routing](https://ktor.io/docs/type-safe-routing.html), es decir, que puedes definir una clase que represente una ruta y que tenga las operaciones a realizar. 
+
+También podemos crear rutas de manera tipada con [Locations](https://ktor.io/docs/locations.html), pero esta siendo sustituida por Type-Safe Routing.
+
+
+### Serialización y Content Negotiation
+Ktor soporta [Content Negotiation](https://ktor.io/docs/serialization.html), es decir, que puede aceptar peticiones y respuestas distintos tipos de contenido, como JSON, XML, HTML, etc. En este caso, usaremos JSON. Para ello, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+install(ContentNegotiation) {
+    json(Json {
+        prettyPrint = true
+        isLenient = true
+    })
+}
+```
 
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
@@ -121,10 +211,20 @@ call.respondText("👋 Hola Kotlin REST Service con Kotlin-Ktor")
 call.respond(HttpStatusCode.OK, "👋 Hola Kotlin REST Service con Kotlin-Ktor")
 call.respond(HttpStatusCode.NotFound, "No encontrado")
 ```
+#### Enviando datos serializados
+Simplemente usa una data class y la función call.respond() para enviar datos serializados. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
+```kotlin
+@Serializable
+data class Customer(val id: Int, val firstName: String, val lastName: String)
 
-### Request
+get("/customer") {
+    call.respond(Customer(1, "José Luis", "García Sánchez"))
+}
+```
+### Requests
 En Ktor podemos recibir distintos tipos de [peticiones](https://ktor.io/docs/requests.html).
 
+#### Parámetros de ruta
 Podemos obtener los parámetros del Path, con parameters, como en el siguiente ejemplo, siempre y cuando estén definidos en la ruta {param}:
 
 ```kotlin
@@ -134,6 +234,7 @@ get("/hello/{name}") {
 }
 ```
 
+#### Parámetros de consulta
 Podemos obtener los parámetros de la Query, con queryParameters, si tenemos por ejemplo la siguiente ruta: /products?price=asc&category=1:
 
 ```kotlin
@@ -144,14 +245,69 @@ get("/products") {
 }
 ```
 
-Podemos obtener los parámetros del Body, por ejemplo en Json, con receive, si configurando [ContentNegotiation](https://ktor.io/docs/serialization.html) y una librería o plugin de serializacion.
-
+#### Peticiones datos serializados
+Para recibir datos serializados, usa la función call.receive() y la data class que representa el tipo de datos que se espera recibir con la que casteamos el body de la petición. En este caso, usaremos la librería [Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)
 ```kotlin
-post("/products") {
-    val product = call.receive<Product>()
-    call.respondText("Product: $product")
+@Serializable
+data class Customer(val id: Int, val firstName: String, val lastName: String)
+
+post("/customer") {
+    val customer = call.receive<Customer>()
+    call.respondText("Customer: $customer")
 }
 ```
+
+#### Peticiones con formularios
+Ktor soporta [peticiones con formularios](https://ktor.io/docs/requests.html#form_parameters), es decir, que podemos enviar datos de un formulario. 
+```kotlin
+post("/signup") {
+    val formParameters = call.receiveParameters()
+    val username = formParameters["username"].toString()
+    call.respondText("The '$username' account is created")
+}
+```
+
+#### Peticiones multiparte
+Ktor soporta [peticiones multipartes](https://ktor.io/docs/requests.html#form_data), es decir, que podemos enviar ficheros, imágenes, etc. 
+```kotlin
+post("/upload") {
+    //  multipart data (suspending)
+    val multipart = call.receiveMultipart()
+    multipart.forEachPart { part ->
+      val fileName = part.originalFileName as String
+      var fileBytes = part.streamProvider().readBytes()
+      File("uploads/$fileName").writeBytes(fileBytes)
+      part.dispose()
+    }
+    call.respondText("$fileName is uploaded to 'uploads/$fileName'")
+}
+```
+
+#### Request validation
+Ktor tiene una [API de validación](https://ktor.io/docs/request-validation.html) que nos permite validar los datos del body de una petición. En este caso lanzando RequestValidationException si no es correcto.
+```kotlin
+install(RequestValidation) {
+    validate<Customer> { customer ->
+        if (customer.id <= 0)
+            ValidationResult.Invalid("A customer ID should be greater than 0")
+        else ValidationResult.Valid
+    }
+}
+```
+
+## Caché
+La [caché](https://es.wikipedia.org/wiki/Cach%C3%A9_(inform%C3%A1tica)) es una forma de almacenar datos en memoria/disco para que se puedan recuperar rápidamente. Además de ser una forma de optimizar el rendimiento, también es una forma de reducir el coste de almacenamiento de datos y tiempo de respuesta pues los datos se almacenan en memoria y no en disco o base de datos que pueden estar en otro servidor y con ello aumentar el tiempo de respuesta. 
+
+Además la caché nos ofrece automáticamente distintos mecanismos de actuación, como por ejemplo, que los elementos en cache tenga un tiempo de vida máximo y se eliminen automáticamente cuando se cumpla. Lo que nos permite tener datos actualizados Y/o los más usados en memoria y eliminar los que no se usan.
+
+En nuestro proyecto tenemos dos repositorios, uno para la caché y otro para la base de datos. Para ello todas las consultas usamos la caché y si no está, se consulta a la base de datos y se guarda en la caché. Además, podemos tener un proceso en background que actualice la caché cada cierto tiempo.
+
+
+El diagrama seguido es el siguiente
+
+![cache](./images/cache.jpg)
+
+
 ## Recursos
 
 - Twitter: https://twitter.com/joseluisgonsan

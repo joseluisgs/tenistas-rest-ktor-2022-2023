@@ -17,7 +17,7 @@ fun Application.module() {
     // Configuramos e iniciamos cada elemento o Plugin que necesitamos
 
     // configureSecurity()
-    // configureSerialization()
-
-    configureRouting()
+    configureSerialization() // Configuramos la serialización
+    configureRouting() // Configuramos las rutas
+    configureValidation() // Configuramos la validación
 }

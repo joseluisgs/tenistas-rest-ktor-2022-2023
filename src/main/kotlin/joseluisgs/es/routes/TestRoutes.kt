@@ -8,7 +8,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-private const val ENDPOINT = "rest/test" // Ruta de acceso, puede aunar un recurso
+private const val ENDPOINT = "api/test" // Ruta de acceso, puede aunar un recurso
 
 fun Application.testRoutes() {
     routing {
@@ -31,6 +31,7 @@ fun Application.testRoutes() {
                     "admin" -> call.respond(HttpStatusCode.Forbidden, "No tienes permisos")
                     "nopuedes" -> call.respond(HttpStatusCode.Unauthorized, "Timeout")
                     "error" -> call.respond(HttpStatusCode.InternalServerError, "Error interno")
+                    "json" -> call.respond(HttpStatusCode.OK, mapOf("id" to id, "message" to "TEST OK GET $id"))
                     else -> call.respond(HttpStatusCode.OK, "TEST OK GET $id")
                 }
             }
