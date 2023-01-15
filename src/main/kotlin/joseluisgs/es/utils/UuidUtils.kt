@@ -2,10 +2,12 @@ package joseluisgs.es.utils
 
 import java.util.*
 
-fun parseUuidOrNull(uuid: String): UUID? {
+class UuidException(message: String) : Exception(message)
+
+fun String.toUUID(): UUID {
     return try {
-        UUID.fromString(uuid)
+        UUID.fromString(this.trim())
     } catch (e: IllegalArgumentException) {
-        null
+        throw UuidException("El id no es válido o no está en el formato UUID")
     }
 }

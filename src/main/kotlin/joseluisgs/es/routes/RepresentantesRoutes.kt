@@ -14,7 +14,8 @@ import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryI
 import joseluisgs.es.repositories.representantes.RepresentantesRepositoryImpl
 import joseluisgs.es.services.representantes.RepresentantesService
 import joseluisgs.es.services.representantes.RepresentantesServiceImpl
-import joseluisgs.es.utils.parseUuidOrNull
+import joseluisgs.es.utils.UuidException
+import joseluisgs.es.utils.toUUID
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -57,15 +58,13 @@ fun Application.representantesRoutes() {
                 logger.debug { "GET /test/{id}" }
                 // Obtenemos el id
                 try {
-                    val id = call.parameters["id"]?.let { parseUuidOrNull(it) }
-                    id?.let {
-                        val representante = representantesService.findById(id)
-                        call.respond(HttpStatusCode.OK, representante)
-                    } ?: call.respond(HttpStatusCode.BadRequest, "El id no es válido o no se ha encontrado")
-                    // Vamos a captar las excepciones de nuestro dominio
+                    val id = call.parameters["id"]?.toUUID()!!
+                    val representante = representantesService.findById(id)
+                    call.respond(HttpStatusCode.OK, representante)
                 } catch (e: RepresentanteNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                    // Cuidado con otras!!!
+                } catch (e: UuidException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }
             }
 
@@ -77,33 +76,35 @@ fun Application.representantesRoutes() {
                     val representante = representantesService.save(dto.toModel())
                     call.respond(HttpStatusCode.Created, representante)
                 } catch (e: RequestValidationException) {
-                    // Validación de entrada de datos
                     call.respond(HttpStatusCode.BadRequest, e.reasons)
                 }
             }
 
+            // Put -> /{id}
+            put("{id}") {
+                logger.debug { "PUT /test/{id}" }
+                try {
+                    val id = call.parameters["id"]?.toUUID()!!
+                    val dto = call.receive<RepresentanteDTO>()
+                    val representante = representantesService.update(id, dto.toModel())
+                    call.respond(HttpStatusCode.OK, representante)
+                    // Vamos a captar las excepciones de nuestro dominio
+                } catch (e: RepresentanteNotFoundException) {
+                    call.respond(HttpStatusCode.NotFound, e.message.toString())
+                } catch (e: RequestValidationException) {
+                    call.respond(HttpStatusCode.BadRequest, e.reasons)
+                } catch (e: UuidException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                }
+            }
             /*
 
-           // Put -> /{id}
-           put("{id}") {
-               logger.debug { "PUT /test/{id}" }
-               val id = call.parameters["id"]
-               call.respond(HttpStatusCode.OK, "TEST OK PUT $id")
-           }
-
-           // Patch -> /{id}
-           patch("{id}") {
-               logger.debug { "PATCH /test/{id}" }
-               val id = call.parameters["id"]
-               call.respond(HttpStatusCode.OK, "TEST OK PATCH $id")
-           }
-
-           // Delete -> /{id}
-           delete("{id}") {
+            // Delete -> /{id}
+            delete("{id}") {
                logger.debug { "DELETE /test/{id}" }
                val id = call.parameters["id"]
                call.respond(HttpStatusCode.OK, "TEST OK DELETE $id")
-           }*/
+            }*/
         }
     }
 }
