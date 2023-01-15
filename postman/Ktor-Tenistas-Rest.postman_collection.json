@@ -15,14 +15,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6969/rest/test",
+							"raw": "http://localhost:6969/api/test",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"test"
 							]
 						}
@@ -40,14 +40,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes",
+							"raw": "http://localhost:6969/api/representantes",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes"
 							]
 						}
@@ -60,14 +60,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes?page=2&perPage=1",
+							"raw": "http://localhost:6969/api/representantes?page=2&perPage=1",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes"
 							],
 							"query": [
@@ -90,14 +90,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes/b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf",
+							"raw": "http://localhost:6969/api/representantes/b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes",
 								"b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf"
 							]
@@ -120,14 +120,14 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes",
+							"raw": "http://localhost:6969/api/representantes",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes"
 							]
 						}
@@ -149,14 +149,14 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes/b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf",
+							"raw": "http://localhost:6969/api/representantes/b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes",
 								"b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf"
 							]
@@ -179,14 +179,14 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes/b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf",
+							"raw": "http://localhost:6969/api/representantes/b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes",
 								"b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf"
 							]
@@ -200,14 +200,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6969/rest/representantes/find?nombre=pepe",
+							"raw": "http://localhost:6969/api/representantes/find?nombre=pepe",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "6969",
 							"path": [
-								"rest",
+								"api",
 								"representantes",
 								"find"
 							],
