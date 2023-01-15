@@ -2,17 +2,20 @@ package joseluisgs.es.routes
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import joseluisgs.es.dto.RepresentanteDTO
 import joseluisgs.es.dto.RepresentantesPageDTO
+import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.mappers.toModel
 import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
 import joseluisgs.es.repositories.representantes.RepresentantesRepositoryImpl
 import joseluisgs.es.services.representantes.RepresentantesService
 import joseluisgs.es.services.representantes.RepresentantesServiceImpl
+import joseluisgs.es.utils.parseUuidOrNull
 import mu.KotlinLogging
-import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -54,23 +57,29 @@ fun Application.representantesRoutes() {
                 logger.debug { "GET /test/{id}" }
                 // Obtenemos el id
                 try {
-                    val id = UUID.fromString(call.parameters["id"])
-                    println(id)
-                    // Buscamos el representante
-                    val representante = representantesService.findById(id)
-                    representante?.let {
-                        call.respond(HttpStatusCode.OK, it)
-                    } ?: call.respond(HttpStatusCode.NotFound, "No se ha encontrado el representante con id: $id")
-                } catch (e: Exception) {
-                    call.respond(HttpStatusCode.BadRequest, "El id no es válido o no tiene el formato correcto")
+                    val id = call.parameters["id"]?.let { parseUuidOrNull(it) }
+                    id?.let {
+                        val representante = representantesService.findById(id)
+                        call.respond(HttpStatusCode.OK, representante)
+                    } ?: call.respond(HttpStatusCode.BadRequest, "El id no es válido o no se ha encontrado")
+                    // Vamos a captar las excepciones de nuestro dominio
+                } catch (e: RepresentanteNotFoundException) {
+                    call.respond(HttpStatusCode.NotFound, e.message.toString())
+                    // Cuidado con otras!!!
                 }
             }
 
             // Post -> /
             post {
                 logger.debug { "POST /test" }
-                val dto = call.receive<RepresentanteDTO>()
-                call.respond(HttpStatusCode.Created, "TEST OK: $dto")
+                try {
+                    val dto = call.receive<RepresentanteDTO>()
+                    val representante = representantesService.save(dto.toModel())
+                    call.respond(HttpStatusCode.Created, representante)
+                } catch (e: RequestValidationException) {
+                    // Validación de entrada de datos
+                    call.respond(HttpStatusCode.BadRequest, e.reasons)
+                }
             }
 
             /*

@@ -29,6 +29,9 @@ dependencies {
     // Ktor core
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
 
+    // Motor de Ktor
+    implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
+
     // Auth JWT
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
@@ -38,8 +41,9 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
 
-    // Motor de Ktor
-    implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
+    // Content validation
+    implementation("io.ktor:ktor-server-request-validation:$ktor_version")
+
 
     // Logging
     // implementation("ch.qos.logback:logback-classic:$logback_version")

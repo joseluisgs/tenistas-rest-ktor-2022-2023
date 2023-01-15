@@ -19,4 +19,5 @@ fun Application.module() {
     // configureSecurity()
     configureSerialization() // Configuramos la serialización
     configureRouting() // Configuramos las rutas
+    configureValidation() // Configuramos la validación
 }
