@@ -113,6 +113,20 @@ fun Application.representantesRoutes() {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }
             }
+
+            // Otros métodos de búsqueda
+            // Get by nombre -> /find?nombre={nombre}
+            get("find") {
+                // Es similar a la página, podemos crear las busquedas que queramos o necesitemos
+                // se puede combinar varias
+                logger.debug { "GET BY NOMBRE /$ENDPOINT/find?nombre={nombre}" }
+                val nombre = call.request.queryParameters["nombre"]
+                nombre?.let {
+                    representantesService.findByNombre(nombre).collect {
+                        call.respond(HttpStatusCode.OK, it.map { representante -> representante.toDto() })
+                    }
+                } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
+            }
         }
     }
 }

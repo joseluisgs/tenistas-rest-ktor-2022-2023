@@ -4,7 +4,6 @@ import io.github.reactivecircus.cache4k.Cache
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import mu.KotlinLogging
 import java.util.*
@@ -77,8 +76,12 @@ class RepresentantesCachedRepositoryImpl(
     override fun findByNombre(nombre: String): Flow<List<Representante>> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
-        // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return flow { cache.asMap().values.filter { it.nombre == nombre } }
+        // Buscamos en la cache
+        return flowOf(
+            cache.asMap().values.filter {
+                it.nombre.lowercase(Locale.getDefault()).contains(nombre.lowercase(Locale.getDefault()))
+            }
+        )
     }
 
 
