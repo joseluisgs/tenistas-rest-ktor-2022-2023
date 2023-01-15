@@ -13,6 +13,8 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Advertencia](#advertencia)
     - [Tecnologías](#tecnologías)
   - [Dominio](#dominio)
+    - [Representante](#representante)
+    - [Raqueta](#raqueta)
   - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
   - [Arquitectura](#arquitectura)
   - [Endpoints](#endpoints)
@@ -78,19 +80,21 @@ Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que
 - Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1). No puede haber raquetas sin representante y no puede haber representantes sin raquetas.
 - Un tenista solo puede o no tener contrato con una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N). Puede haber tenistas sin raqueta y puede haber raquetas sin tenistas.
 
-De esta forma, tenemos que gestionar los siguientes datos:
+### Representante
 
-- Representante:
-  - id: Long
-  - nombre: String
-  - email: String
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| id | UUID | Identificador único |
+| nombre | String | Nombre del representante |
+| email | String | Email del representante |
 
-- Raqueta:
-  - id: Long
-  - marca: String
-  - precio: Double
-  - representante: Representante (nunca es nulo)
-
+### Raqueta
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| id | UUID | Identificador único |
+| marca | String | Marca de la raqueta |
+| precio | Double | Precio de la raqueta |
+| representante | Representante | Representante de la raqueta (no nulo) |
 
 ## Proyectos y documentación anteriores
 Parte de los contenidos a desarrollar en este proyecto se han desarrollado en proyectos anteriores. En este caso:
