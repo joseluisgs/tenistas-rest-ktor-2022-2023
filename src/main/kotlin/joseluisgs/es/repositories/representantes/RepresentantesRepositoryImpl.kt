@@ -38,11 +38,11 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
         // Filtramos por página y por perPage
-        return flow {
+        return flowOf(
             representantes.values
                 .drop(page * perPage)
                 .take(perPage)
-        }
+        )
     }
 
     override suspend fun findById(id: UUID): Representante = withContext(Dispatchers.IO) {

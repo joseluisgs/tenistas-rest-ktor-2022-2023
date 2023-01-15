@@ -1,8 +1,10 @@
 package joseluisgs.es.routes
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import joseluisgs.es.dto.RepresentantesPageDTO
 import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
 import joseluisgs.es.repositories.representantes.RepresentantesRepositoryImpl
 import joseluisgs.es.services.representantes.RepresentantesService
@@ -23,10 +25,24 @@ fun Application.representantesRoutes() {
         route("/$ENDPOINT") {
             // Get all -> /
             get {
-                logger.debug { "GET ALL /$ENDPOINT" }
-                // respond
-                representantesService.findAll().collect {
-                    call.respond(it)
+                // Tenemos QueryParams ??
+                val page = call.request.queryParameters["page"]?.toIntOrNull()
+                val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
+                if (page != null && page > 0) {
+                    logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
+                    representantesService.findAllPageable(page - 1, perPage).collect {
+                        val dto = RepresentantesPageDTO(
+                            page = page,
+                            perPage = perPage,
+                            data = it
+                        )
+                        call.respond(HttpStatusCode.OK, dto)
+                    }
+                } else {
+                    logger.debug { "GET ALL /$ENDPOINT" }
+                    representantesService.findAll().collect {
+                        call.respond(HttpStatusCode.OK, it)
+                    }
                 }
             }
 
