@@ -9,6 +9,7 @@ import io.ktor.server.routing.*
 import joseluisgs.es.dto.RepresentanteDTO
 import joseluisgs.es.dto.RepresentantesPageDTO
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
 import joseluisgs.es.repositories.representantes.RepresentantesRepositoryImpl
@@ -41,14 +42,14 @@ fun Application.representantesRoutes() {
                         val dto = RepresentantesPageDTO(
                             page = page,
                             perPage = perPage,
-                            data = it
+                            data = it.map { representante -> representante.toDto() }
                         )
                         call.respond(HttpStatusCode.OK, dto)
                     }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
                     representantesService.findAll().collect {
-                        call.respond(HttpStatusCode.OK, it)
+                        call.respond(HttpStatusCode.OK, it.map { representante -> representante.toDto() })
                     }
                 }
             }
@@ -60,7 +61,7 @@ fun Application.representantesRoutes() {
                 try {
                     val id = call.parameters["id"]?.toUUID()!!
                     val representante = representantesService.findById(id)
-                    call.respond(HttpStatusCode.OK, representante)
+                    call.respond(HttpStatusCode.OK, representante.toDto())
                 } catch (e: RepresentanteNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
                 } catch (e: UuidException) {
@@ -74,7 +75,7 @@ fun Application.representantesRoutes() {
                 try {
                     val dto = call.receive<RepresentanteDTO>()
                     val representante = representantesService.save(dto.toModel())
-                    call.respond(HttpStatusCode.Created, representante)
+                    call.respond(HttpStatusCode.Created, representante.toDto())
                 } catch (e: RequestValidationException) {
                     call.respond(HttpStatusCode.BadRequest, e.reasons)
                 }
@@ -87,7 +88,7 @@ fun Application.representantesRoutes() {
                     val id = call.parameters["id"]?.toUUID()!!
                     val dto = call.receive<RepresentanteDTO>()
                     val representante = representantesService.update(id, dto.toModel())
-                    call.respond(HttpStatusCode.OK, representante)
+                    call.respond(HttpStatusCode.OK, representante.toDto())
                     // Vamos a captar las excepciones de nuestro dominio
                 } catch (e: RepresentanteNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
