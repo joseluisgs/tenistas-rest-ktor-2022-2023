@@ -6,8 +6,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import mu.KotlinLogging
+import java.time.LocalDateTime
 import java.util.*
-import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
 private val logger = KotlinLogging.logger {}
@@ -19,8 +20,9 @@ class RepresentantesCachedRepositoryImpl(
 ) : RepresentantesRepository {
     @OptIn(ExperimentalTime::class)
     private val cache = Cache.Builder()
+        // Si le ponemos opciones de cacheo si no usara las de por defecto
         .maximumCacheSize(100) // Tamaño máximo de la caché si queremos limitarla
-        .expireAfterAccess(24.hours) // Vamos a cachear durante 24 hora
+        .expireAfterAccess(30.minutes) // Vamos a cachear durante
         .build<UUID, Representante>()
 
     private val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos
@@ -102,7 +104,8 @@ class RepresentantesCachedRepositoryImpl(
         logger.debug { "save: Guardando representante en cache" }
 
         // Guardamos en el repositorio y en la cache en paralelo, creando antes el id
-        val representante = entity.copy(id = UUID.randomUUID())
+        val representante =
+            entity.copy(id = UUID.randomUUID(), createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
@@ -123,8 +126,8 @@ class RepresentantesCachedRepositoryImpl(
         // o si nos hemos traído todos los datos en el findAll
         val existe = findById(id) // hace todo lo anterior
         return existe?.let {
-            // Actualizamos en el repositorio y en la cache en paralelo creando antes el id
-            val representante = entity.copy(id = id)
+            // Actualizamos en el repositorio y en la cache en paralelo creando antes el id, tomamos el created de quien ya estaba
+            val representante = entity.copy(id = id, createdAt = existe.createdAt, updatedAt = LocalDateTime.now())
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {

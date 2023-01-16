@@ -39,6 +39,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones con formularios](#peticiones-con-formularios)
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Request validation](#request-validation)
+  - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Recursos](#recursos)
   - [Autor](#autor)
@@ -313,6 +314,11 @@ install(RequestValidation) {
     }
 }
 ```
+
+## Inmutabilidad
+Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
+
+Para los POKOS (Plain Old Kotlin Objects) usaremos Data Classes, que son clases inmutables por defecto y crearemos objetos nuevos con las modificaciones que necesitemos con la función copy().
 
 ## Caché
 La [caché](https://es.wikipedia.org/wiki/Cach%C3%A9_(inform%C3%A1tica)) es una forma de almacenar datos en memoria/disco para que se puedan recuperar rápidamente. Además de ser una forma de optimizar el rendimiento, también es una forma de reducir el coste de almacenamiento de datos y tiempo de respuesta pues los datos se almacenan en memoria y no en disco o base de datos que pueden estar en otro servidor y con ello aumentar el tiempo de respuesta. 

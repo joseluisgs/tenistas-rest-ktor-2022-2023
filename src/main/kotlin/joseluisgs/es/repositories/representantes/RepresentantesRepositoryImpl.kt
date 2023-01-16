@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import java.time.LocalDateTime
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -62,11 +61,8 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
     override suspend fun save(entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando representante: $entity" }
 
-        val time = LocalDateTime.now()
-        val representante =
-            entity.copy(createdAt = time, updatedAt = time)
-        representantes[representante.id] = representante
-        return@withContext representante
+        representantes[entity.id] = entity
+        return@withContext entity
 
     }
 
@@ -79,7 +75,7 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         val representanteUpdate = entity.copy(
             nombre = entity.nombre,
             email = entity.email,
-            updatedAt = LocalDateTime.now()
+            createdAt = entity.createdAt,
         )
         representantes[id] = representanteUpdate
         return@withContext representanteUpdate
