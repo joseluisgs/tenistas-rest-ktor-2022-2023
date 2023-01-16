@@ -19,13 +19,13 @@ class RepresentantesServiceImpl(
         logger.debug { "Inicializando el servicio de representantes" }
     }
 
-    override suspend fun findAll(): Flow<List<Representante>> {
+    override suspend fun findAll(): Flow<Representante> {
         logger.debug { "findAll: Buscando todos los representantes en servicio" }
 
         return repository.findAll()
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Representante>> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
         logger.debug { "findAllPageable: Buscando todos los representantes en servicio con página: $page y cantidad: $perPage" }
 
         return repository.findAllPageable(page, perPage)
@@ -40,7 +40,7 @@ class RepresentantesServiceImpl(
 
     }
 
-    override suspend fun findByNombre(nombre: String): Flow<List<Representante>> {
+    override suspend fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante en servicio con nombre: $nombre" }
 
         return repository.findByNombre(nombre)

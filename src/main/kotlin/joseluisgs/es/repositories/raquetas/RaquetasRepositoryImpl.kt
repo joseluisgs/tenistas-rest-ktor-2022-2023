@@ -4,7 +4,7 @@ import joseluisgs.es.db.getRaquetasInit
 import joseluisgs.es.models.Raqueta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import java.time.LocalDateTime
@@ -25,22 +25,22 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         }
     }
 
-    override suspend fun findAll(): Flow<List<Raqueta>> {
+    override suspend fun findAll(): Flow<Raqueta> {
         logger.debug { "findAll: Buscando todas las raquetas" }
 
         // Filtramos por página y por perPage
-        return flowOf(raquetas.values.toList())
+        return raquetas.values.toList().asFlow()
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Raqueta>> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<Raqueta> {
         logger.debug { "findAllPageable: Buscando todas las raquetas con página: $page y cantidad: $perPage" }
 
         // Filtramos por página y por perPage
-        return flowOf(
-            raquetas.values
-                .drop(page * perPage)
-                .take(perPage)
-        )
+        return raquetas.values
+            .drop(page * perPage)
+            .take(perPage)
+            .asFlow()
+
     }
 
     override suspend fun findById(id: UUID): Raqueta? = withContext(Dispatchers.IO) {
@@ -50,10 +50,10 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         return@withContext raquetas[id]
     }
 
-    override fun findByMarca(marca: String): Flow<List<Raqueta>> {
+    override fun findByMarca(marca: String): Flow<Raqueta> {
         logger.debug { "findByMarca: Buscando raqueta con marca: $marca" }
 
-        return flowOf(raquetas.values.filter { it.marca == marca })
+        return raquetas.values.filter { it.marca.lowercase().contains(marca.lowercase()) }.asFlow()
     }
 
     override suspend fun save(entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {

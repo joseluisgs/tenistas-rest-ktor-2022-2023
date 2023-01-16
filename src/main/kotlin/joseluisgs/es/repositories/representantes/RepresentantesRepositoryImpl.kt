@@ -4,8 +4,7 @@ import joseluisgs.es.db.getRepresentantesInit
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import java.util.*
@@ -25,22 +24,21 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         }
     }
 
-    override suspend fun findAll(): Flow<List<Representante>> {
+    override suspend fun findAll(): Flow<Representante> {
         logger.debug { "findAll: Buscando todos los representantes" }
 
         // Filtramos por página y por perPage
-        return flowOf(representantes.values.toList())
+        return representantes.values.toList().asFlow()
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Representante>> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
         logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
         // Filtramos por página y por perPage
-        return flowOf(
-            representantes.values
-                .drop(page * perPage)
-                .take(perPage)
-        )
+        return representantes.values
+            .drop(page * perPage)
+            .take(perPage)
+            .asFlow()
     }
 
     override suspend fun findById(id: UUID): Representante? = withContext(Dispatchers.IO) {
@@ -51,10 +49,10 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
     }
 
 
-    override fun findByNombre(nombre: String): Flow<List<Representante>> {
+    override fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
-        return flow { representantes.values.filter { it.nombre == nombre } }
+        return representantes.values.filter { it.nombre.lowercase().contains(nombre.lowercase()) }.asFlow()
     }
 
 

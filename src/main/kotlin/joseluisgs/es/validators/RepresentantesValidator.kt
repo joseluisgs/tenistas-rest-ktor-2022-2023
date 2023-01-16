@@ -1,12 +1,12 @@
 package joseluisgs.es.validators
 
 import io.ktor.server.plugins.requestvalidation.*
-import joseluisgs.es.dto.RepresentanteDTO
+import joseluisgs.es.dto.RepresentanteDto
 
 
 // Validadores de entrada de datos
 fun RequestValidationConfig.representantesValidation() {
-    validate<RepresentanteDTO> { representante ->
+    validate<RepresentanteDto> { representante ->
         if (representante.nombre.isBlank()) {
             ValidationResult.Invalid("El nombre no puede estar vacío")
         } else if (representante.email.isBlank()) {
