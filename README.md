@@ -39,8 +39,10 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones con formularios](#peticiones-con-formularios)
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Request validation](#request-validation)
+    - [WebSockets](#websockets)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
+  - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -78,6 +80,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Asincronía: [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Librería de Kotlin para la programación asíncrona.
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
+- Notificaciones en tiempo real: [Ktor WebSockets](https://ktor.io/docs/websocket.html) - Framework para la gestión de websockets.
 
 ## Dominio
 
@@ -127,6 +130,7 @@ Los endpoints que vamos a usar son los siguientes:
 | PUT | /api/representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
 | DELETE | /api/representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
 | GET | /api/representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
+| WS | /api/representantes/updates | No | Websocket para recibir los cambios en los representantes | --- | JSON |
 
 
 
@@ -315,6 +319,25 @@ install(RequestValidation) {
 }
 ```
 
+### WebSockets
+Ktor soporta [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) para crear aplicaciones que hagan uso de ellos. Los [WebSockets](https://ktor.io/docs/websocket.html) permiten crear aplicaciones que requieren transferencia de datos en tiempo real desde y hacia el servidor ya que que hace posible abrir una sesión de comunicación interactiva entre el navegador del usuario y un servidor. Con esta API, puede enviar mensajes a un servidor y recibir respuestas controladas por eventos sin tener que consultar al servidor para una respuesta.
+    
+```kotlin
+webSocket("/echo") {
+    send("Please enter your name")
+    for (frame in incoming) {
+        frame as? Frame.Text ?: continue
+        val receivedText = frame.readText()
+        if (receivedText.equals("bye", ignoreCase = true)) {
+            close(CloseReason(CloseReason.Codes.NORMAL, "Client said BYE"))
+        } else {
+            send(Frame.Text("Hi, $receivedText!"))
+        }
+    }
+}
+
+```
+
 ## Inmutabilidad
 Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
 
@@ -335,6 +358,16 @@ El diagrama seguido es el siguiente
 
 Por otro lado también podemos configurar la Caché de Header a nivel de rutas o tipo de ficheros como se ha indicado
 
+## Notificaciones en tiempo real
+Las notificaciones en tiempo real son una forma de comunicación entre el servidor y el cliente que permite que el servidor envíe información al cliente sin que el cliente tenga que solicitarla. Esto permite que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor.
+
+Para ello usaremos [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) junto al patrón [Observer](https://refactoring.guru/es/design-patterns/observer) para que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor.
+
+Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesión y se guarda en una lista de clientes conectados. Cuando se produce un evento, se recorre la lista de clientes conectados y se envía la información a cada uno de ellos, ejecutando la función de callback que se le ha pasado al servidor.
+
+Además, podemos hacer uso de las funciones de serialización para enviar objetos complejos como JSON.
+
+![observer](./images/observer.png)
 
 ## Recursos
 

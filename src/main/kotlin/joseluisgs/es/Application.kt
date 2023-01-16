@@ -16,13 +16,20 @@ fun Application.module() {
 
     // Configuramos e iniciamos cada elemento o Plugin que necesitamos
 
-    // configureSecurity()
+    // Debe ir antes que las rutas, si no no excepcion
+    configureWebSockets() // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real
+
+    // Principales!!!
     configureSerialization() // Configuramos la serialización
     configureRouting() // Configuramos las rutas
     configureValidation() // Configuramos la validación de body en requests, puedes hacerlo a mano
 
-    // Muy opcionales
-    configureCachingHeaders() // Configuramos los headers de cacheo, sobre todo para web, no obligatorio
-    configureCompression() // Configuramos el compreso de gzip, sobre todo para web, no obligatorio
-    configureCors() // Configuramos el CORS, sobre todo para web, muy interesante para proteger consultas cruzadas)
+    // Otros plugins
+    // configureSecurity() // Configuramos la seguridad, ideal para JWT
+    // configureWebSockets() // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real
+
+    // opcionales segun el problema interesantes para el desarrollo
+    configureCachingHeaders() // Configuramos los headers de cacheo,
+    configureCompression() // Configuramos el compreso de gzip y otros
+    configureCors() // Configuramos el CORS, sobre todo para web,
 }
