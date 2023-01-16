@@ -7,16 +7,16 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Serializable
-data class RepresentantesPageDTO(
+data class RepresentantesPageDto(
     val page: Int,
     val perPage: Int,
-    val data: List<RepresentanteDTO>,
+    val data: List<RepresentanteDto>,
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime? = LocalDateTime.now()
 )
 
 @Serializable
-data class RepresentanteDTO(
+data class RepresentanteDto(
     @Serializable(with = UUIDSerializer::class)
     val id: UUID? = null,
     val nombre: String,

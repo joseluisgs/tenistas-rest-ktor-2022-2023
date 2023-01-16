@@ -4,7 +4,7 @@ import io.github.reactivecircus.cache4k.Cache
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asFlow
 import mu.KotlinLogging
 import java.time.LocalDateTime
 import java.util.*
@@ -42,10 +42,8 @@ class RepresentantesCachedRepositoryImpl(
             refreshJob?.cancel() // Cancelamos el job si existe
             do {
                 logger.debug { "refreshCache: Refrescando cache de Representantes" }
-                repository.findAll().collect { representantes ->
-                    representantes.forEach { representante ->
-                        cache.put(representante.id, representante)
-                    }
+                repository.findAll().collect { representante ->
+                    cache.put(representante.id, representante)
                 }
                 logger.debug { "refreshCache: Cache actualizada: ${cache.asMap().values.size}" }
                 delay(refreshTime)
@@ -53,7 +51,7 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
-    override suspend fun findAll(): Flow<List<Representante>> {
+    override suspend fun findAll(): Flow<Representante> {
         logger.debug { "findAll: Buscando todos los representantes en cache" }
 
         // Si por alguna razón no tenemos datos en el cache, los buscamos en el repositorio
@@ -66,13 +64,13 @@ class RepresentantesCachedRepositoryImpl(
             repository.findAll()
         } else {
             logger.debug { "findAll: Cache con datos, devolviendo datos de cache" }
-            flowOf(cache.asMap().values.toList())
+            cache.asMap().values.asFlow()
         }
 
     }
 
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<List<Representante>> {
+    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
         logger.debug { "findAllPageable: Buscando todos los representantes en cache con página: $page y cantidad: $perPage" }
 
         // Aquí no se puede cachear, ya que no se puede saber si hay más páginas
@@ -80,15 +78,13 @@ class RepresentantesCachedRepositoryImpl(
         return repository.findAllPageable(page, perPage)
     }
 
-    override fun findByNombre(nombre: String): Flow<List<Representante>> {
+    override fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
         // Buscamos en la cache
-        return flowOf(
-            cache.asMap().values.filter {
-                it.nombre.lowercase(Locale.getDefault()).contains(nombre.lowercase(Locale.getDefault()))
-            }
-        )
+        return cache.asMap().values.filter {
+            it.nombre.lowercase().contains(nombre.lowercase())
+        }.asFlow()
     }
 
 

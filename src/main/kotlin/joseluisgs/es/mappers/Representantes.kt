@@ -1,19 +1,19 @@
 package joseluisgs.es.mappers
 
-import joseluisgs.es.dto.RepresentanteDTO
+import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.models.Representante
 
-fun Representante.toDto() = RepresentanteDTO(
+fun Representante.toDto() = RepresentanteDto(
     id = this.id,
     nombre = this.nombre,
     email = this.email,
-    metadata = RepresentanteDTO.MetaData(
+    metadata = RepresentanteDto.MetaData(
         createdAt = this.createdAt,
         updatedAt = this.updatedAt
     )
 )
 
-fun RepresentanteDTO.toModel() = Representante(
+fun RepresentanteDto.toModel() = Representante(
     nombre = this.nombre,
     email = this.email
 )

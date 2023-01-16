@@ -8,8 +8,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import joseluisgs.es.dto.RepresentanteDTO
-import joseluisgs.es.dto.RepresentantesPageDTO
+import joseluisgs.es.dto.RepresentanteDto
+import joseluisgs.es.dto.RepresentantesPageDto
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
@@ -38,21 +38,20 @@ fun Application.representantesRoutes() {
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
+                val res = mutableListOf<RepresentanteDto>()
                 if (page != null && page > 0) {
                     logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
+                    // Procesamos el flow
                     representantesService.findAllPageable(page - 1, perPage).collect {
-                        val dto = RepresentantesPageDTO(
-                            page = page,
-                            perPage = perPage,
-                            data = it.map { representante -> representante.toDto() }
-                        )
-                        call.respond(HttpStatusCode.OK, dto)
+                        res.add(it.toDto())
                     }
+                    call.respond(HttpStatusCode.OK, RepresentantesPageDto(page, perPage, res))
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
                     representantesService.findAll().collect {
-                        call.respond(HttpStatusCode.OK, it.map { representante -> representante.toDto() })
+                        res.add(it.toDto())
                     }
+                    call.respond(HttpStatusCode.OK, res)
                 }
             }
 
@@ -75,7 +74,7 @@ fun Application.representantesRoutes() {
             post {
                 logger.debug { "POST /$ENDPOINT" }
                 try {
-                    val dto = call.receive<RepresentanteDTO>()
+                    val dto = call.receive<RepresentanteDto>()
                     val representante = representantesService.save(dto.toModel())
                     call.respond(HttpStatusCode.Created, representante.toDto())
                 } catch (e: RequestValidationException) {
@@ -88,7 +87,7 @@ fun Application.representantesRoutes() {
                 logger.debug { "PUT /$ENDPOINT/{id}" }
                 try {
                     val id = call.parameters["id"]?.toUUID()!!
-                    val dto = call.receive<RepresentanteDTO>()
+                    val dto = call.receive<RepresentanteDto>()
                     val representante = representantesService.update(id, dto.toModel())
                     call.respond(HttpStatusCode.OK, representante.toDto())
                     // Vamos a captar las excepciones de nuestro dominio
@@ -123,10 +122,12 @@ fun Application.representantesRoutes() {
                 // se puede combinar varias
                 logger.debug { "GET BY NOMBRE /$ENDPOINT/find?nombre={nombre}" }
                 val nombre = call.request.queryParameters["nombre"]
+                val res = mutableListOf<RepresentanteDto>()
                 nombre?.let {
                     representantesService.findByNombre(nombre).collect {
-                        call.respond(HttpStatusCode.OK, it.map { representante -> representante.toDto() })
+                        res.add(it.toDto())
                     }
+                    call.respond(HttpStatusCode.OK, res)
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
 
