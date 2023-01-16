@@ -119,18 +119,20 @@ Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patró
 ![img_2.png](./images/expla.png)
 
 ## Endpoints
-Los endpoints que vamos a usar son los siguientes:
+- Para la página web estática: /web/index.html
+
+Los endpoints que vamos a usar a nivel de api, parten de /api/:
 ### Representantes
-| Método | Endpoint | Auth | Descripción | Status Code | Content |
+| Método | Endpoint (/api) | Auth | Descripción | Status Code | Content |
 | ------ | -------- | ---- | ----------- | ----------- | ------- |
-| GET | /api/representantes | No | Devuelve todos los representantes | 200 | JSON |
-| GET | /api/representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
-| GET | /api/representantes/{id} | No | Devuelve un representante por su id | 200 | JSON |
-| POST | /api/representantes | No | Crea un nuevo representante | 201 | JSON |
-| PUT | /api/representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
-| DELETE | /api/representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
-| GET | /api/representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
-| WS | /api/representantes/updates | No | Websocket para recibir los cambios en los representantes | --- | JSON |
+| GET | /representantes | No | Devuelve todos los representantes | 200 | JSON |
+| GET | /representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
+| GET | /representantes/{id} | No | Devuelve un representante por su id | 200 | JSON |
+| POST | /representantes | No | Crea un nuevo representante | 201 | JSON |
+| PUT | /representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
+| DELETE | /representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
+| GET | /representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
+| WS | /representantes/updates | No | Websocket para notificaciones los cambios en los representantes en tiempo real | --- | JSON |
 
 
 

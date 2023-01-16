@@ -75,6 +75,8 @@ class RepresentantesServiceImpl(
     /// ---- Tiempo real, patrón observer!!!
 
     // Mis suscriptores, un mapa de codigo, con la función que se ejecutará
+    // Si no te gusta usar la función como parámetro, puedes usar el objeto de la sesión (pero para eso Kotlin
+    // es funcional ;)
     private val suscriptores =
         mutableMapOf<Int, suspend (RepresentantesNotification) -> Unit>()
 
@@ -92,18 +94,19 @@ class RepresentantesServiceImpl(
     }
 
     // Se ejecuta en cada cambio
-    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, entidad: Representante? = null) {
-        logger.debug { "onChange: Cambio en Representantes: $tipo, notificando a los suscriptores afectada entidad: $entidad" }
+    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Representante? = null) {
+        logger.debug { "onChange: Cambio en Representantes: $tipo, notificando a los suscriptores afectada entidad: $data" }
 
         // Por cada suscriptor, ejecutamos la función que se ha almacenado
+        // Si almacenas el objeto de la sesión, puedes usar el método de la sesión, que es sendSerialized
         suscriptores.values.forEach {
             it.invoke(
                 Notificacion(
                     tipo,
                     id,
-                    entidad
+                    data
                 )
-            ) // llama a la función que se ejecutará en el suscriptor sendSerialized
+            )
         }
     }
 }

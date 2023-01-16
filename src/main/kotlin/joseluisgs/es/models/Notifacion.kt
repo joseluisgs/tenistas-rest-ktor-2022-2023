@@ -13,7 +13,7 @@ data class Notificacion<T>(
     val tipo: Tipo,
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
-    val entidad: T,
+    val data: T,
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime? = LocalDateTime.now()
 ) {

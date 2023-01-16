@@ -135,6 +135,8 @@ fun Application.representantesRoutes() {
             webSocket("/updates") {
                 try {
                     // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
+                    // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
+                    // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
                     representantesService.addSuscriptor(this.hashCode()) {
                         // Al darnos de alta con esta función,
                         // cuando la invoquemos mandará los datos serializados que le pasemos
@@ -145,6 +147,7 @@ fun Application.representantesRoutes() {
                     for (frame in incoming) {
                         if (frame.frameType == FrameType.CLOSE) {
                             break
+                            // Por cada mensaje que nos llegue, lo mostramos por consola
                         } else if (frame is Frame.Text) {
                             logger.info { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
                         }
