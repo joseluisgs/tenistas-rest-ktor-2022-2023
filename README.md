@@ -26,6 +26,10 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Creando rutas](#creando-rutas)
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
     - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
+    - [Otros plugins](#otros-plugins)
+      - [Cache Headers](#cache-headers)
+      - [Comprensión de contenido](#comprensión-de-contenido)
+      - [CORS](#cors)
     - [Responses](#responses)
       - [Enviando datos serializados](#enviando-datos-serializados)
     - [Requests](#requests)
@@ -208,6 +212,17 @@ install(ContentNegotiation) {
 }
 ```
 
+### Otros plugins
+
+#### Cache Headers
+Nos permite [configurar](https://ktor.io/docs/caching.html) los encabezados Cache-Control y Expires utilizados para el almacenamiento en caché de HTTP. Puede configurar el almacenamiento en caché de las siguientes maneras: globales, particulares a nivel de ruta o llamada, activando o desactivando esta opción para determinados tipos de contenidos.
+
+#### Comprensión de contenido
+Ktor proporciona la capacidad de [comprimir contenido](https://ktor.io/docs/compression.html) saliente usando diferentes algoritmos de compresión, incluidos gzip y deflate, y con ello, especificar las condiciones requeridas para comprimir datos (como un tipo de contenido o tamaño de respuesta) o incluso comprimir datos en función de parámetros de solicitud específicos.
+
+#### CORS
+Si se supone que su servidor debe manejar solicitudes de origen cruzado ([CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS)), debe instalar y configurar el [complemento CORS](https://ktor.io/docs/cors.html) Ktor. Este complemento le permite configurar hosts permitidos, métodos HTTP, encabezados establecidos por el cliente, etc.
+
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
 ```kotlin
@@ -311,6 +326,8 @@ Además, hemos optimizado las operaciones con corrutinas para que se ejecuten en
 El diagrama seguido es el siguiente
 
 ![cache](./images/cache.jpg)
+
+Por otro lado también podemos configurar la Caché de Header a nivel de rutas o tipo de ficheros como se ha indicado
 
 
 ## Recursos

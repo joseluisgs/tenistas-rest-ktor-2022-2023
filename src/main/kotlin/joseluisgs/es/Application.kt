@@ -19,5 +19,10 @@ fun Application.module() {
     // configureSecurity()
     configureSerialization() // Configuramos la serialización
     configureRouting() // Configuramos las rutas
-    configureValidation() // Configuramos la validación
+    configureValidation() // Configuramos la validación de body en requests, puedes hacerlo a mano
+
+    // Muy opcionales
+    configureCachingHeaders() // Configuramos los headers de cacheo, sobre todo para web, no obligatorio
+    configureCompression() // Configuramos el compreso de gzip, sobre todo para web, no obligatorio
+    configureCors() // Configuramos el CORS, sobre todo para web, muy interesante para proteger consultas cruzadas)
 }

@@ -44,13 +44,21 @@ dependencies {
     // Content validation
     implementation("io.ktor:ktor-server-request-validation:$ktor_version")
 
+    // Caching Headers
+    implementation("io.ktor:ktor-server-caching-headers:$ktor_version")
+
+    // Compression
+    implementation("io.ktor:ktor-server-compression:$ktor_version")
+
+    // CORS
+    implementation("io.ktor:ktor-server-cors:$ktor_version")
 
     // Logging
     // implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("ch.qos.logback:logback-classic:$logbackclassic_version")
     implementation("io.github.microutils:kotlin-logging-jvm:$micrologging_version")
 
-    // Cache
+    // Cache 4K para cachear datos de almacenamiento
     implementation("io.github.reactivecircus.cache4k:cache4k:$cache_version")
 
     // Para testear
