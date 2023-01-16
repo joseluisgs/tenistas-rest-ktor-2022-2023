@@ -6,6 +6,8 @@ import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import joseluisgs.es.dto.RepresentanteDTO
 import joseluisgs.es.dto.RepresentantesPageDTO
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
@@ -126,6 +128,29 @@ fun Application.representantesRoutes() {
                         call.respond(HttpStatusCode.OK, it.map { representante -> representante.toDto() })
                     }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
+            }
+
+            // WebSockets para tiempo real
+            webSocket("/updates") {
+                try {
+                    // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
+                    representantesService.addSuscriptor(this.hashCode()) {
+                        // Al darnos de alta con esta función,
+                        // cuando la invoquemos mandará los datos serializados que le pasemos
+                        // https://ktor.io/docs/websocket-serialization.html#send_data
+                        sendSerialized(it) // Enviamos las cosas
+                    }
+                    // Por cada mensaje que nos llegue
+                    for (frame in incoming) {
+                        if (frame.frameType == FrameType.CLOSE) {
+                            break
+                        } else if (frame is Frame.Text) {
+                            logger.info { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
+                        }
+                    }
+                } finally {
+                    representantesService.removeSuscriptor(this.hashCode())
+                }
             }
         }
     }

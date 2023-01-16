@@ -13,6 +13,8 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Advertencia](#advertencia)
     - [Tecnologías](#tecnologías)
   - [Dominio](#dominio)
+    - [Representante](#representante)
+    - [Raqueta](#raqueta)
   - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
   - [Arquitectura](#arquitectura)
   - [Endpoints](#endpoints)
@@ -24,6 +26,10 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Creando rutas](#creando-rutas)
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
     - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
+    - [Otros plugins](#otros-plugins)
+      - [Cache Headers](#cache-headers)
+      - [Comprensión de contenido](#comprensión-de-contenido)
+      - [CORS](#cors)
     - [Responses](#responses)
       - [Enviando datos serializados](#enviando-datos-serializados)
     - [Requests](#requests)
@@ -33,7 +39,10 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones con formularios](#peticiones-con-formularios)
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Request validation](#request-validation)
+    - [WebSockets](#websockets)
+  - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
+  - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -71,6 +80,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Asincronía: [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Librería de Kotlin para la programación asíncrona.
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
+- Notificaciones en tiempo real: [Ktor WebSockets](https://ktor.io/docs/websocket.html) - Framework para la gestión de websockets.
 
 ## Dominio
 
@@ -78,19 +88,21 @@ Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que
 - Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1). No puede haber raquetas sin representante y no puede haber representantes sin raquetas.
 - Un tenista solo puede o no tener contrato con una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N). Puede haber tenistas sin raqueta y puede haber raquetas sin tenistas.
 
-De esta forma, tenemos que gestionar los siguientes datos:
+### Representante
 
-- Representante:
-  - id: Long
-  - nombre: String
-  - email: String
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| id | UUID | Identificador único |
+| nombre | String | Nombre del representante |
+| email | String | Email del representante |
 
-- Raqueta:
-  - id: Long
-  - marca: String
-  - precio: Double
-  - representante: Representante (nunca es nulo)
-
+### Raqueta
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| id | UUID | Identificador único |
+| marca | String | Marca de la raqueta |
+| precio | Double | Precio de la raqueta |
+| representante | Representante | Representante de la raqueta (no nulo) |
 
 ## Proyectos y documentación anteriores
 Parte de los contenidos a desarrollar en este proyecto se han desarrollado en proyectos anteriores. En este caso:
@@ -118,6 +130,7 @@ Los endpoints que vamos a usar son los siguientes:
 | PUT | /api/representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
 | DELETE | /api/representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
 | GET | /api/representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
+| WS | /api/representantes/updates | No | Websocket para recibir los cambios en los representantes | --- | JSON |
 
 
 
@@ -203,6 +216,17 @@ install(ContentNegotiation) {
     })
 }
 ```
+
+### Otros plugins
+
+#### Cache Headers
+Nos permite [configurar](https://ktor.io/docs/caching.html) los encabezados Cache-Control y Expires utilizados para el almacenamiento en caché de HTTP. Puede configurar el almacenamiento en caché de las siguientes maneras: globales, particulares a nivel de ruta o llamada, activando o desactivando esta opción para determinados tipos de contenidos.
+
+#### Comprensión de contenido
+Ktor proporciona la capacidad de [comprimir contenido](https://ktor.io/docs/compression.html) saliente usando diferentes algoritmos de compresión, incluidos gzip y deflate, y con ello, especificar las condiciones requeridas para comprimir datos (como un tipo de contenido o tamaño de respuesta) o incluso comprimir datos en función de parámetros de solicitud específicos.
+
+#### CORS
+Si se supone que su servidor debe manejar solicitudes de origen cruzado ([CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS)), debe instalar y configurar el [complemento CORS](https://ktor.io/docs/cors.html) Ktor. Este complemento le permite configurar hosts permitidos, métodos HTTP, encabezados establecidos por el cliente, etc.
 
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
@@ -295,6 +319,30 @@ install(RequestValidation) {
 }
 ```
 
+### WebSockets
+Ktor soporta [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) para crear aplicaciones que hagan uso de ellos. Los [WebSockets](https://ktor.io/docs/websocket.html) permiten crear aplicaciones que requieren transferencia de datos en tiempo real desde y hacia el servidor ya que que hace posible abrir una sesión de comunicación interactiva entre el navegador del usuario y un servidor. Con esta API, puede enviar mensajes a un servidor y recibir respuestas controladas por eventos sin tener que consultar al servidor para una respuesta.
+    
+```kotlin
+webSocket("/echo") {
+    send("Please enter your name")
+    for (frame in incoming) {
+        frame as? Frame.Text ?: continue
+        val receivedText = frame.readText()
+        if (receivedText.equals("bye", ignoreCase = true)) {
+            close(CloseReason(CloseReason.Codes.NORMAL, "Client said BYE"))
+        } else {
+            send(Frame.Text("Hi, $receivedText!"))
+        }
+    }
+}
+
+```
+
+## Inmutabilidad
+Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
+
+Para los POKOS (Plain Old Kotlin Objects) usaremos Data Classes, que son clases inmutables por defecto y crearemos objetos nuevos con las modificaciones que necesitemos con la función copy().
+
 ## Caché
 La [caché](https://es.wikipedia.org/wiki/Cach%C3%A9_(inform%C3%A1tica)) es una forma de almacenar datos en memoria/disco para que se puedan recuperar rápidamente. Además de ser una forma de optimizar el rendimiento, también es una forma de reducir el coste de almacenamiento de datos y tiempo de respuesta pues los datos se almacenan en memoria y no en disco o base de datos que pueden estar en otro servidor y con ello aumentar el tiempo de respuesta. 
 
@@ -302,11 +350,24 @@ Además la caché nos ofrece automáticamente distintos mecanismos de actuación
 
 En nuestro proyecto tenemos dos repositorios, uno para la caché y otro para la base de datos. Para ello todas las consultas usamos la caché y si no está, se consulta a la base de datos y se guarda en la caché. Además, podemos tener un proceso en background que actualice la caché cada cierto tiempo.
 
+Además, hemos optimizado las operaciones con corrutinas para que se ejecuten en paralelo actualizando la caché y la base de datos.
 
 El diagrama seguido es el siguiente
 
 ![cache](./images/cache.jpg)
 
+Por otro lado también podemos configurar la Caché de Header a nivel de rutas o tipo de ficheros como se ha indicado
+
+## Notificaciones en tiempo real
+Las notificaciones en tiempo real son una forma de comunicación entre el servidor y el cliente que permite que el servidor envíe información al cliente sin que el cliente tenga que solicitarla. Esto permite que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor.
+
+Para ello usaremos [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) junto al patrón [Observer](https://refactoring.guru/es/design-patterns/observer) para que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor.
+
+Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesión y se guarda en una lista de clientes conectados. Cuando se produce un evento, se recorre la lista de clientes conectados y se envía la información a cada uno de ellos, ejecutando la función de callback que se le ha pasado al servidor.
+
+Además, podemos hacer uso de las funciones de serialización para enviar objetos complejos como JSON.
+
+![observer](./images/observer.png)
 
 ## Recursos
 

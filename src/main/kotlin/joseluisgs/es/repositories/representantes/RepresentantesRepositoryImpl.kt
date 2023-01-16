@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import java.time.LocalDateTime
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -62,40 +61,32 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
     override suspend fun save(entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando representante: $entity" }
 
-        val time = LocalDateTime.now()
-        val representante =
-            entity.copy(id = UUID.randomUUID(), createdAt = time, updatedAt = time)
-        representantes[representante.id] = representante
-        return@withContext representante
+        representantes[entity.id] = entity
+        return@withContext entity
 
     }
 
-    override suspend fun update(id: UUID, entity: Representante): Representante? = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando representante: $entity" }
 
         // Buscamos
-        val representante = findById(id)
+        // val representante = findById(id) // no va a ser null por que lo filtro en la cache
         // Actualizamos los datos
-        representante?.let {
-            val representanteUpdate = it.copy(
-                nombre = entity.nombre,
-                email = entity.email,
-                updatedAt = LocalDateTime.now()
-            )
-            representantes[id] = representanteUpdate
-            return@withContext representanteUpdate
-        }
+        val representanteUpdate = entity.copy(
+            nombre = entity.nombre,
+            email = entity.email,
+            createdAt = entity.createdAt,
+        )
+        representantes[id] = representanteUpdate
+        return@withContext representanteUpdate
     }
 
     override suspend fun delete(id: UUID): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "delete: Borrando representante con id: $id" }
 
         // Buscamos
-        val representante = findById(id)
+        // val representante = findById(id) // no va a ser null por que lo filtro en la cache
         // Borramos
-        representante?.let {
-            representantes.remove(id)
-            return@withContext representante
-        }
+        return@withContext representantes.remove(id)
     }
 }
