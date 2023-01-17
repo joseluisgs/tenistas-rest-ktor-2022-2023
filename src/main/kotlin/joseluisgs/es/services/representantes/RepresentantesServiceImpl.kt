@@ -1,6 +1,7 @@
 package joseluisgs.es.services.representantes
 
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Representante
 import joseluisgs.es.models.RepresentantesNotification
@@ -104,7 +105,7 @@ class RepresentantesServiceImpl(
                 Notificacion(
                     tipo,
                     id,
-                    data
+                    data?.toDto() // Convertimos a DTO
                 )
             )
         }

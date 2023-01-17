@@ -1,5 +1,6 @@
 package joseluisgs.es.models
 
+import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.serializers.LocalDateTimeSerializer
 import joseluisgs.es.serializers.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -20,5 +21,6 @@ data class Notificacion<T>(
     enum class Tipo { CREATE, UPDATE, DELETE }
 }
 
-// Mis alias, para no estar con los genéricos
-typealias RepresentantesNotification = Notificacion<Representante?>
+// Mis alias, para no estar con los genéricos, mando el DTO por que es lo que quiero que se envíe con sus datos
+// visibles en el DTO igual que se ven en las llamadas REST
+typealias RepresentantesNotification = Notificacion<RepresentanteDto?> // RepresentanteDto?
