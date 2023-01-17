@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-## Llavero Servidor: Par de claves del servidor
-keytool -genkeypair -alias serverKeyPair -keyalg RSA -keysize 2048 -validity 365 -storetype PKCS12 -keystore server_keystore.p12 -storepass 1234567
+## Llavero Servidor: Par de claves del servidor (privada y pública) formato PEM
+keytool -genkeypair -alias serverKeyPair -keyalg RSA -keysize 4096 -validity 365 -storetype PKCS12 -keystore server_keystore.p12 -storepass 1234567
 
-## Certificado del servidor, exportamos
-keytool -exportcert -alias serverKeyPair -storetype PKCS12 -keystore server_keystore.p12 -file server_certificate.cer -rfc -storepass 1234567
-
-## Llavero Cliente: Importamos el certificado del servidor
-keytool -importcert -alias clientKeyPair -storetype PKCS12 -keystore client_keystore.p12 -file server_certificate.cer -rfc -storepass 1234567
+## Llavero Cliente: Par de claves del cliente (privada y pública) formato JKS
+keytool -genkeypair -alias serverKeyPair -keyalg RSA -keysize 4096 -validity 365 -storetype JKS -keystore server_keystore.jks -storepass 1234567

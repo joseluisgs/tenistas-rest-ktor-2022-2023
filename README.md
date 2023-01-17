@@ -41,9 +41,11 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Request validation](#request-validation)
     - [WebSockets](#websockets)
+    - [SSL y Certificados](#ssl-y-certificados)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
+  - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -120,7 +122,9 @@ Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patró
 ![img_2.png](./images/expla.png)
 
 ## Endpoints
-- Para la página web estática: /web/index.html
+Recuerda que puedes conectarte de forma segura:
+- Para la API REST: http://localhost:6969/api y https://localhost:6963/api
+- Para la página web estática: http://localhost:6969/web y https://localhost:6963/web
 
 Los endpoints que vamos a usar a nivel de api, parten de /api/:
 ### Representantes
@@ -363,6 +367,37 @@ webSocket("/echo") {
 
 ```
 
+### SSL y Certificados
+Aunque lo normal, es que nuestros servicios estén detrás de un Proxy Inverso, podemos configurar Ktor para que [soporte SSL](https://ktor.io/docs/ssl.html) y certificados. Para ello, debemos añadir la librería de soporte para TSL, y configurar el puerto y el certificado en el fichero application.conf.
+```hocon
+ktor {
+    ## Para el puerto
+    deployment {
+        ## Si no se especifica el puerto, se usa el 8080, si solo queremos SSL quitar el puerto normal
+        port = 6969
+        port = ${?PORT}
+        ## Para SSL, si es necesario poner el puerto
+        sslPort = 6963
+        sslPort = ${?SSL_PORT}
+    }
+
+    ## Para la clase principal
+    application {
+        modules = [ joseluisgs.es.ApplicationKt.module ]
+    }
+
+    ## Para SSL/TSL configuración del llavero y certificado
+    security {
+        ssl {
+            keyStore = ./cert/server_keystore.p12
+            keyAlias = serverKeyPair
+            keyStorePassword = 1234567
+            privateKeyPassword = 1234567
+        }
+    }
+}
+```
+
 ## Inmutabilidad
 Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
 
@@ -393,6 +428,16 @@ Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesi
 Además, podemos hacer uso de las funciones de serialización para enviar objetos complejos como JSON.
 
 ![observer](./images/observer.png)
+
+## Seguridad de las comunicaciones
+Para la seguridad de las comunicaciones usaremos [SSL/TLS](https://es.wikipedia.org/wiki/Seguridad_de_la_capa_de_transporte) que es un protocolo de seguridad que permite cifrar las comunicaciones entre el cliente y el servidor. Para ello usaremos un certificado SSL que nos permitirá cifrar las comunicaciones entre el cliente y el servidor.
+
+De esta manera, conseguiremos que los datos viajen cifrados entre el cliente y el servidor y que no puedan ser interceptados por terceros de una manera sencilla.
+
+Esto nos ayudará, a la hora de hacer el login de un usuario, a que la contraseña no pueda ser interceptada por terceros y que el usuario pueda estar seguro de que sus datos están protegidos.
+
+![tsl](./images/tsl.jpg)
+
 
 ## Recursos
 

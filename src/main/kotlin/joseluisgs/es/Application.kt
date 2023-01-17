@@ -10,7 +10,7 @@ fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
-    logger.debug { "Starting Ktor Application" }
+    logger.info { "Starting Ktor Application" }
     // logger.debug { environment.config.property("ktor.environmet").getString() }
 
 
