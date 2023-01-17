@@ -23,6 +23,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
     - [Parametrizando la aplicación](#parametrizando-la-aplicación)
+    - [Usando Plugins](#usando-plugins)
     - [Creando rutas](#creando-rutas)
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
     - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
@@ -145,10 +146,14 @@ significa que puede usarlo para cualquier proyecto dirigido a JVM, Android, iOS,
 aprovecharemos Ktor para crear un servicio web para consumir una API REST. Además, aplicaremos Ktor para devolver
 páginas web.
 
+Ktor trabaja con un sistema de plugins que lo hacen muy flexible y fácil de configurar. Además, Ktor es un framework donde trabajamos con DSL (Domain Specific Language) que nos permite crear código de forma más sencilla y legible.
+
+Además, permite adaptar su estructura en base a funciones de extensión.
+
 ![img_3.png](./images/ktor_logo.svg)
 
 ### Creando un proyecto
-Podemos crear un proyecto Ktor usando el plugin IntelliJ, desde su web. Con estos [asistentes](https://ktor.io/create/) podemos crear un proyecto Ktor con las opciones que queramos, destacamos el routing, el uso de json, etc.
+Podemos crear un proyecto Ktor usando el plugin IntelliJ, desde su web. Con estos [asistentes](https://ktor.io/create/) podemos crear un proyecto Ktor con las opciones que queramos (plugins), destacamos el routing, el uso de json, etc.
 
 ### Punto de Entrada
 
@@ -182,6 +187,24 @@ ktor {
     ## Modo de ejecución
     environment = dev
     environment = ${?KTOR_ENV}
+}
+```
+
+### Usando Plugins
+Ktor se puede extender y ampliar usando plugins. Estos plugins se "instalan" y configuran configuran según las necesidades.
+Los más recomendados para hacer una Api Rest son:
+- Routing: Para definir las rutas de la API
+- Serialization: Para serializar y deserializar objetos, por ejemplo en JSON
+- ContentNegotiation: Para definir el tipo de contenido que se va a usar en la API, por ejemplo JSON
+```kotlin
+fun Application.configureSerialization() {
+    install(ContentNegotiation) {
+        // Lo ponemos bonito :)
+        json(Json {
+            prettyPrint = true
+            isLenient = true
+        })
+    }
 }
 ```
 
