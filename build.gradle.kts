@@ -5,11 +5,18 @@ val kotlin_version: String by project
 val micrologging_version: String by project
 val logbackclassic_version: String by project
 val cache_version: String by project
+val junit_version: String by project
+val mockk_version: String by project
+val koin_version: String by project
+val koin_ktor_version: String by project
+val ksp_version: String by project
+val koin_ksp_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.0"
     id("io.ktor.plugin") version "2.2.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.0"
+    id("com.google.devtools.ksp") version "1.8.0-1.0.8"
 }
 
 group = "joseluisgs.es"
@@ -56,6 +63,9 @@ dependencies {
     // WebSockets
     implementation("io.ktor:ktor-server-websockets:$ktor_version")
 
+    // Certificados SSL y TSL
+    implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
+
     // Logging
     // implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("ch.qos.logback:logback-classic:$logbackclassic_version")
@@ -64,7 +74,30 @@ dependencies {
     // Cache 4K para cachear datos de almacenamiento
     implementation("io.github.reactivecircus.cache4k:cache4k:$cache_version")
 
+    // Koin
+    implementation("io.insert-koin:koin-ktor:$koin_ktor_version") // Koin para Ktor
+    implementation("io.insert-koin:koin-logger-slf4j:$koin_ktor_version") // Koin para Ktor con Logger
+    implementation("io.insert-koin:koin-core:$koin_version") // Koin Core no es necesario para Ktor, lo hemos añadido antes
+    implementation("io.insert-koin:koin-annotations:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
+    ksp("io.insert-koin:koin-ksp-compiler:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
+
     // Para testear
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+
+    // JUnit 5 en vez del por defecto de Kotlin...
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+
+    // MockK para testear Mockito con Kotlin
+    testImplementation("io.mockk:mockk:$mockk_version")
+
+    // Para testear con Koin
+    testImplementation("io.insert-koin:koin-test-junit5:$koin_version")
+}
+
+// Para Koin Annotations, directorio donde se encuentran las clases compiladas
+// KSP - To use generated sources
+sourceSets.main {
+    java.srcDirs("build/generated/ksp/main/kotlin")
 }
