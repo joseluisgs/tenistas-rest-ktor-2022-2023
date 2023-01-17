@@ -22,7 +22,7 @@ class RepresentantesCachedRepositoryImpl(
     private val cache = Cache.Builder()
         // Si le ponemos opciones de cacheo si no usara las de por defecto
         .maximumCacheSize(100) // Tamaño máximo de la caché si queremos limitarla
-        .expireAfterAccess(30.minutes) // Vamos a cachear durante
+        .expireAfterAccess(60.minutes) // Vamos a cachear durante
         .build<UUID, Representante>()
 
     private val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos
@@ -30,7 +30,7 @@ class RepresentantesCachedRepositoryImpl(
     init {
         logger.debug { "Inicializando el repositorio cache representantes" }
         // Iniciamos el proceso de refresco de datos
-        refreshCache()
+        refreshCache() // No es obligatorio hacerlo, pero si queremos que se refresque
     }
 
     private fun refreshCache() {
@@ -56,10 +56,10 @@ class RepresentantesCachedRepositoryImpl(
 
         // Si por alguna razón no tenemos datos en el cache, los buscamos en el repositorio
         // Ojo si le hemos puesto tamaño máximo a la caché, puede que no estén todos los datos
-        // si no en los findAll, siempre devolver los datos del repositorio
+        // si no en los findAll, siempre devolver los datos del repositorio y no hacer refresco
 
         return if (cache.asMap().values.isEmpty()) {
-            // refreshCache()
+            refreshCache()
             logger.debug { "findAll: Cache vacía, buscando en base de datos" }
             repository.findAll()
         } else {
@@ -105,10 +105,10 @@ class RepresentantesCachedRepositoryImpl(
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            repository.save(representante)
+            cache.put(representante.id, representante)
         }
         scope.launch {
-            cache.put(representante.id, representante)
+            repository.save(representante)
         }
         return representante
     }
@@ -127,10 +127,10 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                repository.update(id, representante)
+                cache.put(representante.id, representante)
             }
             scope.launch {
-                cache.put(representante.id, representante)
+                repository.update(id, representante)
             }
             return representante
         }
@@ -146,10 +146,10 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                repository.delete(id)
+                cache.invalidate(id)
             }
             scope.launch {
-                cache.invalidate(id)
+                repository.delete(id)
             }
             return existe
         }

@@ -17,7 +17,7 @@ import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryI
 import joseluisgs.es.repositories.representantes.RepresentantesRepositoryImpl
 import joseluisgs.es.services.representantes.RepresentantesService
 import joseluisgs.es.services.representantes.RepresentantesServiceImpl
-import joseluisgs.es.utils.UuidException
+import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
 import mu.KotlinLogging
 
@@ -65,7 +65,7 @@ fun Application.representantesRoutes() {
                     call.respond(HttpStatusCode.OK, representante.toDto())
                 } catch (e: RepresentanteNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: UuidException) {
+                } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }
             }
@@ -95,7 +95,7 @@ fun Application.representantesRoutes() {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
                 } catch (e: RequestValidationException) {
                     call.respond(HttpStatusCode.BadRequest, e.reasons)
-                } catch (e: UuidException) {
+                } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }
             }
@@ -110,7 +110,7 @@ fun Application.representantesRoutes() {
                     call.respond(HttpStatusCode.NoContent)
                 } catch (e: RepresentanteNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: UuidException) {
+                } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }
             }
