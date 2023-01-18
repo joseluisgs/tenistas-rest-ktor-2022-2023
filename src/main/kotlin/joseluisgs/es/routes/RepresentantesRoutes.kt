@@ -17,9 +17,9 @@ import joseluisgs.es.services.representantes.RepresentantesService
 import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
 import mu.KotlinLogging
-import org.koin.ktor.ext.get as koinGet
 
-// import org.koin.ktor.ext.inject
+// import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
+import org.koin.ktor.ext.inject
 
 private val logger = KotlinLogging.logger {}
 
@@ -32,9 +32,9 @@ fun Application.representantesRoutes() {
 //    )
 
     // Inyección nada mas iniciarse
-    val representantesService: RepresentantesService = koinGet()
-    // Iyeccion de dependencias Lazy, cuandos se usa la primera vez
-    //val representantesService: RepresentantesService by inject()
+    //val representantesService: RepresentantesService = koinGet()
+    // Iyeccion de dependencias Lazy, cuandos se usa la primera vez lazy
+    val representantesService: RepresentantesService by inject()
 
 
     routing {
