@@ -1,16 +1,29 @@
 // Variables globales se definen gradle.properties
+// Ktor y Kotlin
 val ktor_version: String by project
 val kotlin_version: String by project
+
+// Logger
 // val logback_version: String by project
 val micrologging_version: String by project
 val logbackclassic_version: String by project
+
+// Cache
 val cache_version: String by project
+
+// Test
 val junit_version: String by project
 val mockk_version: String by project
+
+// Koin
 // val koin_version: String by project
 val koin_ktor_version: String by project
 val ksp_version: String by project
 val koin_ksp_version: String by project
+
+// BCrypt
+val bcrypt_version: String by project
+
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -80,6 +93,10 @@ dependencies {
     // implementation("io.insert-koin:koin-core:$koin_version") // Koin Core no es necesario para Ktor, lo hemos añadido antes
     implementation("io.insert-koin:koin-annotations:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
     ksp("io.insert-koin:koin-ksp-compiler:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
+
+    // BCrypt
+    // implementation("de.nycode:bcrypt:2.2.0")
+    implementation("org.mindrot:jbcrypt:$bcrypt_version")
 
     // Para testear
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
