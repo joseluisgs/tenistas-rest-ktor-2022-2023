@@ -554,6 +554,8 @@ Para la seguridad de las comunicaciones usaremos [CORS](https://developer.mozill
 ### BCrypt
 Para la seguridad de las comunicaciones usaremos [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) que es un algoritmo de hash de contraseñas diseñado por Niels Provos y David Mazières, destinado a ser un método de protección contra ataques de fuerza bruta. Con este algoritmo, se puede almacenar una contraseña en la base de datos de forma segura, ya que no se puede obtener la contraseña original a partir de la contraseña almacenada.
 
+![bcrypt](./images/bcrypt.png)
+
 
 ## Recursos
 
