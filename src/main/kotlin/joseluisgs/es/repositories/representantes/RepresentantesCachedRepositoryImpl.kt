@@ -71,7 +71,7 @@ class RepresentantesCachedRepositoryImpl(
     }
 
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
         logger.debug { "findAllPageable: Buscando todos los representantes en cache con página: $page y cantidad: $perPage" }
 
         // Aquí no se puede cachear, ya que no se puede saber si hay más páginas
@@ -79,7 +79,7 @@ class RepresentantesCachedRepositoryImpl(
         return repository.findAllPageable(page, perPage)
     }
 
-    override fun findByNombre(nombre: String): Flow<Representante> {
+    override suspend fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
         // Buscamos en la cache
