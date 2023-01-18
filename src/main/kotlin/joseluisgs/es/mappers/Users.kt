@@ -25,7 +25,9 @@ fun UserCreateDto.toModel(): User {
         nombre = this.nombre,
         email = this.email,
         username = this.username,
-        password = this.password
+        password = this.password,
+        avatar = this.avatar,
+        role = this.role
     )
 }
 

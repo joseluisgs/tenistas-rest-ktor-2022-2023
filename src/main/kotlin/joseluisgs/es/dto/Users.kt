@@ -14,13 +14,13 @@ data class UserDto(
     val nombre: String,
     val email: String,
     val username: String,
-    val avatar: String? = "https://upload.wikimedia.org/wikipedia/commons/f/f4/User_Avatar_2.png",
-    val role: User.Role? = User.Role.USER,
-    val metadata: MetaData? = null,
+    val avatar: String,
+    val role: User.Role,
+    val metadata: MetaData
 ) {
 
     @Serializable
-    class MetaData(
+    data class MetaData(
         @Serializable(with = LocalDateTimeSerializer::class)
         val createdAt: LocalDateTime? = LocalDateTime.now(),
         @Serializable(with = LocalDateTimeSerializer::class)
@@ -35,8 +35,8 @@ data class UserCreateDto(
     val email: String,
     val username: String,
     val password: String,
-    val avatar: String? = "https://upload.wikimedia.org/wikipedia/commons/f/f4/User_Avatar_2.png",
-    val role: User.Role? = User.Role.USER,
+    val avatar: String,
+    val role: User.Role,
 )
 
 @Serializable
@@ -47,6 +47,6 @@ data class UserLoginDto(
 
 @Serializable
 data class UserWithTokenDto(
-    val userDto: UserDto,
+    val user: UserDto,
     val token: String
 )

@@ -10,7 +10,7 @@ data class User(
     val email: String,
     val username: String,
     val password: String,
-    val avatar: String = "https://upload.wikimedia.org/wikipedia/commons/f/f4/User_Avatar_2.png",
+    val avatar: String,
     val role: Role = Role.USER,
 
     // Historicos y metadata

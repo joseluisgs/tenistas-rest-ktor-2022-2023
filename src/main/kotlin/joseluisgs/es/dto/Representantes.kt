@@ -21,10 +21,10 @@ data class RepresentanteDto(
     val id: UUID? = null,
     val nombre: String,
     val email: String,
-    val metadata: MetaData? = null,
+    val metadata: MetaData,
 ) {
     @Serializable
-    class MetaData(
+    data class MetaData(
         @Serializable(with = LocalDateTimeSerializer::class)
         val createdAt: LocalDateTime? = LocalDateTime.now(),
         @Serializable(with = LocalDateTimeSerializer::class)

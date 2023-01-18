@@ -29,7 +29,12 @@ class TokensService(
             .withClaim("username", user.username)
             .withClaim("usermail", user.email)
             .withClaim("userId", user.id.toString())
-            .withExpiresAt(Date(tokenConfig.config["expirationDate"]?.toLongOrNull() ?: 3600))
+            .withExpiresAt(
+                Date(
+                    System.currentTimeMillis() * 1000 // viene en ms y lo paso a segundos
+                            + (tokenConfig.config["expiration"]?.toLong() ?: 3600)
+                )
+            )
             .sign(Algorithm.HMAC512(tokenConfig.config["secret"]))
     }
 

@@ -1,8 +1,10 @@
 package joseluisgs.es.plugins
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.response.*
 import joseluisgs.es.config.TokenConfig
 import joseluisgs.es.services.tokens.TokensService
 import org.koin.core.parameter.parametersOf
@@ -42,6 +44,10 @@ fun Application.configureSecurity() {
                 )
                     JWTPrincipal(credential.payload)
                 else null
+            }
+
+            challenge { defaultScheme, realm ->
+                call.respond(HttpStatusCode.Unauthorized, "Token invalido o expirado")
             }
         }
     }
