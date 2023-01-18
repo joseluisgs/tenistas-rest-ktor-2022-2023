@@ -8,11 +8,16 @@ import joseluisgs.es.models.RepresentantesNotification
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
 import kotlinx.coroutines.flow.Flow
 import mu.KotlinLogging
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
+@Single
+// @Named("RepresentantesService")
 class RepresentantesServiceImpl(
+    @Named("RepresentantesCachedRepository")  // Repositorio de Representantes Cacheado
     private val repository: RepresentantesRepository
 ) : RepresentantesService {
 

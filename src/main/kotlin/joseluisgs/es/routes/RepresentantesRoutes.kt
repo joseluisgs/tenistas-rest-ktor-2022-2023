@@ -13,23 +13,29 @@ import joseluisgs.es.dto.RepresentantesPageDto
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
-import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
-import joseluisgs.es.repositories.representantes.RepresentantesRepositoryImpl
 import joseluisgs.es.services.representantes.RepresentantesService
-import joseluisgs.es.services.representantes.RepresentantesServiceImpl
 import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
 import mu.KotlinLogging
+import org.koin.ktor.ext.get as koinGet
+
+// import org.koin.ktor.ext.inject
 
 private val logger = KotlinLogging.logger {}
 
 private const val ENDPOINT = "api/representantes" // Ruta de acceso, puede aunar un recurso
 
 fun Application.representantesRoutes() {
-    // Dependencas inyectadas manualmente
-    val representantesService: RepresentantesService = RepresentantesServiceImpl(
-        RepresentantesCachedRepositoryImpl(RepresentantesRepositoryImpl())
-    )
+    // Dependencias inyectadas manualmente
+//    val representantesService: RepresentantesService = RepresentantesServiceImpl(
+//        RepresentantesCachedRepositoryImpl(RepresentantesRepositoryImpl(), false)
+//    )
+
+    // Inyección nada mas iniciarse
+    val representantesService: RepresentantesService = koinGet()
+    // Iyeccion de dependencias Lazy, cuandos se usa la primera vez
+    //val representantesService: RepresentantesService by inject()
+
 
     routing {
         route("/$ENDPOINT") {

@@ -16,6 +16,8 @@ fun Application.module() {
 
     // Configuramos e iniciamos cada elemento o Plugin que necesitamos
 
+    // El primero es Koin, para que tenga todo cargado para inyectar
+    configureKoin()
     // Debe ir antes que las rutas, si no no excepcion
     configureWebSockets() // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real
 
