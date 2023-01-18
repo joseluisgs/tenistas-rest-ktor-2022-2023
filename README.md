@@ -15,10 +15,12 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Dominio](#dominio)
     - [Representante](#representante)
     - [Raqueta](#raqueta)
+    - [Usuario](#usuario)
   - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
   - [Arquitectura](#arquitectura)
   - [Endpoints](#endpoints)
     - [Representantes](#representantes)
+    - [Usuarios](#usuarios)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
@@ -51,6 +53,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [SSL/TLS](#ssltls)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
     - [CORS](#cors-1)
+    - [BCrypt](#bcrypt)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -97,6 +100,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que:
 - Una raqueta tiene un representante y el representante es solo de una marca de raqueta (1-1). No puede haber raquetas sin representante y no puede haber representantes sin raquetas.
 - Un tenista solo puede o no tener contrato con una raqueta y una raqueta o modelo de raqueta puede ser usada por varios tenistas (1-N). Puede haber tenistas sin raqueta y puede haber raquetas sin tenistas.
+- Por otro lado tenemos usuarios con roles de administrador y usuarios que se pueden registrar, loguear consultar los datos y acceder a los datos de los usuarios (solo administradores).
 
 ### Representante
 
@@ -113,6 +117,19 @@ Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que
 | marca | String | Marca de la raqueta |
 | precio | Double | Precio de la raqueta |
 | representante | Representante | Representante de la raqueta (no nulo) |
+
+
+### Usuario
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| id | UUID | Identificador único |
+| nombre | String | Nombre del usuario |
+| email | String | Email del usuario |
+| username | String | Rol del usuario |
+| password | String | Contraseña del usuario |
+| avatar | String | Avatar del usuario |
+| rol | Rol | Rol del usuario (ADMIN o USER) |
+
 
 ## Proyectos y documentación anteriores
 Parte de los contenidos a desarrollar en este proyecto se han desarrollado en proyectos anteriores. En este caso:
@@ -145,6 +162,15 @@ Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos 
 | DELETE | /representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
 | GET | /representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
 | WS | /representantes/updates | No | Websocket para notificaciones los cambios en los representantes en tiempo real | --- | JSON |
+
+
+### Usuarios    
+| Método | Endpoint (/api) | Auth | Descripción | Status Code | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| POST | /users/login | No | Login de un usuario, Token | 200 | JSON |
+| POST | /users/register | No | Registro de un usuario | 201 | JSON |
+| GET | /users/me | JWT | Datos del usuario del token | 200 | JSON |
+| GET | /users/list | JWT | Devuelve todos los usuarios, si el token pertenece a un admin | 200 | JSON |
 
 
 ## Ktor
@@ -524,6 +550,9 @@ El funcionamiento de JWT es muy sencillo. El cliente hace una petición para aut
 Para la seguridad de las comunicaciones usaremos [CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS) que es un mecanismo que usa cabeceras HTTP adicionales para permitir que un user agent obtenga permiso para acceder a recursos seleccionados desde un servidor, en un origen distinto (dominio) al que pertenece.
 
 ![cors](./images/cors.png)
+
+### BCrypt
+Para la seguridad de las comunicaciones usaremos [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) que es un algoritmo de hash de contraseñas diseñado por Niels Provos y David Mazières, destinado a ser un método de protección contra ataques de fuerza bruta. Con este algoritmo, se puede almacenar una contraseña en la base de datos de forma segura, ya que no se puede obtener la contraseña original a partir de la contraseña almacenada.
 
 
 ## Recursos
