@@ -42,12 +42,14 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Request validation](#request-validation)
     - [WebSockets](#websockets)
     - [SSL y Certificados](#ssl-y-certificados)
+    - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
   - [Proveedor de Dependencias](#proveedor-de-dependencias)
   - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
     - [SSL/TLS](#ssltls)
+    - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
     - [CORS](#cors-1)
   - [Recursos](#recursos)
   - [Autor](#autor)
@@ -426,6 +428,38 @@ ktor {
 }
 ```
 
+### Autenticación y Autorización con JWT
+Ktor tiene una [API de autenticación](https://ktor.io/docs/authentication.html) que nos permite autenticar usuarios y autorizar peticiones. En este caso, usaremos [JWT](https://jwt.io/) para la autenticación y autorización. Para ello, debemos añadir la librería de soporte para [Ktor JWT](https://ktor.io/docs/jwt.html) y configurar sus opciones.
+
+Gracias a ella podemos crear un interceptor (middleware) que se ejecutará antes de cada petición y que nos permitirá validar el token JWT y añadirlo a la petición para que podamos usarlo en el resto de la aplicación. En este caso, usaremos el token para añadir el usuario autenticado a la petición y poder usarlo en el resto de la aplicación.
+```kotlin
+// Instalamos el interceptor de autenticación
+install(Authentication) {
+    jwt("auth-jwt") {
+        validate { credential ->
+            if (credential.payload.getClaim("username").asString() != "") {
+                JWTPrincipal(credential.payload)
+            } else {
+                null
+            }
+        }
+    }
+}
+
+// Añadimos el interceptor a todas las rutas
+routing {
+    authenticate("auth-jwt") {
+        get("/hello") {
+            val principal = call.principal<JWTPrincipal>() // Leemos el token
+            val username = principal!!.payload.getClaim("username").asString()
+            val expiresAt = principal.expiresAt?.time?.minus(System.currentTimeMillis())
+            call.respondText("Hello, $username! Token is expired at $expiresAt ms.")
+        }
+    }
+}
+
+```
+
 ## Inmutabilidad
 Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
 
@@ -478,6 +512,13 @@ De esta manera, conseguiremos que los datos viajen cifrados entre el cliente y e
 Esto nos ayudará, a la hora de hacer el login de un usuario, a que la contraseña no pueda ser interceptada por terceros y que el usuario pueda estar seguro de que sus datos están protegidos.
 
 ![tsl](./images/tsl.jpg)
+
+### Autenticación y Autorización con JWT
+Para la seguridad de las comunicaciones usaremos [JWT](https://jwt.io/) que es un estándar abierto (RFC 7519) que define una forma compacta y autónoma de transmitir información entre partes como un objeto JSON. Esta información puede ser verificada y confiada porque está firmada digitalmente. Las firmas también se pueden usar para asegurar la integridad de los datos.
+
+El funcionamiento de JWT es muy sencillo. El cliente hace una petición para autenticarse la primera vez. El servidor genera un token que contiene la información del usuario y lo envía al cliente. El cliente lo guarda y lo envía en cada petición al servidor. El servidor verifica el token y si es correcto, permite la petición al recurso.
+
+![jwt](./images/tokens.png)
 
 ### CORS
 Para la seguridad de las comunicaciones usaremos [CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS) que es un mecanismo que usa cabeceras HTTP adicionales para permitir que un user agent obtenga permiso para acceder a recursos seleccionados desde un servidor, en un origen distinto (dominio) al que pertenece.
