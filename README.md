@@ -31,7 +31,6 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Cache Headers](#cache-headers)
       - [Comprensión de contenido](#comprensión-de-contenido)
       - [CORS](#cors)
-    - [Responses](#responses)
       - [Enviando datos serializados](#enviando-datos-serializados)
     - [Requests](#requests)
       - [Parámetros de ruta](#parámetros-de-ruta)
@@ -256,6 +255,29 @@ Ktor proporciona la capacidad de [comprimir contenido](https://ktor.io/docs/comp
 
 #### CORS
 Si se supone que su servidor debe manejar solicitudes de origen cruzado ([CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS)), debe instalar y configurar el [complemento CORS](https://ktor.io/docs/cors.html) Ktor. Este complemento le permite configurar hosts permitidos, métodos HTTP, encabezados establecidos por el cliente, etc.
+
+Por defecto, el plugin de CORS permite los métodos GET, POST y HEAD
+
+Lo ideal es que aprendas a configurarlo según tus necesidades, pero aquí tienes un ejemplo de configuración básica:
+```kotlin
+install(CORS) {
+    // podemos permitir algún host específico
+    anyHost() // cualquier host, quitar en produccion
+    allowHost("client-host")
+    allowHost("client-host:8081")
+    allowHost("client-host", subDomains = listOf("en", "de", "es"))
+    allowHost("client-host", schemes = listOf("http", "https"))
+
+    // Podemos permitir contenido
+    allowHeader(HttpHeaders.ContentType) // Permitimos el tipo de contenido
+    allowHeader(HttpHeaders.Authorization) // Permitimos autorithachion
+    
+    // Si queremos permitir otros métodos
+    allowMethod(HttpMethod.Options)
+    allowMethod(HttpMethod.Put)
+    allowMethod(HttpMethod.Patch)
+    allowMethod(HttpMethod.Delete)
+}
 
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
