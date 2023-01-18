@@ -45,6 +45,8 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
   - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
+    - [SSL/TLS](#ssltls)
+    - [CORS](#cors-1)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -452,6 +454,8 @@ Además, podemos hacer uso de las funciones de serialización para enviar objeto
 ![observer](./images/observer.png)
 
 ## Seguridad de las comunicaciones
+
+### SSL/TLS
 Para la seguridad de las comunicaciones usaremos [SSL/TLS](https://es.wikipedia.org/wiki/Seguridad_de_la_capa_de_transporte) que es un protocolo de seguridad que permite cifrar las comunicaciones entre el cliente y el servidor. Para ello usaremos un certificado SSL que nos permitirá cifrar las comunicaciones entre el cliente y el servidor.
 
 De esta manera, conseguiremos que los datos viajen cifrados entre el cliente y el servidor y que no puedan ser interceptados por terceros de una manera sencilla.
@@ -459,6 +463,11 @@ De esta manera, conseguiremos que los datos viajen cifrados entre el cliente y e
 Esto nos ayudará, a la hora de hacer el login de un usuario, a que la contraseña no pueda ser interceptada por terceros y que el usuario pueda estar seguro de que sus datos están protegidos.
 
 ![tsl](./images/tsl.jpg)
+
+### CORS
+Para la seguridad de las comunicaciones usaremos [CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS) que es un mecanismo que usa cabeceras HTTP adicionales para permitir que un user agent obtenga permiso para acceder a recursos seleccionados desde un servidor, en un origen distinto (dominio) al que pertenece.
+
+![cors](./images/cors.png)
 
 
 ## Recursos
