@@ -44,6 +44,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
+  - [Proveedor de Dependencias](#proveedor-de-dependencias)
   - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
     - [SSL/TLS](#ssltls)
     - [CORS](#cors-1)
@@ -85,6 +86,8 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
 - Notificaciones en tiempo real: [Ktor WebSockets](https://ktor.io/docs/websocket.html) - Framework para la gestión de websockets.
+- Testing: [JUnit 5](https://junit.org/junit5/) - Framework para la realización de tests unitarios, [Mockk](https://mockk.io/) librería de Mocks para Kotlin, así como las propias herramientas de Ktor.
+- Cliente: [Postman](https://www.postman.com/) - Cliente para realizar peticiones HTTP.
 
 ## Dominio
 
@@ -127,7 +130,7 @@ Recuerda que puedes conectarte de forma segura:
 - Para la API REST: http://localhost:6969/api y https://localhost:6963/api
 - Para la página web estática: http://localhost:6969/web y https://localhost:6963/web
 
-Los endpoints que vamos a usar a nivel de api, parten de /api/:
+Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos con tu cliente favorito. En este caso, usaremos Postman:
 ### Representantes
 | Método | Endpoint (/api) | Auth | Descripción | Status Code | Content |
 | ------ | -------- | ---- | ----------- | ----------- | ------- |
@@ -139,7 +142,6 @@ Los endpoints que vamos a usar a nivel de api, parten de /api/:
 | DELETE | /representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
 | GET | /representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
 | WS | /representantes/updates | No | Websocket para notificaciones los cambios en los representantes en tiempo real | --- | JSON |
-
 
 
 ## Ktor
@@ -454,6 +456,15 @@ Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesi
 Además, podemos hacer uso de las funciones de serialización para enviar objetos complejos como JSON.
 
 ![observer](./images/observer.png)
+
+## Proveedor de Dependencias
+Gracias al principio de inversión de dependencias (SOLID), podemos hacer que el código que es el núcleo de nuestra aplicación no dependa de los detalles de implementación, como pueden ser el framework que utilices, la base de datos, cache...Todos estos aspectos se especificarán mediante interfaces, y el núcleo no tendrá que conocer cuál es la implementación real para funcionar.
+
+La Inyección de dependencias es un patrón de diseño que permite que las dependencias de una clase se pasen como parámetros en el constructor de la clase (principalmente). Esto nos permite que las dependencias de una clase sean independientes de la clase y que puedan ser reemplazadas por otras dependencias que implementen la misma interfaz y con ello conseguir un código no acoplado, que se adapte a cada situación y que sea fácil de testear y con ello podemos cumplir el principio de inversión de control.
+
+Para ello usaremos [Koin](https://insert-koin.io/) que es un framework de inyección de dependencias para Kotlin Multiplatform. Koin nos permite definir los módulos de inyección de dependencias y las dependencias que queremos inyectar en cada clase. En este caso hemos usado sus extensiones para [Ktor](https://insert-koin.io/docs/reference/koin-ktor/ktor) y sus [anotaciones](https://insert-koin.io/docs/reference/koin-annotations/start) para hacerlo mucho más directo.
+
+![koin](./images/koin.png)
 
 ## Seguridad de las comunicaciones
 

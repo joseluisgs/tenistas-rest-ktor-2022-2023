@@ -34,4 +34,5 @@ fun Application.module() {
     configureCachingHeaders() // Configuramos los headers de cacheo,
     configureCompression() // Configuramos el compreso de gzip y otros
     configureCors() // Configuramos el CORS, sobre todo para web,
+
 }

@@ -26,7 +26,7 @@ class RepresentantesCachedRepositoryImpl(
 
 
     init {
-        logger.debug { "Inicializando el repositorio cache representantes" }
+        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cacheRepresentantes.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
         // No es obligatorio hacerlo, pero si queremos que se refresque
         if (cacheRepresentantes.hasRefreshAllCacheJob)

@@ -26,16 +26,11 @@ private val logger = KotlinLogging.logger {}
 private const val ENDPOINT = "api/representantes" // Ruta de acceso, puede aunar un recurso
 
 fun Application.representantesRoutes() {
-    // Dependencias inyectadas manualmente
-//    val representantesService: RepresentantesService = RepresentantesServiceImpl(
-//        RepresentantesCachedRepositoryImpl(RepresentantesRepositoryImpl(), false)
-//    )
 
     // Inyección nada mas iniciarse
     //val representantesService: RepresentantesService = koinGet()
     // Iyeccion de dependencias Lazy, cuandos se usa la primera vez lazy
     val representantesService: RepresentantesService by inject()
-
 
     routing {
         route("/$ENDPOINT") {
