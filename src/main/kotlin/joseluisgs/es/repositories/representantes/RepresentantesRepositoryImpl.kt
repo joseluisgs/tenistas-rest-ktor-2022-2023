@@ -28,18 +28,18 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         }
     }
 
-    override suspend fun findAll(): Flow<Representante> {
+    override suspend fun findAll(): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los representantes" }
 
         // Filtramos por página y por perPage
-        return representantes.values.toList().asFlow()
+        return@withContext representantes.values.toList().asFlow()
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
         // Filtramos por página y por perPage
-        return representantes.values
+        return@withContext representantes.values
             .drop(page * perPage)
             .take(perPage)
             .asFlow()
@@ -53,10 +53,10 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
     }
 
 
-    override fun findByNombre(nombre: String): Flow<Representante> {
+    override suspend fun findByNombre(nombre: String): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
-        return representantes.values.filter { it.nombre.lowercase().contains(nombre.lowercase()) }.asFlow()
+        return@withContext representantes.values.filter { it.nombre.lowercase().contains(nombre.lowercase()) }.asFlow()
     }
 
 

@@ -1,7 +1,7 @@
 package joseluisgs.es.repositories.representantes
 
 import joseluisgs.es.models.Representante
-import joseluisgs.es.services.cache.RepresentantesCache
+import joseluisgs.es.services.cache.representantes.RepresentantesCacheImpl
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesCachedRepositoryImpl(
     @Named("PersonasRepository") // Repositorio de datos originales
     private val repository: RepresentantesRepository,
-    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
+    private val cacheRepresentantes: RepresentantesCacheImpl // Desacoplamos la cache
 ) : RepresentantesRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
@@ -71,7 +71,7 @@ class RepresentantesCachedRepositoryImpl(
     }
 
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
         logger.debug { "findAllPageable: Buscando todos los representantes en cache con página: $page y cantidad: $perPage" }
 
         // Aquí no se puede cachear, ya que no se puede saber si hay más páginas
@@ -79,7 +79,7 @@ class RepresentantesCachedRepositoryImpl(
         return repository.findAllPageable(page, perPage)
     }
 
-    override fun findByNombre(nombre: String): Flow<Representante> {
+    override suspend fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
         // Buscamos en la cache

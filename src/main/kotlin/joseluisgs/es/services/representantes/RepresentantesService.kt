@@ -7,7 +7,7 @@ import java.util.*
 
 interface RepresentantesService {
     suspend fun findAll(): Flow<Representante>
-    fun findAllPageable(page: Int, perPage: Int): Flow<Representante>
+    suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante>
     suspend fun findById(id: UUID): Representante
     suspend fun findByNombre(nombre: String): Flow<Representante>
     suspend fun save(representante: Representante): Representante

@@ -15,10 +15,14 @@ fun Application.module() {
 
 
     // Configuramos e iniciamos cada elemento o Plugin que necesitamos
+    // OJO con el orden, si no se hace en el orden correcto, no funcionará o dará excepciones
 
     // El primero es Koin, para que tenga todo cargado para inyectar
     configureKoin()
-    // Debe ir antes que las rutas, si no no excepcion
+
+    configureSecurity() // Configuramos la seguridad con JWT, debe ir antes que el resto de plugins
+
+    // Debe ir antes que las rutas, si no no excepción
     configureWebSockets() // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real
 
     // Principales!!!
@@ -26,9 +30,6 @@ fun Application.module() {
     configureRouting() // Configuramos las rutas
     configureValidation() // Configuramos la validación de body en requests, puedes hacerlo a mano
 
-    // Otros plugins
-    // configureSecurity() // Configuramos la seguridad, ideal para JWT
-    // configureWebSockets() // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real
 
     // opcionales segun el problema interesantes para el desarrollo
     configureCachingHeaders() // Configuramos los headers de cacheo,

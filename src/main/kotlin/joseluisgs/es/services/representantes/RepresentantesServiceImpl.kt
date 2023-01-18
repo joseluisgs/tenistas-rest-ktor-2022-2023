@@ -6,7 +6,9 @@ import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Representante
 import joseluisgs.es.models.RepresentantesNotification
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
@@ -31,10 +33,10 @@ class RepresentantesServiceImpl(
         return repository.findAll()
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
+    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAllPageable: Buscando todos los representantes en servicio con página: $page y cantidad: $perPage" }
 
-        return repository.findAllPageable(page, perPage)
+        return@withContext repository.findAllPageable(page, perPage)
     }
 
     override suspend fun findById(id: UUID): Representante {

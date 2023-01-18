@@ -1,5 +1,6 @@
 package joseluisgs.es.dto
 
+import joseluisgs.es.models.User
 import joseluisgs.es.serializers.LocalDateTimeSerializer
 import joseluisgs.es.serializers.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -7,22 +8,17 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Serializable
-data class RepresentantesPageDto(
-    val page: Int,
-    val perPage: Int,
-    val data: List<RepresentanteDto>,
-    @Serializable(with = LocalDateTimeSerializer::class)
-    val createdAt: LocalDateTime? = LocalDateTime.now()
-)
-
-@Serializable
-data class RepresentanteDto(
+data class UserDto(
     @Serializable(with = UUIDSerializer::class)
     val id: UUID? = null,
     val nombre: String,
     val email: String,
-    val metadata: MetaData,
+    val username: String,
+    val avatar: String,
+    val role: User.Role,
+    val metadata: MetaData
 ) {
+
     @Serializable
     data class MetaData(
         @Serializable(with = LocalDateTimeSerializer::class)
@@ -32,3 +28,25 @@ data class RepresentanteDto(
         val deleted: Boolean = false
     )
 }
+
+@Serializable
+data class UserCreateDto(
+    val nombre: String,
+    val email: String,
+    val username: String,
+    val password: String,
+    val avatar: String,
+    val role: User.Role,
+)
+
+@Serializable
+data class UserLoginDto(
+    val username: String,
+    val password: String
+)
+
+@Serializable
+data class UserWithTokenDto(
+    val user: UserDto,
+    val token: String
+)
