@@ -222,6 +222,187 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "POST Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"create\",\n    \"email\": \"create@create.com\",\n    \"username\": \"create\",\n    \"password\": \"create1234\"\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Login User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"ana\",\n    \"password\": \"ana1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Login Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"pepe\",\n    \"password\": \"pepe1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Me",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ0ZW5pc3Rhcy1rdG9yLWF1dGgiLCJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6InRlbmlzdGFzLWt0b3IiLCJ1c2VybWFpbCI6ImFuYUBsb3Blei5jb20iLCJleHAiOjE2NzQwNjIwMTgyNDAsInVzZXJJZCI6ImM1MzA2MmU0LTMxZWEtNGY1ZS1hOTlkLTM2YzIyOGVkMDFhMyIsInVzZXJuYW1lIjoiYW5hIn0.8oLHerfDdffHef5zNxPXrpJs1i3pAW1JOso0f_2OwKOAg17mE448pC_SJGm2Xlr-6GGqhnTuH8mCgc8AgFwS2w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET ALL Users (Admin)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ0ZW5pc3Rhcy1rdG9yLWF1dGgiLCJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6InRlbmlzdGFzLWt0b3IiLCJ1c2VybWFpbCI6InBlcGVAcGVyZXouY29tIiwiZXhwIjoxNjc0MDYzNDY1OTA3LCJ1c2VySWQiOiJiMzlhMmZkMi1mN2Q3LTQwNWQtYjczYy1iNjhhOGRlZGJjZGYiLCJ1c2VybmFtZSI6InBlcGUifQ._HqJll8OmEZSEV0v4m2NPEV0bE9VyZidsPZ40dkT7oxkWbYU5mVD_UUY2gFcUQp0Cu13ViKKsrXwcmQAa5WMiQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/list",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"list"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
