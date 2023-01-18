@@ -31,6 +31,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Cache Headers](#cache-headers)
       - [Comprensión de contenido](#comprensión-de-contenido)
       - [CORS](#cors)
+    - [Responses](#responses)
       - [Enviando datos serializados](#enviando-datos-serializados)
     - [Requests](#requests)
       - [Parámetros de ruta](#parámetros-de-ruta)
@@ -282,6 +283,7 @@ install(CORS) {
     allowMethod(HttpMethod.Patch)
     allowMethod(HttpMethod.Delete)
 }
+```
 
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
