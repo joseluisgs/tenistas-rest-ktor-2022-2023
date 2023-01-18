@@ -7,10 +7,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
+@Single
+@Named("PersonasRepository")
 class RepresentantesRepositoryImpl : RepresentantesRepository {
 
     // Fuente de datos

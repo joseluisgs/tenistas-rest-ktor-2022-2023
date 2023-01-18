@@ -23,6 +23,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
     - [Parametrizando la aplicación](#parametrizando-la-aplicación)
+    - [Usando Plugins](#usando-plugins)
     - [Creando rutas](#creando-rutas)
       - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
     - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
@@ -30,7 +31,6 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Cache Headers](#cache-headers)
       - [Comprensión de contenido](#comprensión-de-contenido)
       - [CORS](#cors)
-    - [Responses](#responses)
       - [Enviando datos serializados](#enviando-datos-serializados)
     - [Requests](#requests)
       - [Parámetros de ruta](#parámetros-de-ruta)
@@ -40,9 +40,14 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Request validation](#request-validation)
     - [WebSockets](#websockets)
+    - [SSL y Certificados](#ssl-y-certificados)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
+  - [Proveedor de Dependencias](#proveedor-de-dependencias)
+  - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
+    - [SSL/TLS](#ssltls)
+    - [CORS](#cors-1)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -81,6 +86,8 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
 - Notificaciones en tiempo real: [Ktor WebSockets](https://ktor.io/docs/websocket.html) - Framework para la gestión de websockets.
+- Testing: [JUnit 5](https://junit.org/junit5/) - Framework para la realización de tests unitarios, [Mockk](https://mockk.io/) librería de Mocks para Kotlin, así como las propias herramientas de Ktor.
+- Cliente: [Postman](https://www.postman.com/) - Cliente para realizar peticiones HTTP.
 
 ## Dominio
 
@@ -119,19 +126,22 @@ Nos centraremos en la arquitectura de la API REST. Para ello, usaremos el patró
 ![img_2.png](./images/expla.png)
 
 ## Endpoints
-Los endpoints que vamos a usar son los siguientes:
-### Representantes
-| Método | Endpoint | Auth | Descripción | Status Code | Content |
-| ------ | -------- | ---- | ----------- | ----------- | ------- |
-| GET | /api/representantes | No | Devuelve todos los representantes | 200 | JSON |
-| GET | /api/representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
-| GET | /api/representantes/{id} | No | Devuelve un representante por su id | 200 | JSON |
-| POST | /api/representantes | No | Crea un nuevo representante | 201 | JSON |
-| PUT | /api/representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
-| DELETE | /api/representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
-| GET | /api/representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
-| WS | /api/representantes/updates | No | Websocket para recibir los cambios en los representantes | --- | JSON |
+Recuerda que puedes conectarte de forma segura:
+- Para la API REST: http://localhost:6969/api y https://localhost:6963/api
+- Para la página web estática: http://localhost:6969/web y https://localhost:6963/web
 
+Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos con tu cliente favorito. En este caso, usaremos Postman:
+### Representantes
+| Método | Endpoint (/api) | Auth | Descripción | Status Code | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /representantes | No | Devuelve todos los representantes | 200 | JSON |
+| GET | /representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
+| GET | /representantes/{id} | No | Devuelve un representante por su id | 200 | JSON |
+| POST | /representantes | No | Crea un nuevo representante | 201 | JSON |
+| PUT | /representantes/{id} | No | Actualiza un representante por su id | 200 | JSON |
+| DELETE | /representantes/{id} | No | Elimina un representante por su id | 204 | No Content |
+| GET | /representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
+| WS | /representantes/updates | No | Websocket para notificaciones los cambios en los representantes en tiempo real | --- | JSON |
 
 
 ## Ktor
@@ -143,10 +153,14 @@ significa que puede usarlo para cualquier proyecto dirigido a JVM, Android, iOS,
 aprovecharemos Ktor para crear un servicio web para consumir una API REST. Además, aplicaremos Ktor para devolver
 páginas web.
 
+Ktor trabaja con un sistema de plugins que lo hacen muy flexible y fácil de configurar. Además, Ktor es un framework donde trabajamos con DSL (Domain Specific Language) que nos permite crear código de forma más sencilla y legible.
+
+Además, permite adaptar su estructura en base a funciones de extensión.
+
 ![img_3.png](./images/ktor_logo.svg)
 
 ### Creando un proyecto
-Podemos crear un proyecto Ktor usando el plugin IntelliJ, desde su web. Con estos [asistentes](https://ktor.io/create/) podemos crear un proyecto Ktor con las opciones que queramos, destacamos el routing, el uso de json, etc.
+Podemos crear un proyecto Ktor usando el plugin IntelliJ, desde su web. Con estos [asistentes](https://ktor.io/create/) podemos crear un proyecto Ktor con las opciones que queramos (plugins), destacamos el routing, el uso de json, etc.
 
 ### Punto de Entrada
 
@@ -180,6 +194,24 @@ ktor {
     ## Modo de ejecución
     environment = dev
     environment = ${?KTOR_ENV}
+}
+```
+
+### Usando Plugins
+Ktor se puede extender y ampliar usando plugins. Estos plugins se "instalan" y configuran configuran según las necesidades.
+Los más recomendados para hacer una Api Rest son:
+- Routing: Para definir las rutas de la API
+- Serialization: Para serializar y deserializar objetos, por ejemplo en JSON
+- ContentNegotiation: Para definir el tipo de contenido que se va a usar en la API, por ejemplo JSON
+```kotlin
+fun Application.configureSerialization() {
+    install(ContentNegotiation) {
+        // Lo ponemos bonito :)
+        json(Json {
+            prettyPrint = true
+            isLenient = true
+        })
+    }
 }
 ```
 
@@ -227,6 +259,29 @@ Ktor proporciona la capacidad de [comprimir contenido](https://ktor.io/docs/comp
 
 #### CORS
 Si se supone que su servidor debe manejar solicitudes de origen cruzado ([CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS)), debe instalar y configurar el [complemento CORS](https://ktor.io/docs/cors.html) Ktor. Este complemento le permite configurar hosts permitidos, métodos HTTP, encabezados establecidos por el cliente, etc.
+
+Por defecto, el plugin de CORS permite los métodos GET, POST y HEAD
+
+Lo ideal es que aprendas a configurarlo según tus necesidades, pero aquí tienes un ejemplo de configuración básica:
+```kotlin
+install(CORS) {
+    // podemos permitir algún host específico
+    anyHost() // cualquier host, quitar en produccion
+    allowHost("client-host")
+    allowHost("client-host:8081")
+    allowHost("client-host", subDomains = listOf("en", "de", "es"))
+    allowHost("client-host", schemes = listOf("http", "https"))
+
+    // Podemos permitir contenido
+    allowHeader(HttpHeaders.ContentType) // Permitimos el tipo de contenido
+    allowHeader(HttpHeaders.Authorization) // Permitimos autorithachion
+    
+    // Si queremos permitir otros métodos
+    allowMethod(HttpMethod.Options)
+    allowMethod(HttpMethod.Put)
+    allowMethod(HttpMethod.Patch)
+    allowMethod(HttpMethod.Delete)
+}
 
 ### Responses
 En Ktor podemos mandar distintos tipos de [respuesta](https://ktor.io/docs/responses.html), así como distintos códigos de [estado](https://ktor.io/docs/responses.html#status).
@@ -338,6 +393,37 @@ webSocket("/echo") {
 
 ```
 
+### SSL y Certificados
+Aunque lo normal, es que nuestros servicios estén detrás de un Proxy Inverso, podemos configurar Ktor para que [soporte SSL](https://ktor.io/docs/ssl.html) y certificados. Para ello, debemos añadir la librería de soporte para TSL, y configurar el puerto y el certificado en el fichero application.conf.
+```hocon
+ktor {
+    ## Para el puerto
+    deployment {
+        ## Si no se especifica el puerto, se usa el 8080, si solo queremos SSL quitar el puerto normal
+        port = 6969
+        port = ${?PORT}
+        ## Para SSL, si es necesario poner el puerto
+        sslPort = 6963
+        sslPort = ${?SSL_PORT}
+    }
+
+    ## Para la clase principal
+    application {
+        modules = [ joseluisgs.es.ApplicationKt.module ]
+    }
+
+    ## Para SSL/TSL configuración del llavero y certificado
+    security {
+        ssl {
+            keyStore = ./cert/server_keystore.p12
+            keyAlias = serverKeyPair
+            keyStorePassword = 1234567
+            privateKeyPassword = 1234567
+        }
+    }
+}
+```
+
 ## Inmutabilidad
 Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
 
@@ -348,7 +434,7 @@ La [caché](https://es.wikipedia.org/wiki/Cach%C3%A9_(inform%C3%A1tica)) es una 
 
 Además la caché nos ofrece automáticamente distintos mecanismos de actuación, como por ejemplo, que los elementos en cache tenga un tiempo de vida máximo y se eliminen automáticamente cuando se cumpla. Lo que nos permite tener datos actualizados Y/o los más usados en memoria y eliminar los que no se usan.
 
-En nuestro proyecto tenemos dos repositorios, uno para la caché y otro para la base de datos. Para ello todas las consultas usamos la caché y si no está, se consulta a la base de datos y se guarda en la caché. Además, podemos tener un proceso en background que actualice la caché cada cierto tiempo.
+En nuestro proyecto tenemos dos repositorios, uno para la caché y otro para la base de datos. Para ello todas las consultas usamos la caché y si no está, se consulta a la base de datos y se guarda en la caché. Además, podemos tener un proceso en background que actualice la caché cada cierto tiempo solo si así lo configuramos, de la misma manera que el tiempo de refresco.
 
 Además, hemos optimizado las operaciones con corrutinas para que se ejecuten en paralelo actualizando la caché y la base de datos.
 
@@ -356,7 +442,9 @@ El diagrama seguido es el siguiente
 
 ![cache](./images/cache.jpg)
 
-Por otro lado también podemos configurar la Caché de Header a nivel de rutas o tipo de ficheros como se ha indicado
+Por otro lado también podemos configurar la Caché de Header a nivel de rutas o tipo de ficheros como se ha indicado.
+
+Para este proyecto hemos usado [Cache4K](https://reactivecircus.github.io/cache4k/). Cache4k proporciona un caché de clave-valor en memoria simple para Kotlin Multiplatform, con soporte para ivalidar items basados ​​en el tiempo (caducidad) y en el tamaño.
 
 ## Notificaciones en tiempo real
 Las notificaciones en tiempo real son una forma de comunicación entre el servidor y el cliente que permite que el servidor envíe información al cliente sin que el cliente tenga que solicitarla. Esto permite que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor.
@@ -368,6 +456,32 @@ Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesi
 Además, podemos hacer uso de las funciones de serialización para enviar objetos complejos como JSON.
 
 ![observer](./images/observer.png)
+
+## Proveedor de Dependencias
+Gracias al principio de inversión de dependencias (SOLID), podemos hacer que el código que es el núcleo de nuestra aplicación no dependa de los detalles de implementación, como pueden ser el framework que utilices, la base de datos, cache...Todos estos aspectos se especificarán mediante interfaces, y el núcleo no tendrá que conocer cuál es la implementación real para funcionar.
+
+La Inyección de dependencias es un patrón de diseño que permite que las dependencias de una clase se pasen como parámetros en el constructor de la clase (principalmente). Esto nos permite que las dependencias de una clase sean independientes de la clase y que puedan ser reemplazadas por otras dependencias que implementen la misma interfaz y con ello conseguir un código no acoplado, que se adapte a cada situación y que sea fácil de testear y con ello podemos cumplir el principio de inversión de control.
+
+Para ello usaremos [Koin](https://insert-koin.io/) que es un framework de inyección de dependencias para Kotlin Multiplatform. Koin nos permite definir los módulos de inyección de dependencias y las dependencias que queremos inyectar en cada clase. En este caso hemos usado sus extensiones para [Ktor](https://insert-koin.io/docs/reference/koin-ktor/ktor) y sus [anotaciones](https://insert-koin.io/docs/reference/koin-annotations/start) para hacerlo mucho más directo.
+
+![koin](./images/koin.png)
+
+## Seguridad de las comunicaciones
+
+### SSL/TLS
+Para la seguridad de las comunicaciones usaremos [SSL/TLS](https://es.wikipedia.org/wiki/Seguridad_de_la_capa_de_transporte) que es un protocolo de seguridad que permite cifrar las comunicaciones entre el cliente y el servidor. Para ello usaremos un certificado SSL que nos permitirá cifrar las comunicaciones entre el cliente y el servidor.
+
+De esta manera, conseguiremos que los datos viajen cifrados entre el cliente y el servidor y que no puedan ser interceptados por terceros de una manera sencilla.
+
+Esto nos ayudará, a la hora de hacer el login de un usuario, a que la contraseña no pueda ser interceptada por terceros y que el usuario pueda estar seguro de que sus datos están protegidos.
+
+![tsl](./images/tsl.jpg)
+
+### CORS
+Para la seguridad de las comunicaciones usaremos [CORS](https://developer.mozilla.org/es/docs/Web/HTTP/CORS) que es un mecanismo que usa cabeceras HTTP adicionales para permitir que un user agent obtenga permiso para acceder a recursos seleccionados desde un servidor, en un origen distinto (dominio) al que pertenece.
+
+![cors](./images/cors.png)
+
 
 ## Recursos
 

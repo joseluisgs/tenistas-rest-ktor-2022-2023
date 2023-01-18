@@ -27,6 +27,7 @@ fun Application.configureRouting() {
 
     // Definidas dentro del paquete de rutas: routes
     webRoutes() // Rutas web /web
-    testRoutes() // Rutas de api /rest/test
+    // Intenta ponerlas por orden de importancia y acceso
     representantesRoutes() // Rutas de api /rest/representantes
+    testRoutes() // Rutas de api /rest/test
 }

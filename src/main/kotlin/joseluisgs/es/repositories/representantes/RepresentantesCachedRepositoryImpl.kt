@@ -1,52 +1,55 @@
 package joseluisgs.es.repositories.representantes
 
-import io.github.reactivecircus.cache4k.Cache
 import joseluisgs.es.models.Representante
+import joseluisgs.es.services.cache.RepresentantesCache
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import mu.KotlinLogging
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.ExperimentalTime
 
 private val logger = KotlinLogging.logger {}
 
 
+@Single
+@Named("RepresentantesCachedRepository")
 class RepresentantesCachedRepositoryImpl(
-    private val repository: RepresentantesRepository, // Repositorio de datos originales
-    private val refreshJob: Job? = null // Job para cancelar la ejecución
+    @Named("PersonasRepository") // Repositorio de datos originales
+    private val repository: RepresentantesRepository,
+    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
 ) : RepresentantesRepository {
-    @OptIn(ExperimentalTime::class)
-    private val cache = Cache.Builder()
-        // Si le ponemos opciones de cacheo si no usara las de por defecto
-        .maximumCacheSize(100) // Tamaño máximo de la caché si queremos limitarla
-        .expireAfterAccess(30.minutes) // Vamos a cachear durante
-        .build<UUID, Representante>()
 
-    private val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos
+    private var refreshJob: Job? = null // Job para cancelar la ejecución
+
 
     init {
-        logger.debug { "Inicializando el repositorio cache representantes" }
+        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cacheRepresentantes.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
-        refreshCache()
+        // No es obligatorio hacerlo, pero si queremos que se refresque
+        if (cacheRepresentantes.hasRefreshAllCacheJob)
+            refreshCacheJob()
     }
 
-    private fun refreshCache() {
+    private fun refreshCacheJob() {
         // Background job para refrescar el cache
         // Si tenemos muchos datos, solo se mete en el cache los que se van a usar:
         // create, findById, update, delete
         // Creamos un Scope propio para que no se enlazado con el actual.
-        CoroutineScope(Dispatchers.IO).launch {
-            refreshJob?.cancel() // Cancelamos el job si existe
+        if (refreshJob != null)
+            refreshJob?.cancel()
+
+        refreshJob = CoroutineScope(Dispatchers.IO).launch {
+            // refreshJob?.cancel() // Cancelamos el job si existe
             do {
                 logger.debug { "refreshCache: Refrescando cache de Representantes" }
                 repository.findAll().collect { representante ->
-                    cache.put(representante.id, representante)
+                    cacheRepresentantes.cache.put(representante.id, representante)
                 }
-                logger.debug { "refreshCache: Cache actualizada: ${cache.asMap().values.size}" }
-                delay(refreshTime)
+                logger.debug { "refreshCache: Cache actualizada: ${cacheRepresentantes.cache.asMap().values.size}" }
+                delay(cacheRepresentantes.refreshTime)
             } while (true)
         }
     }
@@ -56,17 +59,15 @@ class RepresentantesCachedRepositoryImpl(
 
         // Si por alguna razón no tenemos datos en el cache, los buscamos en el repositorio
         // Ojo si le hemos puesto tamaño máximo a la caché, puede que no estén todos los datos
-        // si no en los findAll, siempre devolver los datos del repositorio
+        // si no en los findAll, siempre devolver los datos del repositorio y no hacer refresco
 
-        return if (cache.asMap().values.isEmpty()) {
-            // refreshCache()
-            logger.debug { "findAll: Cache vacía, buscando en base de datos" }
+        return if (!cacheRepresentantes.hasRefreshAllCacheJob || cacheRepresentantes.cache.asMap().isEmpty()) {
+            logger.debug { "findAll: Devolviendo datos de repositorio" }
             repository.findAll()
         } else {
-            logger.debug { "findAll: Cache con datos, devolviendo datos de cache" }
-            cache.asMap().values.asFlow()
+            logger.debug { "findAll: Devolviendo datos de cache" }
+            cacheRepresentantes.cache.asMap().values.asFlow()
         }
-
     }
 
 
@@ -82,7 +83,7 @@ class RepresentantesCachedRepositoryImpl(
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
         // Buscamos en la cache
-        return cache.asMap().values.filter {
+        return cacheRepresentantes.cache.asMap().values.filter {
             it.nombre.lowercase().contains(nombre.lowercase())
         }.asFlow()
     }
@@ -92,7 +93,8 @@ class RepresentantesCachedRepositoryImpl(
         logger.debug { "findById: Buscando representante en cache con id: $id" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cache.get(id) ?: repository.findById(id)?.also { cache.put(id, it) }
+        return cacheRepresentantes.cache.get(id) ?: repository.findById(id)
+            ?.also { cacheRepresentantes.cache.put(id, it) }
     }
 
 
@@ -105,10 +107,10 @@ class RepresentantesCachedRepositoryImpl(
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            repository.save(representante)
+            cacheRepresentantes.cache.put(representante.id, representante)
         }
         scope.launch {
-            cache.put(representante.id, representante)
+            repository.save(representante)
         }
         return representante
     }
@@ -127,10 +129,10 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                repository.update(id, representante)
+                cacheRepresentantes.cache.put(representante.id, representante)
             }
             scope.launch {
-                cache.put(representante.id, representante)
+                repository.update(id, representante)
             }
             return representante
         }
@@ -146,10 +148,10 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                repository.delete(id)
+                cacheRepresentantes.cache.invalidate(id)
             }
             scope.launch {
-                cache.invalidate(id)
+                repository.delete(id)
             }
             return existe
         }

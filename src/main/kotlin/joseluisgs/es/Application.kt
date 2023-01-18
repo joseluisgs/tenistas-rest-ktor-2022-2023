@@ -10,12 +10,14 @@ fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
-    logger.debug { "Starting Ktor Application" }
+    logger.info { "Starting Ktor Application" }
     // logger.debug { environment.config.property("ktor.environmet").getString() }
 
 
     // Configuramos e iniciamos cada elemento o Plugin que necesitamos
 
+    // El primero es Koin, para que tenga todo cargado para inyectar
+    configureKoin()
     // Debe ir antes que las rutas, si no no excepcion
     configureWebSockets() // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real
 
@@ -32,4 +34,5 @@ fun Application.module() {
     configureCachingHeaders() // Configuramos los headers de cacheo,
     configureCompression() // Configuramos el compreso de gzip y otros
     configureCors() // Configuramos el CORS, sobre todo para web,
+
 }

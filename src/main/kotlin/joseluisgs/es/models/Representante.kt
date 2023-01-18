@@ -16,9 +16,10 @@ data class Representante(
     val nombre: String,
     val email: String,
 
-    // Historicos
+    // Historicos y metadata
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @Serializable(with = LocalDateTimeSerializer::class)
     val updatedAt: LocalDateTime = LocalDateTime.now(),
+    val deleted: Boolean = false // Para el borrado lógico si es necesario
 )

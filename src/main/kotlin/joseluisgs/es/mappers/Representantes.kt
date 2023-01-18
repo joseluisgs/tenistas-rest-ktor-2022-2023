@@ -9,7 +9,8 @@ fun Representante.toDto() = RepresentanteDto(
     email = this.email,
     metadata = RepresentanteDto.MetaData(
         createdAt = this.createdAt,
-        updatedAt = this.updatedAt
+        updatedAt = this.updatedAt,
+        deleted = this.deleted // Solo se verá en el Json si es true
     )
 )
 

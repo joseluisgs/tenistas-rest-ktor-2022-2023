@@ -1,17 +1,23 @@
 package joseluisgs.es.services.representantes
 
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Representante
 import joseluisgs.es.models.RepresentantesNotification
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
 import kotlinx.coroutines.flow.Flow
 import mu.KotlinLogging
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
+@Single
+// @Named("RepresentantesService")
 class RepresentantesServiceImpl(
+    @Named("RepresentantesCachedRepository")  // Repositorio de Representantes Cacheado
     private val repository: RepresentantesRepository
 ) : RepresentantesService {
 
@@ -75,6 +81,8 @@ class RepresentantesServiceImpl(
     /// ---- Tiempo real, patrón observer!!!
 
     // Mis suscriptores, un mapa de codigo, con la función que se ejecutará
+    // Si no te gusta usar la función como parámetro, puedes usar el objeto de la sesión (pero para eso Kotlin
+    // es funcional ;)
     private val suscriptores =
         mutableMapOf<Int, suspend (RepresentantesNotification) -> Unit>()
 
@@ -92,18 +100,19 @@ class RepresentantesServiceImpl(
     }
 
     // Se ejecuta en cada cambio
-    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, entidad: Representante? = null) {
-        logger.debug { "onChange: Cambio en Representantes: $tipo, notificando a los suscriptores afectada entidad: $entidad" }
+    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Representante? = null) {
+        logger.debug { "onChange: Cambio en Representantes: $tipo, notificando a los suscriptores afectada entidad: $data" }
 
         // Por cada suscriptor, ejecutamos la función que se ha almacenado
+        // Si almacenas el objeto de la sesión, puedes usar el método de la sesión, que es sendSerialized
         suscriptores.values.forEach {
             it.invoke(
                 Notificacion(
                     tipo,
                     id,
-                    entidad
+                    data?.toDto() // Convertimos a DTO
                 )
-            ) // llama a la función que se ejecutará en el suscriptor sendSerialized
+            )
         }
     }
 }
