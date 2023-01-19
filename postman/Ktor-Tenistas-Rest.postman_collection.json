@@ -317,7 +317,7 @@
 					"response": []
 				},
 				{
-					"name": "GET Me",
+					"name": "GET Me (auth)",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -360,7 +360,100 @@
 					"response": []
 				},
 				{
-					"name": "GET ALL Users (Admin)",
+					"name": "PATCH Me Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ0ZW5pc3Rhcy1rdG9yLWF1dGgiLCJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6InRlbmlzdGFzLWt0b3IiLCJ1c2VybWFpbCI6ImFuYUBsb3Blei5jb20iLCJleHAiOjE2NzQwNjIwMTgyNDAsInVzZXJJZCI6ImM1MzA2MmU0LTMxZWEtNGY1ZS1hOTlkLTM2YzIyOGVkMDFhMyIsInVzZXJuYW1lIjoiYW5hIn0.8oLHerfDdffHef5zNxPXrpJs1i3pAW1JOso0f_2OwKOAg17mE448pC_SJGm2Xlr-6GGqhnTuH8mCgc8AgFwS2w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/home/joseluisgs/Proyectos/tenistas-rest-ktor/postman/imagen.png"
+								},
+								{
+									"key": "username",
+									"value": "pepe",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Me Update Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ0ZW5pc3Rhcy1rdG9yLWF1dGgiLCJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6InRlbmlzdGFzLWt0b3IiLCJ1c2VybWFpbCI6ImFuYUBsb3Blei5jb20iLCJleHAiOjE2NzQwNjIwMTgyNDAsInVzZXJJZCI6ImM1MzA2MmU0LTMxZWEtNGY1ZS1hOTlkLTM2YzIyOGVkMDFhMyIsInVzZXJuYW1lIjoiYW5hIn0.8oLHerfDdffHef5zNxPXrpJs1i3pAW1JOso0f_2OwKOAg17mE448pC_SJGm2Xlr-6GGqhnTuH8mCgc8AgFwS2w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Ana Lopez Updated\",\n    \"email\": \"updated@lopez.com\",\n    \"username\": \"anaupdated\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/users/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET ALL Users (admin)",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -397,6 +490,125 @@
 								"api",
 								"users",
 								"list"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Storage",
+			"item": [
+				{
+					"name": "GET Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/storage/check",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"storage",
+								"check"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST File Binary",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "/home/joseluisgs/Proyectos/tenistas-rest-ktor/postman/imagen.png"
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/storage",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"storage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET File by Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/storage/c53062e4-31ea-4f5e-a99d-36c228ed01a3.png",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"storage",
+								"c53062e4-31ea-4f5e-a99d-36c228ed01a3.png"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE File by Name (auth)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ0ZW5pc3Rhcy1rdG9yLWF1dGgiLCJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6InRlbmlzdGFzLWt0b3IiLCJ1c2VybWFpbCI6ImFuYUBsb3Blei5jb20iLCJleHAiOjE2NzQxMjkxNzA0ODksInVzZXJJZCI6ImM1MzA2MmU0LTMxZWEtNGY1ZS1hOTlkLTM2YzIyOGVkMDFhMyIsInVzZXJuYW1lIjoiYW5hIn0.qXUz2DTxMPvHJetVkE2KhKxQJzNsaEjzozvPBMYuWEKaY1kPet4gBF_2vmiMV8NOUFpIpqx4mNrOcga_6cePUA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/storage/9465f9a2-cdb0-4519-975e-cecf3546e960",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"storage",
+								"9465f9a2-cdb0-4519-975e-cecf3546e960"
 							]
 						}
 					},

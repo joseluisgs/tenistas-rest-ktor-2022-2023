@@ -21,6 +21,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Endpoints](#endpoints)
     - [Representantes](#representantes)
     - [Usuarios](#usuarios)
+    - [Storage](#storage)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
@@ -54,6 +55,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
     - [CORS](#cors-1)
     - [BCrypt](#bcrypt)
+  - [Postman](#postman)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -152,7 +154,7 @@ Recuerda que puedes conectarte de forma segura:
 
 Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos con tu cliente favorito. En este caso, usaremos Postman:
 ### Representantes
-| Método | Endpoint (/api) | Auth | Descripción | Status Code | Content |
+| Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |
 | ------ | -------- | ---- | ----------- | ----------- | ------- |
 | GET | /representantes | No | Devuelve todos los representantes | 200 | JSON |
 | GET | /representantes?page=X&perPage=Y | No | Devuelve representantes paginados | 200 | JSON |
@@ -165,13 +167,22 @@ Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos 
 
 
 ### Usuarios    
-| Método | Endpoint (/api) | Auth | Descripción | Status Code | Content |
+| Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |
 | ------ | -------- | ---- | ----------- | ----------- | ------- |
 | POST | /users/login | No | Login de un usuario, Token | 200 | JSON |
 | POST | /users/register | No | Registro de un usuario | 201 | JSON |
 | GET | /users/me | JWT | Datos del usuario del token | 200 | JSON |
+| PUT | /users/me | JWT | Actualiza datos del usuario: nombre, e-mail y username| 200 | JSON |
+| PATCH | /users/me | JWT | Actualiza avatar del usuario como multipart | 200 | JSON |
 | GET | /users/list | JWT | Devuelve todos los usuarios, si el token pertenece a un admin | 200 | JSON |
 
+### Storage
+| Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /storage/check | NO | Info del servicio | 200 | JSON |
+| POST | /storage | No | Envía un fichero como stream de bytes | 201 | JSON |
+| GET | /storage/{fileName} | No | Descarga un fichero por su nombre | 200 | JSON |
+| DELETE | /storage/{fileName} | JWT | Elimina un fichero por su nombre | 204 | No Content |
 
 ## Ktor
 
@@ -555,6 +566,13 @@ Para la seguridad de las comunicaciones usaremos [CORS](https://developer.mozill
 Para la seguridad de las comunicaciones usaremos [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) que es un algoritmo de hash de contraseñas diseñado por Niels Provos y David Mazières, destinado a ser un método de protección contra ataques de fuerza bruta. Con este algoritmo, se puede almacenar una contraseña en la base de datos de forma segura, ya que no se puede obtener la contraseña original a partir de la contraseña almacenada.
 
 ![bcrypt](./images/bcrypt.png)
+
+## Postman
+Para probar con un cliente nuestro servicio usaremos [Postman](https://www.postman.com/) que es una herramienta de colaboración para el desarrollo de APIs. Permite a los usuarios crear y compartir colecciones de peticiones HTTP, así como documentar y probar sus APIs.
+
+El fichero para probar nuestra api lo tienes en la carpera [postman](./postman) y puedes importarlo en tu Postman para probar el resultado.
+
+![postman](./images/postman.png)
 
 
 ## Recursos
