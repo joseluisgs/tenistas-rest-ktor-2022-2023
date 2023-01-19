@@ -3,10 +3,7 @@ package joseluisgs.es.plugins
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import joseluisgs.es.routes.representantesRoutes
-import joseluisgs.es.routes.testRoutes
-import joseluisgs.es.routes.usersRoutes
-import joseluisgs.es.routes.webRoutes
+import joseluisgs.es.routes.*
 
 // Configuramos las rutas con esta función de extensión
 // Podemos definirlas en un fichero aparte o dentro
@@ -31,5 +28,6 @@ fun Application.configureRouting() {
     // Intenta ponerlas por orden de importancia y acceso
     representantesRoutes() // Rutas de api /rest/representantes
     usersRoutes() // Rutas de api /rest/users
+    storageRoutes() // Rutas de api /rest/storage
     testRoutes() // Rutas de api /rest/test
 }
