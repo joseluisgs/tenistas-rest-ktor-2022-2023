@@ -11,10 +11,7 @@ import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import joseluisgs.es.dto.UserCreateDto
-import joseluisgs.es.dto.UserDto
-import joseluisgs.es.dto.UserLoginDto
-import joseluisgs.es.dto.UserWithTokenDto
+import joseluisgs.es.dto.*
 import joseluisgs.es.exceptions.UserBadRequestException
 import joseluisgs.es.exceptions.UserNotFoundException
 import joseluisgs.es.exceptions.UserUnauthorizedException
@@ -75,6 +72,7 @@ fun Application.usersRoutes() {
             }
 
             // Estas rutas están autenticadas --> Protegidas por JWT
+            // datos del usuario
             authenticate {
                 // Get -> /me
                 get("/me") {
@@ -95,6 +93,38 @@ fun Application.usersRoutes() {
                     }
                 }
 
+                // Actualizar datos del usuario
+                put("/me") {
+                    logger.debug { "PUT Me /$ENDPOINT/me" }
+                    // Por el token me llega como principal (autenticado) el usuario en sus claims
+                    try {
+                        val jwt = call.principal<JWTPrincipal>()
+                        // Cuidado que vienen con comillas!!!
+                        // val username = jwt?.payload?.getClaim("username").toString().replace("\"", "")
+                        val userId = jwt?.payload?.getClaim("userId")
+                            .toString().replace("\"", "").toUUID()
+                        val user = usersService.findById(userId)
+                        // Tomamos l
+                        val dto = call.receive<UserUpdateDto>()
+                        user.let {
+                            var userUpdated = user.copy(
+                                nombre = dto.nombre,
+                                username = dto.username,
+                                email = dto.email,
+                            )
+                            userUpdated = usersService.update(userId, userUpdated)!!
+                            call.respond(HttpStatusCode.OK, userUpdated.toDto())
+                        }
+                    } catch (e: UserNotFoundException) {
+                        call.respond(HttpStatusCode.Unauthorized, "Usuario no encontrado o no autenticado")
+                    } catch (e: RequestValidationException) {
+                        call.respond(HttpStatusCode.BadRequest, e.reasons)
+                    } catch (e: UserBadRequestException) {
+                        call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                    }
+                }
+
+                // Actualizar avatar del usuario
                 // Otra forma de subir imaagenes con multipart
                 patch("/me") {
                     logger.debug { "PUT Me /$ENDPOINT/me" }

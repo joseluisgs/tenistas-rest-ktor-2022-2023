@@ -79,7 +79,7 @@ class UsersServiceImpl(
 
         // No lo necesitamos, pero lo dejamos por si acaso
         val existingUser = repository.findByUsername(entity.username)
-        if (existingUser != null && existingUser.username != entity.username && existingUser.id != id) {
+        if (existingUser != null && existingUser.id != id) {
             throw UserBadRequestException("Ya existe un usuario con username: ${entity.username}")
         }
 

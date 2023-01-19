@@ -40,6 +40,13 @@ data class UserCreateDto(
 )
 
 @Serializable
+data class UserUpdateDto(
+    val nombre: String,
+    val email: String,
+    val username: String,
+)
+
+@Serializable
 data class UserLoginDto(
     val username: String,
     val password: String
