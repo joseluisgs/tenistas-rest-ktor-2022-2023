@@ -14,6 +14,7 @@ data class StorageConfig(
     val secureUrl = config["secureUrl"].toString()
     val environment = config["environment"].toString()
     val uploadDir = config["uploadDir"].toString()
+    val endpoint = config["endpoint"].toString()
 
     init {
         logger.debug { "Iniciando la configuración de Storage" }

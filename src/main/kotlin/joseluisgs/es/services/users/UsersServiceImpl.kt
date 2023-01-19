@@ -74,11 +74,22 @@ class UsersServiceImpl(
         return repository.save(user)
     }
 
-    override suspend fun update(id: UUID, entity: User): User? {
+    override suspend fun update(id: UUID, entity: User): User {
         logger.debug { "update: Actualizando usuario con id: $id" }
 
         // No lo necesitamos, pero lo dejamos por si acaso
-        TODO()
+        val existingUser = repository.findByUsername(entity.username)
+        if (existingUser != null && existingUser.id != id) {
+            throw UserBadRequestException("Ya existe un usuario con username: ${entity.username}")
+        }
+
+        val user =
+            entity.copy(
+                updatedAt = LocalDateTime.now(),
+            )
+
+        return repository.update(id, user)!!
+
     }
 
     override suspend fun delete(id: UUID): User? {

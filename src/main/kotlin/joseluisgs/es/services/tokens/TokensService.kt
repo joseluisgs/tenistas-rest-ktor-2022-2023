@@ -29,11 +29,9 @@ class TokensService(
             .withClaim("username", user.username)
             .withClaim("usermail", user.email)
             .withClaim("userId", user.id.toString())
+            // claims de tiempo de expiración milisegundos desde 1970 + (tiempo en segundos) * 1000 (milisegundos)
             .withExpiresAt(
-                Date(
-                    System.currentTimeMillis() * 1000 // viene en ms y lo paso a segundos
-                            + (tokenConfig.expiration) // le sumo los segundos de expiración
-                )
+                Date(System.currentTimeMillis() + tokenConfig.expiration * 1000L)
             )
             .sign(Algorithm.HMAC512(tokenConfig.secret))
     }
