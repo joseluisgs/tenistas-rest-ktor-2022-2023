@@ -73,6 +73,22 @@ fun Application.storageRoutes() {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
                 }
             }
+
+            // DELETE /rest/uploads/
+            // Si
+            delete("{fileName}") {
+                logger.debug { "DELETE /$ENDPOINT/{fileName}" }
+                try {
+                    // Recuperamos el nombre del fichero
+                    val fileName = call.parameters["fileName"].toString()
+                    // Recuperamos el fichero
+                    storageService.deleteFile(fileName)
+                    // Respondemos
+                    call.respond(HttpStatusCode.NoContent)
+                } catch (e: StorageFileNotFoundException) {
+                    call.respond(HttpStatusCode.NotFound, e.message.toString())
+                }
+            }
         }
     }
 }

@@ -41,7 +41,7 @@ class StorageServiceImpl(
         withContext(Dispatchers.IO) {
             try {
                 val file = File("${storageConfig.uploadDir}/$fileName")
-                file.writeBytes(fileBytes)
+                file.writeBytes(fileBytes) // sobreescritura si existe
                 logger.debug { "Fichero guardado en: ${file.absolutePath}" }
                 mapOf("path" to file.absolutePath, "name" to file.name)
             } catch (e: Exception) {
@@ -68,24 +68,25 @@ class StorageServiceImpl(
             }
         }
 
-    override fun getFile(fileName: String): File {
+    override suspend fun getFile(fileName: String): File = withContext(Dispatchers.IO) {
         logger.debug { "Buscando fichero en: $fileName" }
         val file = File("${storageConfig.uploadDir}/$fileName")
         logger.debug { "Fichero path: $file" }
         if (!file.exists()) {
             throw StorageFileNotFoundException("No se ha encontrado el fichero: $fileName")
         } else {
-            return file
+            return@withContext file
         }
     }
 
-    override fun deleteFile(pathName: String, fileName: String): Boolean {
-        val file = File("$pathName/$fileName")
+    override suspend fun deleteFile(fileName: String): Unit = withContext(Dispatchers.IO) {
+        logger.debug { "Borrando fichero en: $fileName" }
+        val file = File("${storageConfig.uploadDir}/$fileName")
+        logger.debug { "Fichero path: $file" }
         if (!file.exists()) {
             throw StorageFileNotFoundException("No se ha encontrado el fichero: $fileName")
         } else {
             file.delete()
-            return true
         }
     }
 

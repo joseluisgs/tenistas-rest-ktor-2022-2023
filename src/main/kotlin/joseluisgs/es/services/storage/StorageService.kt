@@ -7,6 +7,6 @@ interface StorageService {
     fun initStorageDirectory()
     suspend fun saveFile(pathName: String, fileName: String, fileBytes: ByteArray): Map<String, String>
     suspend fun saveFile(fileName: String, fileBytes: ByteReadChannel): Map<String, String>
-    fun getFile(fileName: String): File
-    fun deleteFile(pathName: String, fileName: String): Boolean
+    suspend fun getFile(fileName: String): File
+    suspend fun deleteFile(fileName: String)
 }
