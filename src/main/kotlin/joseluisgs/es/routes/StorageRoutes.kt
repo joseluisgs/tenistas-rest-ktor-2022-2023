@@ -2,6 +2,8 @@ package joseluisgs.es.routes
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -75,18 +77,23 @@ fun Application.storageRoutes() {
             }
 
             // DELETE /rest/uploads/
-            // Si
-            delete("{fileName}") {
-                logger.debug { "DELETE /$ENDPOINT/{fileName}" }
-                try {
-                    // Recuperamos el nombre del fichero
-                    val fileName = call.parameters["fileName"].toString()
-                    // Recuperamos el fichero
-                    storageService.deleteFile(fileName)
-                    // Respondemos
-                    call.respond(HttpStatusCode.NoContent)
-                } catch (e: StorageFileNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
+            // Si queremos rizar el rizo, podemos decir que solo borre si está autenticado
+            // o cuando sea admin, etc.... quizas debas importar otro servicio
+            // Estas rutas están autenticadas --> Protegidas por JWT
+            authenticate {
+                delete("{fileName}") {
+                    logger.debug { "DELETE /$ENDPOINT/{fileName}" }
+                    try {
+                        val jwt = call.principal<JWTPrincipal>()
+                        // Recuperamos el nombre del fichero
+                        val fileName = call.parameters["fileName"].toString()
+                        // Recuperamos el fichero
+                        storageService.deleteFile(fileName)
+                        // Respondemos
+                        call.respond(HttpStatusCode.NoContent)
+                    } catch (e: StorageFileNotFoundException) {
+                        call.respond(HttpStatusCode.NotFound, e.message.toString())
+                    }
                 }
             }
         }
