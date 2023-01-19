@@ -37,13 +37,19 @@ class StorageServiceImpl(
         }
     }
 
-    override suspend fun saveFile(pathName: String, fileName: String, fileBytes: ByteArray): Map<String, String> =
+    override suspend fun saveFile(fileName: String, fileBytes: ByteArray): Map<String, String> =
         withContext(Dispatchers.IO) {
             try {
                 val file = File("${storageConfig.uploadDir}/$fileName")
                 file.writeBytes(fileBytes) // sobreescritura si existe
                 logger.debug { "Fichero guardado en: ${file.absolutePath}" }
-                mapOf("path" to file.absolutePath, "name" to file.name)
+                return@withContext mapOf(
+                    "fileName" to fileName,
+                    "createdAt" to LocalDateTime.now().toString(),
+                    "size" to fileBytes.size.toString(),
+                    "baseUrl" to storageConfig.baseUrl + "/" + storageConfig.endpoint + "/" + fileName,
+                    "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
+                )
             } catch (e: Exception) {
                 throw StorageFileNotSaveException("Error al guardar el fichero: ${e.message}")
             }

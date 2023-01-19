@@ -2,6 +2,7 @@ package joseluisgs.es.routes
 
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -19,6 +20,7 @@ import joseluisgs.es.exceptions.UserUnauthorizedException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.models.User
+import joseluisgs.es.services.storage.StorageService
 import joseluisgs.es.services.tokens.TokensService
 import joseluisgs.es.services.users.UsersService
 import joseluisgs.es.utils.toUUID
@@ -33,6 +35,7 @@ fun Application.usersRoutes() {
 
     val usersService: UsersService by inject()
     val tokenService: TokensService by inject()
+    val storageService: StorageService by inject()
 
     routing {
         route("/$ENDPOINT") {
@@ -90,6 +93,55 @@ fun Application.usersRoutes() {
                         call.respond(HttpStatusCode.Unauthorized, "Usuario no encontrado o no autenticado")
                     }
                 }
+
+                put("/me/avatar") {
+                    logger.debug { "PUT Me /$ENDPOINT/me" }
+                    // Por el token me llega como principal (autenticado) el usuario en sus claims
+                    try {
+                        val jwt = call.principal<JWTPrincipal>()
+                        // Cuidado que vienen con comillas!!!
+                        // val username = jwt?.payload?.getClaim("username").toString().replace("\"", "")
+                        val userId = jwt?.payload?.getClaim("userId")
+                            .toString().replace("\"", "")
+                        val user = usersService.findById(userId.toUUID())
+                        // ya tenemos el usuario, ahora actualizamos porque es multiparte
+                        // Pueden venir los datos y la imagen
+                        logger.debug { "Tomando datos multiparte" }
+                        // Lo recorremos
+                        val multipartData = call.receiveMultipart()
+                        var fileDescription = ""
+                        multipartData.forEachPart { part ->
+                            // Analizamos el tipo si es fichero
+                            when (part) {
+                                is PartData.FormItem -> {
+                                    fileDescription = part.value
+                                    logger.debug { "El tipo de formulario: $fileDescription" }
+                                }
+
+                                is PartData.FileItem -> {
+                                    val fileName = part.originalFileName as String
+                                    val fileBytes = part.streamProvider().readBytes()
+                                    val fileExtension = fileName.substringAfterLast(".")
+                                    val newFileName = "$userId.$fileExtension"
+                                    val res = storageService.saveFile(newFileName, fileBytes)
+                                    println(res)
+                                }
+
+                                else -> {
+                                    logger.debug { "No es un fichero" }
+                                }
+                            }
+                            part.dispose()
+                        }
+
+                        user.let {
+                            call.respond(HttpStatusCode.OK, user.toDto())
+                        }
+                    } catch (e: UserNotFoundException) {
+                        call.respond(HttpStatusCode.Unauthorized, "Usuario no encontrado o no autenticado")
+                    }
+                }
+
 
                 // Get -> /users --> solo si eres admin
                 get("/list") {
