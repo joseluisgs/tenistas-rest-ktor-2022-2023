@@ -23,6 +23,10 @@ class StorageServiceImpl(
         logger.debug { "Iniciando servicio de almacenamiento en: ${storageConfig.uploadDir}" }
     }
 
+    override fun getConfig(): StorageConfig {
+        return storageConfig
+    }
+
     override fun initStorageDirectory() {
         logger.debug { "Iniciando el directorio de almacenamiento en: ${storageConfig.uploadDir}" }
         if (!File(storageConfig.uploadDir).exists()) {

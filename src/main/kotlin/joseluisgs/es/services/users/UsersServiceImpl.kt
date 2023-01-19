@@ -85,7 +85,6 @@ class UsersServiceImpl(
 
         val user =
             entity.copy(
-                password = hashedPassword(entity.password),
                 updatedAt = LocalDateTime.now(),
             )
 

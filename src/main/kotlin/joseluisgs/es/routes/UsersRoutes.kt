@@ -6,6 +6,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -94,7 +95,8 @@ fun Application.usersRoutes() {
                     }
                 }
 
-                put("/me/avatar") {
+                // Otra forma de subir imaagenes con multipart
+                patch("/me") {
                     logger.debug { "PUT Me /$ENDPOINT/me" }
                     // Por el token me llega como principal (autenticado) el usuario en sus claims
                     try {
@@ -107,38 +109,38 @@ fun Application.usersRoutes() {
                         // ya tenemos el usuario, ahora actualizamos porque es multiparte
                         // Pueden venir los datos y la imagen
                         logger.debug { "Tomando datos multiparte" }
-                        // Lo recorremos
+                        var newFileName: String = ""
                         val multipartData = call.receiveMultipart()
-                        var fileDescription = ""
                         multipartData.forEachPart { part ->
                             // Analizamos el tipo si es fichero
-                            when (part) {
-                                is PartData.FormItem -> {
-                                    fileDescription = part.value
-                                    logger.debug { "El tipo de formulario: $fileDescription" }
-                                }
+                            if (part is PartData.FileItem) {
+                                val fileName = part.originalFileName as String
+                                val fileBytes = part.streamProvider().readBytes()
+                                val fileExtension = fileName.substringAfterLast(".")
+                                newFileName = "$userId.$fileExtension"
+                                val res = storageService.saveFile(newFileName, fileBytes)
+                                // Dependiendo de si estamos en SSL siempre o sin SSL salvamos la ruta
+                                newFileName = if (call.request.origin.scheme == "https") {
+                                    //"https://${call.request.host()}:6963/api/storage/$newFileName"
+                                    res["secureUrl"].toString()
+                                } else {
+                                    //"http://${call.request.host()}:6969/api/storage/$newFileName"
+                                    res["baseUrl"].toString()
 
-                                is PartData.FileItem -> {
-                                    val fileName = part.originalFileName as String
-                                    val fileBytes = part.streamProvider().readBytes()
-                                    val fileExtension = fileName.substringAfterLast(".")
-                                    val newFileName = "$userId.$fileExtension"
-                                    val res = storageService.saveFile(newFileName, fileBytes)
-                                    println(res)
-                                }
-
-                                else -> {
-                                    logger.debug { "No es un fichero" }
                                 }
                             }
                             part.dispose()
                         }
 
                         user.let {
-                            call.respond(HttpStatusCode.OK, user.toDto())
+                            val userUpdated = user.copy(avatar = newFileName)
+                            usersService.update(user.id, userUpdated)
+                            call.respond(HttpStatusCode.OK, userUpdated.toDto())
                         }
                     } catch (e: UserNotFoundException) {
                         call.respond(HttpStatusCode.Unauthorized, "Usuario no encontrado o no autenticado")
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.BadRequest, e.message.toString())
                     }
                 }
 
