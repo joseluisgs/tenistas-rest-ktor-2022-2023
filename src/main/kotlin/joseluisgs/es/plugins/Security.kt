@@ -34,12 +34,12 @@ fun Application.configureSecurity() {
             // Cargamos el verificador con los datos de la configuracion
             verifier(jwtService.verifyJWTToken())
             // con realm aseguramos la ruta que estamos protegiendo
-            realm = tokenConfig.config["realm"].toString()
+            realm = tokenConfig.realm
             validate { credential ->
                 // Si el token es valido, ademas tiene la udiencia indicada,
                 // y tiene el campo del usuario para compararlo con el que nosotros queremos
                 // devolvemos el JWTPrincipal, si no devolvemos null
-                if (credential.payload.audience.contains(tokenConfig.config["audience"].toString()) &&
+                if (credential.payload.audience.contains(tokenConfig.audience) &&
                     credential.payload.getClaim("username").asString().isNotEmpty()
                 )
                     JWTPrincipal(credential.payload)
