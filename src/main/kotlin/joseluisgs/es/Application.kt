@@ -24,7 +24,7 @@ fun Application.module() {
     // Configuramos Middleware la seguridad con JWT, debe ir antes que el resto de plugins que trabajen con rutas
     configureSecurity()
 
-    // // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real.  Debe ir antes que las rutas http.
+    // // Configuramos WebSockets, ideal para chat o notificaciones en tiempo real. Debe ir antes que las rutas http.
     configureWebSockets()
 
     // Principales que debería tener tu api rest!!!
