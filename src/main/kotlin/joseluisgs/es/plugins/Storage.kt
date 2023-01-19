@@ -13,7 +13,8 @@ fun Application.configureStorage() {
         "baseUrl" to environment.config.property("server.baseUrl").getString(),
         "secureUrl" to environment.config.property("server.baseSecureUrl").getString(),
         "environment" to environment.config.property("ktor.environment").getString(),
-        "uploadDir" to environment.config.property("storage.uploadDir").getString()
+        "uploadDir" to environment.config.property("storage.uploadDir").getString(),
+        "endpoint" to environment.config.property("storage.endpoint").getString()
     )
 
     // Inyectamos la configuración de Storage

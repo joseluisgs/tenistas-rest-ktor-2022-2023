@@ -1,5 +1,7 @@
 package joseluisgs.es.services.storage
 
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
 import joseluisgs.es.config.StorageConfig
 import joseluisgs.es.exceptions.FileNotSaveException
 import kotlinx.coroutines.Dispatchers
@@ -8,6 +10,7 @@ import mu.KotlinLogging
 import org.koin.core.annotation.Single
 import java.io.File
 import java.io.FileNotFoundException
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -37,10 +40,29 @@ class StorageServiceImpl(
     override suspend fun saveFile(pathName: String, fileName: String, fileBytes: ByteArray): Map<String, String> =
         withContext(Dispatchers.IO) {
             try {
-                val file = File("$pathName/$fileName")
+                val file = File("${storageConfig.uploadDir}/$fileName")
                 file.writeBytes(fileBytes)
                 logger.debug { "Fichero guardado en: ${file.absolutePath}" }
                 mapOf("path" to file.absolutePath, "name" to file.name)
+            } catch (e: Exception) {
+                throw FileNotSaveException("Error al guardar el fichero: ${e.message}")
+            }
+        }
+
+    override suspend fun saveFile(fileName: String, fileBytes: ByteReadChannel): Map<String, String> =
+        withContext(Dispatchers.IO) {
+            try {
+                logger.debug { "Guardando fichero en: $fileName" }
+                val file = File("${storageConfig.uploadDir}/$fileName")
+                val res = fileBytes.copyAndClose(file.writeChannel())
+                logger.debug { "Fichero guardado en: $file" }
+                return@withContext mapOf(
+                    "fileName" to fileName,
+                    "createdAt" to LocalDateTime.now().toString(),
+                    "size" to res.toString(),
+                    "baseUrl" to storageConfig.baseUrl + "/" + storageConfig.endpoint + "/" + fileName,
+                    "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
+                )
             } catch (e: Exception) {
                 throw FileNotSaveException("Error al guardar el fichero: ${e.message}")
             }
