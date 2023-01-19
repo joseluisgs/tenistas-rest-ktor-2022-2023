@@ -42,6 +42,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones datos serializados](#peticiones-datos-serializados)
       - [Peticiones con formularios](#peticiones-con-formularios)
       - [Peticiones multiparte](#peticiones-multiparte)
+      - [Subida de información](#subida-de-información)
       - [Request validation](#request-validation)
     - [WebSockets](#websockets)
     - [SSL y Certificados](#ssl-y-certificados)
@@ -400,6 +401,16 @@ post("/upload") {
       part.dispose()
     }
     call.respondText("$fileName is uploaded to 'uploads/$fileName'")
+}
+```
+
+#### Subida de información
+Ktor soporta [subida de información](https://ktor.io/docs/requests.html#body_contents), es decir, que podemos enviar ficheros, imágenes, etc. Podemos hacerlo con recieve o receiveChannel() (raw). Para el caso de ficheros se puede mandar así si sabemos cómo almacenarlos, si no podemos enviar ficheros usando el sistema de [petición multipart](#peticiones-multiparte).
+```kotlin
+post("/upload") {
+    val file = File("uploads/ktor_logo.png")
+    call.receiveChannel().copyAndClose(file.writeChannel())
+    call.respondText("A file is uploaded")
 }
 ```
 
