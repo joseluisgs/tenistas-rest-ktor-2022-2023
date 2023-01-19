@@ -17,13 +17,13 @@ class TokensService(
 ) {
 
     init {
-        logger.debug { "Iniciando servicio de tokens con audience: ${tokenConfig.config["audience"]}" }
+        logger.debug { "Iniciando servicio de tokens con audience: ${tokenConfig.audience}" }
     }
 
     fun generateJWTToken(user: User): String {
         return JWT.create()
-            .withAudience(tokenConfig.config["audience"])
-            .withIssuer(tokenConfig.config["issuer"])
+            .withAudience(tokenConfig.audience)
+            .withIssuer(tokenConfig.issuer)
             .withSubject("Authentication")
             // claims de usuario
             .withClaim("username", user.username)
@@ -32,16 +32,16 @@ class TokensService(
             .withExpiresAt(
                 Date(
                     System.currentTimeMillis() * 1000 // viene en ms y lo paso a segundos
-                            + (tokenConfig.config["expiration"]?.toLong() ?: 3600)
+                            + (tokenConfig.expiration) // le sumo los segundos de expiración
                 )
             )
-            .sign(Algorithm.HMAC512(tokenConfig.config["secret"]))
+            .sign(Algorithm.HMAC512(tokenConfig.secret))
     }
 
     fun verifyJWTToken(): JWTVerifier {
-        return JWT.require(Algorithm.HMAC512(tokenConfig.config["secret"]))
-            .withAudience(tokenConfig.config["audience"])
-            .withIssuer(tokenConfig.config["issuer"])
+        return JWT.require(Algorithm.HMAC512(tokenConfig.secret))
+            .withAudience(tokenConfig.audience)
+            .withIssuer(tokenConfig.issuer)
             .build()
     }
 }
