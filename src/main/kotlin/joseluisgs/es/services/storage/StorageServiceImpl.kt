@@ -3,13 +3,13 @@ package joseluisgs.es.services.storage
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import joseluisgs.es.config.StorageConfig
-import joseluisgs.es.exceptions.FileNotSaveException
+import joseluisgs.es.exceptions.StorageFileNotFoundException
+import joseluisgs.es.exceptions.StorageFileNotSaveException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Single
 import java.io.File
-import java.io.FileNotFoundException
 import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
@@ -45,7 +45,7 @@ class StorageServiceImpl(
                 logger.debug { "Fichero guardado en: ${file.absolutePath}" }
                 mapOf("path" to file.absolutePath, "name" to file.name)
             } catch (e: Exception) {
-                throw FileNotSaveException("Error al guardar el fichero: ${e.message}")
+                throw StorageFileNotSaveException("Error al guardar el fichero: ${e.message}")
             }
         }
 
@@ -64,14 +64,16 @@ class StorageServiceImpl(
                     "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
                 )
             } catch (e: Exception) {
-                throw FileNotSaveException("Error al guardar el fichero: ${e.message}")
+                throw StorageFileNotSaveException("Error al guardar el fichero: ${e.message}")
             }
         }
 
-    override fun getFile(pathName: String, fileName: String): File {
-        val file = File("$pathName/$fileName")
+    override fun getFile(fileName: String): File {
+        logger.debug { "Buscando fichero en: $fileName" }
+        val file = File("${storageConfig.uploadDir}/$fileName")
+        logger.debug { "Fichero path: $file" }
         if (!file.exists()) {
-            throw FileNotFoundException("No se ha encontrado el fichero: $fileName")
+            throw StorageFileNotFoundException("No se ha encontrado el fichero: $fileName")
         } else {
             return file
         }
@@ -80,7 +82,7 @@ class StorageServiceImpl(
     override fun deleteFile(pathName: String, fileName: String): Boolean {
         val file = File("$pathName/$fileName")
         if (!file.exists()) {
-            throw FileNotFoundException("No se ha encontrado el fichero: $fileName")
+            throw StorageFileNotFoundException("No se ha encontrado el fichero: $fileName")
         } else {
             file.delete()
             return true
