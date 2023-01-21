@@ -32,7 +32,7 @@ fun Application.configureSecurity() {
     authentication {
         jwt {
             // Cargamos el verificador con los datos de la configuracion
-            verifier(jwtService.verifyJWTToken())
+            verifier(jwtService.verifyJWT())
             // con realm aseguramos la ruta que estamos protegiendo
             realm = tokenConfig.realm
             validate { credential ->

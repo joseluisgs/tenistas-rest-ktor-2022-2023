@@ -14,6 +14,7 @@ val cache_version: String by project
 // Test
 val junit_version: String by project
 val mockk_version: String by project
+val coroutines_version: String by project
 
 // Koin
 // val koin_version: String by project
@@ -100,7 +101,7 @@ dependencies {
 
     // Para testear
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version") // Usar deps de JUNIT 5 y no estas!
 
     // JUnit 5 en vez del por defecto de Kotlin...
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
@@ -109,8 +110,15 @@ dependencies {
     // MockK para testear Mockito con Kotlin
     testImplementation("io.mockk:mockk:$mockk_version")
 
+    // Para testear métodos suspendidos o corrutinas
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+
     // Para testear con Koin
     // testImplementation("io.insert-koin:koin-test-junit5:$koin_version")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 // Para Koin Annotations, directorio donde se encuentran las clases compiladas
