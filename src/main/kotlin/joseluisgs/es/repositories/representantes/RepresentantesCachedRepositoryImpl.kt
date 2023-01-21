@@ -1,7 +1,7 @@
 package joseluisgs.es.repositories.representantes
 
 import joseluisgs.es.models.Representante
-import joseluisgs.es.services.cache.representantes.RepresentantesCacheImpl
+import joseluisgs.es.services.cache.representantes.RepresentantesCache
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesCachedRepositoryImpl(
     @Named("PersonasRepository") // Repositorio de datos originales
     private val repository: RepresentantesRepository,
-    private val cacheRepresentantes: RepresentantesCacheImpl // Desacoplamos la cache
+    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
 ) : RepresentantesRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución

@@ -114,7 +114,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
 
     // Para testear con Koin
-    // testImplementation("io.insert-koin:koin-test-junit5:$koin_version")
+    testImplementation("io.insert-koin:koin-test-junit5:$koin_ktor_version")
 }
 
 tasks.test {
