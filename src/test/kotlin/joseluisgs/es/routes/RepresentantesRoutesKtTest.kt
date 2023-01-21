@@ -21,7 +21,7 @@ import java.util.*
 import kotlin.test.*
 
 
-val json = Json { ignoreUnknownKeys = true }
+private val json = Json { ignoreUnknownKeys = true }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
