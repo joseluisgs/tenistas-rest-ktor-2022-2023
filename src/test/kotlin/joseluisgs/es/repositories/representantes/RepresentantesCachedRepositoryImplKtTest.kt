@@ -20,7 +20,7 @@ import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(MockKExtension::class)
-internal class RepresentantesCachedRepositoryImplTest {
+class RepresentantesCachedRepositoryImplKtTest {
 
     val representante = Representante(
         id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),

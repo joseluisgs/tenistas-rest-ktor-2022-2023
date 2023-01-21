@@ -113,8 +113,11 @@ dependencies {
     // Para testear métodos suspendidos o corrutinas
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
 
+    // Para testear con content negotiation
+    testImplementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+
     // Para testear con Koin
-    testImplementation("io.insert-koin:koin-test-junit5:$koin_ktor_version")
+    //testImplementation("io.insert-koin:koin-test-junit5:$koin_ktor_version")
 }
 
 tasks.test {
