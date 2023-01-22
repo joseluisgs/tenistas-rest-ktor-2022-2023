@@ -1,6 +1,10 @@
 package joseluisgs.es.repositories.representantes
 
 import joseluisgs.es.models.Representante
+import joseluisgs.es.repositories.utils.getDataBaseService
+import joseluisgs.es.utils.toUUID
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -9,6 +13,10 @@ import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RepresentantesRepositoryImplKtTest {
+
+    val dataBaseService = getDataBaseService()
+
+    var repository = RepresentantesRepositoryImpl(dataBaseService)
 
     val representante = Representante(
         id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
@@ -19,56 +27,53 @@ class RepresentantesRepositoryImplKtTest {
         deleted = false
     )
 
-    val repository: RepresentantesRepository = RepresentantesRepositoryImpl()
 
     // Con run test podemos ejecutar código asíncrono
-    @BeforeEach
-    fun setUp() = runTest {
-        repository.save(representante)
+    @AfterEach
+    fun setUp() {
+        repository.clearData()
+        repository.initData()
     }
 
-    @AfterEach
-    fun tearDwon() = runTest {
-        repository.delete(representante)
+    @AfterAll
+    fun tearDown() {
+        repository.clearData()
     }
 
     @Test
     fun findAll() = runTest {
-        val result = repository.findAll()
-        val representantes = mutableListOf<Representante>()
-        result.collect { representantes.add(it) }
+        val result = repository.findAll().take(1).toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertTrue(representantes.size > 0) },
-            { assertTrue(representantes.contains(representante)) }
+            { assertEquals(1, result.size) },
+            { assertEquals("Pepe Perez", result[0].nombre) },
         )
     }
 
     @Test
     fun findAllPageable() = runTest {
-        val result = repository.findAllPageable(0, 10)
+        val result = repository.findAllPageable(0, 10).take(1).toList()
         val representantes = mutableListOf<Representante>()
-        result.collect { representantes.add(it) }
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertTrue(representantes.size > 0) },
-            { assertTrue(representantes.contains(representante)) }
+            { assertEquals(1, result.size) },
+            { assertEquals("Pepe Perez", result[0].nombre) },
         )
 
     }
 
     @Test
     fun findById() = runTest {
-        val result = repository.findById(representante.id)
+        val result = repository.findById("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf".toUUID())
 
         // Comprobamos que el resultado es correcto
-        assertAll(
-            { assertNotNull(result) },
-            { assertEquals(representante, result) }
+        Assertions.assertAll(
+            { assertEquals("Pepe Perez", result?.nombre) },
+            { assertEquals("pepe@perez.com", result?.email) },
         )
     }
 
@@ -83,15 +88,24 @@ class RepresentantesRepositoryImplKtTest {
 
     @Test
     fun findByNombre() = runTest {
-        val result = repository.findByNombre("Test")
-        val representantes = mutableListOf<Representante>()
-        result.collect { representantes.add(it) }
+        val result = repository.findByNombre("Pepe Perez").take(1).toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertTrue(representantes.size > 0) },
-            { assertTrue(representantes.contains(representante)) }
+            { assertEquals(1, result.size) },
+            { assertEquals("Pepe Perez", result[0].nombre) },
+        )
+    }
+
+    @Test
+    fun findByUsernameNotFound() = runTest {
+        val result = repository.findByNombre("caca").take(1).toList()
+
+        // Comprobamos que el resultado es correcto
+        assertAll(
+            { assertNotNull(result) },
+            { assertEquals(0, result.size) },
         )
     }
 
@@ -100,16 +114,23 @@ class RepresentantesRepositoryImplKtTest {
         val result = repository.save(representante)
 
         // Comprobamos que el resultado es correcto
-        assertEquals(representante, result)
+        assertAll(
+            { assertEquals(result.nombre, representante.nombre) },
+            { assertEquals(result.email, representante.email) }
+        )
     }
 
     @Test
     fun update() = runTest {
-        val update = representante.copy(nombre = "Test2")
+        val res = repository.save(representante)
+        val update = res.copy(nombre = "Test2")
         val result = repository.update(representante.id, update)
 
         // Comprobamos que el resultado es correcto
-        assertEquals(update, result)
+        assertAll(
+            { assertEquals(result?.nombre, update.nombre) },
+            { assertEquals(result?.email, update.email) }
+        )
     }
 
     /*
@@ -125,10 +146,14 @@ class RepresentantesRepositoryImplKtTest {
 
     @Test
     fun delete() = runTest {
-        val result = repository.delete(representante)
+        val res = repository.save(representante)
+        val result = repository.delete(res)
 
         // Comprobamos que el resultado es correcto
-        assertEquals(representante, result)
+        assertAll(
+            { assertEquals(result?.nombre, res.nombre) },
+            { assertEquals(result?.email, res.email) }
+        )
     }
 
     @Test

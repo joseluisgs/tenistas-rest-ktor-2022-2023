@@ -47,6 +47,7 @@ class UsersRepositoryImplTest {
     @Test
     fun findAll() = runTest {
         val result = repository.findAll().take(1).toList()
+
         assertAll(
             { assertEquals(1, result.size) },
             { assertEquals("Pepe Perez", result[0].nombre) },
@@ -56,6 +57,7 @@ class UsersRepositoryImplTest {
     @Test
     fun testFindAllLimit() = runTest {
         val result = repository.findAll(2).toList()
+
         assertAll(
             { assertEquals(2, result.size) },
             { assertEquals("Pepe Perez", result[0].nombre) },
@@ -66,6 +68,7 @@ class UsersRepositoryImplTest {
     @Test
     fun checkUserNameAndPassword() = runTest {
         val result = repository.checkUserNameAndPassword("pepe", "pepe1234")
+
         assertAll(
             { assertEquals("Pepe Perez", result?.nombre) },
             { assertEquals("pepe", result?.username) },
@@ -75,12 +78,14 @@ class UsersRepositoryImplTest {
     @Test
     fun checkUserNameAndPasswordNotFound() = runTest {
         val result = repository.checkUserNameAndPassword("caca", "caca1234")
+
         assertNull(result)
     }
 
     @Test
     fun findById() = runTest {
         val result = repository.findById("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf".toUUID())
+
         assertAll(
             { assertEquals("Pepe Perez", result?.nombre) },
             { assertEquals("pepe", result?.username) },
@@ -90,12 +95,14 @@ class UsersRepositoryImplTest {
     @Test
     fun findByIdNotFound() = runTest {
         val result = repository.findById(UUID.randomUUID())
+
         assertNull(result)
     }
 
     @Test
     fun findByUsername() = runTest {
         val result = repository.findByUsername("pepe")
+
         assertAll(
             { assertEquals("Pepe Perez", result?.nombre) },
             { assertEquals("pepe", result?.username) },
@@ -105,12 +112,14 @@ class UsersRepositoryImplTest {
     @Test
     fun findByUsernameNotFound() = runTest {
         val result = repository.findByUsername("caca")
+
         assertNull(result)
     }
 
     @Test
     fun save() = runTest {
         val res = repository.save(user)
+
         assertAll(
             { assertEquals(user.nombre, res.nombre) },
             { assertEquals(user.username, res.username) },
@@ -123,6 +132,7 @@ class UsersRepositoryImplTest {
     fun update() = runTest {
         val res = repository.save(user)
         val res2 = repository.update(user.id, res.copy(nombre = "Test2"))!!
+
         assertAll(
             { assertEquals("Test2", res2.nombre) },
             { assertEquals(user.username, res2.username) },
@@ -140,6 +150,7 @@ class UsersRepositoryImplTest {
     fun delete() = runTest {
         val res = repository.save(user)
         val res2 = repository.delete(res)!!
+
         assertAll(
             { assertEquals(user.nombre, res2.nombre) },
             { assertEquals(user.username, res2.username) },
@@ -150,6 +161,7 @@ class UsersRepositoryImplTest {
     @Test
     fun deleteNotFound() = runTest {
         val res = repository.delete(user)
+
         assertNull(res)
     }
 }
