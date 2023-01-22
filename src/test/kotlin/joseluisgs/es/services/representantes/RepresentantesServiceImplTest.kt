@@ -145,6 +145,7 @@ class RepresentantesServiceImplTest {
 
     @Test
     fun update() = runTest {
+        coEvery { repository.findById(any()) } returns representante
         coEvery { repository.update(any(), any()) } returns representante
 
         val result = service.update(representante.id, representante)
@@ -159,6 +160,7 @@ class RepresentantesServiceImplTest {
 
     @Test
     fun updateNotFound() = runTest {
+        coEvery { repository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${representante.id}")
         coEvery { repository.update(any(), any()) } returns null
 
         val res = assertThrows<RepresentanteNotFoundException> {
@@ -167,11 +169,13 @@ class RepresentantesServiceImplTest {
 
         assertEquals("No se ha encontrado el representante con id: ${representante.id}", res.message)
 
-        coVerify { repository.update(any(), any()) }
+        coVerify(exactly = 0) { repository.update(any(), any()) }
+
     }
 
     @Test
     fun delete() = runTest {
+        coEvery { repository.findById(any()) } returns representante
         coEvery { repository.delete(any()) } returns representante
 
         val result = service.delete(representante.id)
@@ -187,7 +191,7 @@ class RepresentantesServiceImplTest {
 
     @Test
     fun deleteNotFound() = runTest {
-        coEvery { repository.delete(any()) } returns null
+        coEvery { repository.delete(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${representante.id}")
 
         val res = assertThrows<RepresentanteNotFoundException> {
             service.delete(representante.id)
