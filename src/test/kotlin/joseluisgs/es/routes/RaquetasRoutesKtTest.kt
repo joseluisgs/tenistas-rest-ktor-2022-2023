@@ -5,38 +5,31 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
-import joseluisgs.es.dto.RepresentanteDto
-import joseluisgs.es.mappers.toDto
-import joseluisgs.es.models.Representante
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import joseluisgs.es.dto.RaquetaCreateDto
+import joseluisgs.es.dto.RaquetaDto
+import joseluisgs.es.models.Raqueta
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 import java.util.*
-import kotlin.test.*
 
 
 private val json = Json { ignoreUnknownKeys = true }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-
-class RepresentantesRoutesKtTest {
+class RaquetasRoutesKtTest {
     // Cargamos la configuración del entorno
     private val config = ApplicationConfig("application.conf")
 
-    val representante = Representante(
-        id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
-        nombre = "Test",
-        email = "test@example.com",
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
-        deleted = false
+    val raqueta = Raqueta(
+        id = UUID.fromString("044e6ec7-aa6c-46bb-9433-8094ef4ae8bc"),
+        marca = "Test",
+        precio = 199.9,
+        represetanteId = UUID.fromString("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf")
     )
 
     // Esto es muy similar a hacerlo con Postman
@@ -47,7 +40,7 @@ class RepresentantesRoutesKtTest {
         environment { config }
 
         // Lanzamos la consulta
-        val response = client.get("/api/representantes")
+        val response = client.get("/api/raquetas")
 
         // Comprobamos que la respuesta y el contenido es correcto
         assertEquals(HttpStatusCode.OK, response.status)
@@ -66,7 +59,7 @@ class RepresentantesRoutesKtTest {
         environment { config }
 
         // Lanzamos la consulta
-        val response = client.get("/api/representantes?page=1&perPage=10")
+        val response = client.get("/api/raquetas?page=1&perPage=10")
 
         // Comprobamos que la respuesta y el contenido es correcto
         assertEquals(HttpStatusCode.OK, response.status)
@@ -75,7 +68,11 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(3)
     fun testPost() = testApplication {
-        val create = representante.toDto()
+        val create = RaquetaCreateDto(
+            marca = raqueta.marca,
+            precio = raqueta.precio,
+            representanteId = raqueta.represetanteId
+        )
         // Configuramos el entorno de test
         environment { config }
 
@@ -86,7 +83,7 @@ class RepresentantesRoutesKtTest {
             }
         }
         // Lanzamos la consulta
-        val response = client.post("/api/representantes") {
+        val response = client.post("/api/raquetas") {
             contentType(ContentType.Application.Json)
             setBody(create)
         }
@@ -96,17 +93,22 @@ class RepresentantesRoutesKtTest {
         val result = response.bodyAsText()
 
         // Podemos comprobar que el resultado es un JSON analizar la cadena o deserializarlo
-        val dto = json.decodeFromString<RepresentanteDto>(result)
+        val dto = json.decodeFromString<RaquetaDto>(result)
         assertAll(
-            { assertEquals(create.nombre, dto.nombre) },
-            { assertEquals(create.email, dto.email) }
+            { assertEquals(create.marca, dto.marca) },
+            { assertEquals(create.precio, dto.precio) }
         )
     }
 
     @Test
     @Order(4)
     fun testPut() = testApplication {
-        val create = representante.toDto()
+        val create = RaquetaCreateDto(
+            marca = raqueta.marca,
+            precio = raqueta.precio,
+            representanteId = raqueta.represetanteId
+        )
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -117,15 +119,15 @@ class RepresentantesRoutesKtTest {
             }
         }
         // Lanzamos la consulta para crearlo y que este
-        var response = client.post("/api/representantes") {
+        var response = client.post("/api/raquetas") {
             contentType(ContentType.Application.Json)
             setBody(create)
         }
 
         // cogemos el id del resultado
-        var dto = json.decodeFromString<RepresentanteDto>(response.bodyAsText())
+        var dto = json.decodeFromString<RaquetaDto>(response.bodyAsText())
 
-        response = client.put("/api/representantes/${dto.id}") {
+        response = client.put("/api/raquetas/${dto.id}") {
             contentType(ContentType.Application.Json)
             setBody(create)
         }
@@ -135,17 +137,22 @@ class RepresentantesRoutesKtTest {
         val result = response.bodyAsText()
 
         // Podemos comprobar que el resultado es un JSON analizar la cadena o deserializarlo
-        dto = json.decodeFromString<RepresentanteDto>(result)
+        dto = json.decodeFromString<RaquetaDto>(result)
         assertAll(
-            { assertEquals(create.nombre, dto.nombre) },
-            { assertEquals(create.email, dto.email) }
+            { assertEquals(create.marca, dto.marca) },
+            { assertEquals(create.precio, dto.precio) }
         )
     }
 
     @Test
     @Order(5)
     fun testPutNotFound() = testApplication {
-        val create = representante.toDto()
+        val create = RaquetaCreateDto(
+            marca = raqueta.marca,
+            precio = raqueta.precio,
+            representanteId = raqueta.represetanteId
+        )
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -157,7 +164,7 @@ class RepresentantesRoutesKtTest {
         }
 
         // Lanzamos la consulta para crearlo y que este
-        val response = client.put("/api/representantes/${UUID.randomUUID()}") {
+        val response = client.put("/api/raquetas/${UUID.randomUUID()}") {
             contentType(ContentType.Application.Json)
             setBody(create)
         }
@@ -169,7 +176,12 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(6)
     fun testDelete() = testApplication {
-        val create = representante.toDto()
+        val create = RaquetaCreateDto(
+            marca = raqueta.marca,
+            precio = raqueta.precio,
+            representanteId = raqueta.represetanteId
+        )
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -180,15 +192,15 @@ class RepresentantesRoutesKtTest {
             }
         }
         // Lanzamos la consulta para crearlo y que este
-        var response = client.post("/api/representantes") {
+        var response = client.post("/api/raquetas") {
             contentType(ContentType.Application.Json)
             setBody(create)
         }
 
         // cogemos el id del resultado
-        val dto = json.decodeFromString<RepresentanteDto>(response.bodyAsText())
+        val dto = json.decodeFromString<RaquetaDto>(response.bodyAsText())
 
-        response = client.delete("/api/representantes/${dto.id}")
+        response = client.delete("/api/raquetas/${dto.id}")
 
         // Comprobamos que la respuesta y el contenido es correcto
         assertEquals(HttpStatusCode.NoContent, response.status)
@@ -197,7 +209,11 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(7)
     fun testDeleteNotFound() = testApplication {
-        val create = representante.toDto()
+        val create = RaquetaCreateDto(
+            marca = raqueta.marca,
+            precio = raqueta.precio,
+            representanteId = raqueta.represetanteId
+        )
         // Configuramos el entorno de test
         environment { config }
 
@@ -209,7 +225,7 @@ class RepresentantesRoutesKtTest {
         }
 
         // Lanzamos la consulta para crearlo y que este
-        val response = client.delete("/api/representantes/${UUID.randomUUID()}")
+        val response = client.delete("/api/raquetas/${UUID.randomUUID()}")
 
         // Comprobamos que la respuesta y el contenido es correcto
         assertEquals(HttpStatusCode.NotFound, response.status)

@@ -162,6 +162,24 @@ fun Application.raquetasRoutes() {
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
 
+            // Get representante -> /{id}/representante
+            get("{id}/representante") {
+                logger.debug { "GET BY ID /$ENDPOINT/{id}/representante" }
+                // Obtenemos el id
+                try {
+                    val id = call.parameters["id"]?.toUUID()!!
+                    val raqueta = raquetasService.findById(id)
+                    val representante = raquetasService.findRepresentante(raqueta.represetanteId)
+                    call.respond(HttpStatusCode.OK, representante.toDto())
+                } catch (e: RaquetaNotFoundException) {
+                    call.respond(HttpStatusCode.NotFound, e.message.toString())
+                } catch (e: RepresentanteNotFoundException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                } catch (e: UUIDException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                }
+            }
+
             // WebSockets para tiempo real
             webSocket("/updates") {
                 try {

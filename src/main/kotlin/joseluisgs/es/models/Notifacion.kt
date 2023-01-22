@@ -1,6 +1,6 @@
 package joseluisgs.es.models
 
-import joseluisgs.es.dto.RaquetaNotificationDto
+import joseluisgs.es.dto.RaquetaDto
 import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.serializers.LocalDateTimeSerializer
 import joseluisgs.es.serializers.UUIDSerializer
@@ -25,4 +25,4 @@ data class Notificacion<T>(
 // Mis alias, para no estar con los genéricos, mando el DTO por que es lo que quiero que se envíe con sus datos
 // visibles en el DTO igual que se ven en las llamadas REST
 typealias RepresentantesNotification = Notificacion<RepresentanteDto?> // RepresentanteDto?
-typealias RaquetasNotification = Notificacion<RaquetaNotificationDto?> // RaquetaDto?
+typealias RaquetasNotification = Notificacion<RaquetaDto?> // RaquetaDto?

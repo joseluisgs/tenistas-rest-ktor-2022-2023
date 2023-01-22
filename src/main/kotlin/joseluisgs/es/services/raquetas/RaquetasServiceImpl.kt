@@ -2,7 +2,7 @@ package joseluisgs.es.services.raquetas
 
 import joseluisgs.es.exceptions.RaquetaNotFoundException
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
-import joseluisgs.es.mappers.toNotificationDto
+import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.*
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
@@ -90,7 +90,7 @@ class RaquetasServiceImpl(
         existe?.let {
             return repository.delete(existe)
                 ?.also { onChange(Notificacion.Tipo.DELETE, it.id) }!!
-        } ?: throw RepresentanteNotFoundException("No se ha encontrado la raqueta con id: $id")
+        } ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $id")
     }
 
     override suspend fun findRepresentante(id: UUID): Representante {
@@ -132,7 +132,7 @@ class RaquetasServiceImpl(
                 Notificacion(
                     tipo,
                     id,
-                    data?.toNotificationDto() // Convertimos a DTO
+                    data?.toDto(findRepresentante(data.represetanteId))
                 )
             )
         }
