@@ -5,6 +5,7 @@ import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toNotificationDto
 import joseluisgs.es.models.*
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
+import joseluisgs.es.repositories.representantes.RepresentantesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -19,7 +20,8 @@ private val logger = KotlinLogging.logger {}
 // @Named("RepresentantesService")
 class RaquetasServiceImpl(
     @Named("RaquetasCachedRepository")  // Repositorio de Representantes Cacheado
-    private val repository: RaquetasRepository
+    private val repository: RaquetasRepository,
+    private val reprepresentesRepository: RepresentantesRepository
 ) : RaquetasService {
 
     init {
@@ -57,6 +59,9 @@ class RaquetasServiceImpl(
     override suspend fun save(raqueta: Raqueta): Raqueta {
         logger.debug { "create: Creando raqueta en servicio" }
 
+        // Existe el representante!
+        val representante = findRepresentante(raqueta.represetanteId)
+
         // Insertamos el representante y devolvemos el resultado y avisa a los subscriptores
         return repository.save(raqueta)
             .also { onChange(Notificacion.Tipo.CREATE, it.id, it) }
@@ -67,10 +72,13 @@ class RaquetasServiceImpl(
 
         val existe = repository.findById(id)
 
+        // Existe el representante!
+        val representante = findRepresentante(raqueta.represetanteId)
+
         existe?.let {
             return repository.update(id, raqueta)
                 ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw RepresentanteNotFoundException("No se ha encontrado la raqueta con id: $id")
+        } ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $id")
     }
 
     override suspend fun delete(id: UUID): Raqueta {
@@ -82,7 +90,13 @@ class RaquetasServiceImpl(
             return repository.delete(existe)
                 ?.also { onChange(Notificacion.Tipo.DELETE, it.id) }!!
         } ?: throw RepresentanteNotFoundException("No se ha encontrado la raqueta con id: $id")
+    }
 
+    override suspend fun findRepresentante(id: UUID): Representante {
+        logger.debug { "findRepresentante: Buscando representante en servicio" }
+
+        return reprepresentesRepository.findById(id)
+            ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
     }
 
     /// ---- Tiempo real, patrón observer!!!

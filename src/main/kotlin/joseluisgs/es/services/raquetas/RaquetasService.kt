@@ -2,6 +2,7 @@ package joseluisgs.es.services.raquetas
 
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.RaquetasNotification
+import joseluisgs.es.models.Representante
 import kotlinx.coroutines.flow.Flow
 import java.util.*
 
@@ -13,6 +14,7 @@ interface RaquetasService {
     suspend fun save(raqueta: Raqueta): Raqueta
     suspend fun update(id: UUID, raqueta: Raqueta): Raqueta
     suspend fun delete(id: UUID): Raqueta
+    suspend fun findRepresentante(id: UUID): Representante
 
     // Suscripción a cambios para notificar tiempo real
     fun addSuscriptor(id: Int, suscriptor: suspend (RaquetasNotification) -> Unit)
