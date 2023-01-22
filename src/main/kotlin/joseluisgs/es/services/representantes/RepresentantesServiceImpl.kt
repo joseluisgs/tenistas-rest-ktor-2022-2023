@@ -66,18 +66,24 @@ class RepresentantesServiceImpl(
     override suspend fun update(id: UUID, representante: Representante): Representante {
         logger.debug { "update: Actualizando representante en servicio" }
 
-        // Actualizamos el representante y devolvemos el resultado y avisa a los subscriptores
-        return repository.update(id, representante)
-            ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }
-            ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
+        val existe = repository.findById(id)
+
+        existe?.let {
+            return repository.update(id, representante)
+                ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
+        } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
     }
 
     override suspend fun delete(id: UUID): Representante {
         logger.debug { "delete: Borrando representante en servicio" }
 
-        return repository.delete(id)
-            ?.also { onChange(Notificacion.Tipo.DELETE, it.id) }
-            ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
+        val existe = repository.findById(id)
+
+        existe?.let {
+            return repository.delete(existe)
+                ?.also { onChange(Notificacion.Tipo.DELETE, it.id) }!!
+        } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
+
     }
 
     /// ---- Tiempo real, patrón observer!!!

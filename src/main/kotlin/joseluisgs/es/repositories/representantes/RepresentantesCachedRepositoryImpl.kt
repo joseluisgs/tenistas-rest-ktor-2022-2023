@@ -138,20 +138,20 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
-    override suspend fun delete(id: UUID): Representante? {
+    override suspend fun delete(entity: Representante): Representante? {
         logger.debug { "delete: Eliminando representante en cache" }
 
         // existe?
-        val existe = findById(id)
+        val existe = findById(entity.id)
         return existe?.let {
             // Eliminamos en el repositorio y en la cache en paralelo
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.invalidate(id)
+                cacheRepresentantes.cache.invalidate(entity.id)
             }
             scope.launch {
-                repository.delete(id)
+                repository.delete(entity)
             }
             return existe
         }

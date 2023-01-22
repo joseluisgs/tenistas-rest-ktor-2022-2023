@@ -95,7 +95,10 @@ class UsersServiceImpl(
     override suspend fun delete(id: UUID): User? {
         logger.debug { "delete: Borrando usuario con id: $id" }
 
-        // No lo necesitamos, pero lo dejamos por si acaso
-        TODO()
+        val user = repository.findById(id)
+        user?.let {
+            repository.delete(it)
+        }
+        return user
     }
 }

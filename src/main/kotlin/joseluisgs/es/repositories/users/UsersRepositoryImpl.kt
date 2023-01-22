@@ -14,7 +14,6 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Single
 import org.mindrot.jbcrypt.BCrypt
-import java.time.LocalDateTime
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -32,6 +31,7 @@ class UsersRepositoryImpl(
         logger.debug { "Cargando datos de prueba: ${dataBaseService.initData}" }
 
         if (dataBaseService.initData) {
+            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
             runBlocking {
                 getUsuariosInit().forEach {
                     db insert it.toEntity()
@@ -101,20 +101,20 @@ class UsersRepositoryImpl(
     override suspend fun update(id: UUID, entity: User): User? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando usuario: $entity" }
 
-        // Buscamos
-        val usuario = findById(id) // no va a ser null por que lo filtro en la cache
+        // Buscamos, viene filtrado y si no el update no hace nada
+        // val usuario = findById(id)
 
         // Actualizamos los datos
-        usuario?.let {
-            val userEntity = entity.toEntity()
+        entity.let {
+            val updateEntity = entity.toEntity()
 
             val res = (db update UsersTable
-                    set UsersTable.nombre eq userEntity.nombre
-                    set UsersTable.email eq userEntity.email
-                    set UsersTable.password eq userEntity.password
-                    set UsersTable.avatar eq userEntity.avatar
-                    set UsersTable.role eq userEntity.role
-                    set UsersTable.updatedAt eq LocalDateTime.now()
+                    set UsersTable.nombre eq updateEntity.nombre
+                    set UsersTable.email eq updateEntity.email
+                    set UsersTable.password eq updateEntity.password
+                    set UsersTable.avatar eq updateEntity.avatar
+                    set UsersTable.role eq updateEntity.role
+                    set UsersTable.updatedAt eq updateEntity.updatedAt
                     where UsersTable.id eq id)
                 .execute()
 
@@ -124,25 +124,24 @@ class UsersRepositoryImpl(
                 return@withContext null
             }
         }
-        return@withContext null
+
     }
 
-    override suspend fun delete(id: UUID): User? = withContext(Dispatchers.IO) {
-        logger.debug { "delete: Eliminando usuario con id: $id" }
+    override suspend fun delete(entity: User): User? = withContext(Dispatchers.IO) {
+        logger.debug { "delete: Eliminando usuario con id: ${entity.id}" }
 
-        val usuario = findById(id)
+        //val usuario = findById(id)
 
-        usuario?.let {
+        entity.let {
             val res = (db deleteFrom UsersTable
                     where UsersTable.id eq it.id)
                 .execute()
 
             if (res > 0) {
-                return@withContext usuario
+                return@withContext entity
             } else {
                 return@withContext null
             }
         }
-        return@withContext null
     }
 }

@@ -83,12 +83,12 @@ class RepresentantesRepositoryImpl : RepresentantesRepository {
         return@withContext representanteUpdate
     }
 
-    override suspend fun delete(id: UUID): Representante? = withContext(Dispatchers.IO) {
-        logger.debug { "delete: Borrando representante con id: $id" }
+    override suspend fun delete(entity: Representante): Representante? = withContext(Dispatchers.IO) {
+        logger.debug { "delete: Borrando representante con id: ${entity.id}" }
 
         // Buscamos
         // val representante = findById(id) // no va a ser null por que lo filtro en la cache
         // Borramos
-        return@withContext representantes.remove(id)
+        return@withContext representantes.remove(entity.id)
     }
 }

@@ -81,13 +81,13 @@ class RaquetasRepositoryImpl : RaquetasRepository {
 
     }
 
-    override suspend fun delete(id: UUID): Raqueta? = withContext(Dispatchers.IO) {
-        logger.debug { "delete: Guardando raqueta: $id" }
+    override suspend fun delete(entity: Raqueta): Raqueta? = withContext(Dispatchers.IO) {
+        logger.debug { "delete: Guardando raqueta: ${entity.id}" }
 
         // Buscamos
-        val raqueta = findById(id)
+        val raqueta = findById(entity.id)
         raqueta?.let {
-            raquetas.remove(id)
+            raquetas.remove(entity.id)
             return@withContext it
         }
     }
