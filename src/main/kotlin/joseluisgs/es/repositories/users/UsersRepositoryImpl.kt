@@ -24,18 +24,29 @@ class UsersRepositoryImpl(
     private val dataBaseService: DataBaseService
 ) : UsersRepository {
 
-    private val db = dataBaseService.client
-
     init {
         logger.debug { "Inicializando el repositorio de Usuarios" }
-        logger.debug { "Cargando datos de prueba: ${dataBaseService.initData}" }
+        initData()
+    }
 
+    override fun initData() {
         if (dataBaseService.initData) {
+            logger.debug { "Cargando datos de prueba" }
             // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
             runBlocking {
                 getUsuariosInit().forEach {
-                    db insert it.toEntity()
+                    dataBaseService.client insert it.toEntity()
                 }
+            }
+        }
+    }
+
+    override fun clearData() {
+        if (dataBaseService.initData) {
+            logger.debug { "Borrando datos de prueba" }
+            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
+            runBlocking {
+                dataBaseService.client deleteAllFrom UsersTable
             }
         }
     }
@@ -46,7 +57,7 @@ class UsersRepositoryImpl(
 
         val myLimit = limit ?: Int.MAX_VALUE
 
-        return@withContext (db selectFrom UsersTable limit myLimit.toLong())
+        return@withContext (dataBaseService.client selectFrom UsersTable limit myLimit.toLong())
             .fetchAll()
             .map { it.toModel() }
     }
@@ -54,7 +65,7 @@ class UsersRepositoryImpl(
     override suspend fun findAll(): Flow<User> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los usuarios" }
 
-        return@withContext (db selectFrom UsersTable)
+        return@withContext (dataBaseService.client selectFrom UsersTable)
             .fetchAll()
             .map { it.toModel() }
     }
@@ -76,7 +87,7 @@ class UsersRepositoryImpl(
     override suspend fun findById(id: UUID): User? = withContext(Dispatchers.IO) {
         logger.debug { "findById: Buscando usuario con id: $id" }
 
-        return@withContext (db selectFrom UsersTable
+        return@withContext (dataBaseService.client selectFrom UsersTable
                 where UsersTable.id eq id
                 ).fetchFirstOrNull()?.toModel()
     }
@@ -84,7 +95,7 @@ class UsersRepositoryImpl(
     override suspend fun findByUsername(username: String): User? = withContext(Dispatchers.IO) {
         logger.debug { "findByUsername: Buscando usuario con username: $username" }
 
-        return@withContext (db selectFrom UsersTable
+        return@withContext (dataBaseService.client selectFrom UsersTable
                 where UsersTable.username eq username
                 ).fetchFirstOrNull()?.toModel()
     }
@@ -92,8 +103,7 @@ class UsersRepositoryImpl(
 
     override suspend fun save(entity: User): User = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando usuario: $entity" }
-
-        return@withContext (db insertAndReturn entity.toEntity())
+        return@withContext (dataBaseService.client insertAndReturn entity.toEntity())
             .toModel()
 
     }
@@ -108,7 +118,7 @@ class UsersRepositoryImpl(
         entity.let {
             val updateEntity = entity.toEntity()
 
-            val res = (db update UsersTable
+            val res = (dataBaseService.client update UsersTable
                     set UsersTable.nombre eq updateEntity.nombre
                     set UsersTable.email eq updateEntity.email
                     set UsersTable.password eq updateEntity.password
@@ -133,7 +143,7 @@ class UsersRepositoryImpl(
         //val usuario = findById(id)
 
         entity.let {
-            val res = (db deleteFrom UsersTable
+            val res = (dataBaseService.client deleteFrom UsersTable
                     where UsersTable.id eq it.id)
                 .execute()
 

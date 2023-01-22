@@ -17,10 +17,10 @@ val mockk_version: String by project
 val coroutines_version: String by project
 
 // Koin
-// val koin_version: String by project
 val koin_ktor_version: String by project
 val ksp_version: String by project
 val koin_ksp_version: String by project
+val koin_version: String by project
 
 // BCrypt
 val bcrypt_version: String by project
@@ -129,7 +129,8 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:$ktor_version")
 
     // Para testear con Koin
-    //testImplementation("io.insert-koin:koin-test-junit5:$koin_ktor_version")
+    // testImplementation("io.insert-koin:koin-test:$koin_version")
+    // testImplementation("io.insert-koin:koin-test-junit5:$koin_version")
 }
 
 tasks.test {

@@ -29,7 +29,7 @@ class RepresentantesRepositoryImplKtTest {
 
     @AfterEach
     fun tearDwon() = runTest {
-        repository.delete(representante.id)
+        repository.delete(representante)
     }
 
     @Test
@@ -125,7 +125,7 @@ class RepresentantesRepositoryImplKtTest {
 
     @Test
     fun delete() = runTest {
-        val result = repository.delete(representante.id)
+        val result = repository.delete(representante)
 
         // Comprobamos que el resultado es correcto
         assertEquals(representante, result)
@@ -133,7 +133,8 @@ class RepresentantesRepositoryImplKtTest {
 
     @Test
     fun deleteNotExists() = runTest {
-        val result = repository.delete(UUID.randomUUID())
+        val delete = representante.copy(id = UUID.randomUUID())
+        val result = repository.delete(delete)
 
         // Comprobamos que el resultado es correcto
         assertNull(result)

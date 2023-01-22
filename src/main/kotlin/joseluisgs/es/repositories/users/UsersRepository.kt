@@ -10,5 +10,7 @@ interface UsersRepository : CrudRepository<User, UUID> {
     suspend fun findByUsername(username: String): User?
     fun hashedPassword(password: String): String
     suspend fun checkUserNameAndPassword(username: String, password: String): User?
+    fun initData()
+    fun clearData()
 }
 

@@ -176,7 +176,7 @@ class RepresentantesCachedRepositoryImplKtTest {
         coEvery { repo.findById(any()) } returns representante
         coEvery { repo.delete(any()) } returns representante
 
-        val result = repository.delete(representante.id)!!
+        val result = repository.delete(representante)!!
 
         assertAll(
             { assertEquals(representante.nombre, result.nombre) },
