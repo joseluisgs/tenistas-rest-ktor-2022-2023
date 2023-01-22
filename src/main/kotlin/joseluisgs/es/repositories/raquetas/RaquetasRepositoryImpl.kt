@@ -1,45 +1,49 @@
 package joseluisgs.es.repositories.raquetas
 
-import joseluisgs.es.db.getRaquetasInit
+import joseluisgs.es.entities.RaquetasTable
+import joseluisgs.es.mappers.toEntity
+import joseluisgs.es.mappers.toModel
 import joseluisgs.es.models.Raqueta
+import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import java.time.LocalDateTime
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
-class RaquetasRepositoryImpl : RaquetasRepository {
 
-    // Fuente de datos
-    private val raquetas: MutableMap<UUID, Raqueta> = mutableMapOf()
+@Single
+@Named("RaquetasRepository")
+class RaquetasRepositoryImpl(
+    private val dataBaseService: DataBaseService
+) : RaquetasRepository {
 
     init {
         logger.debug { "Iniciando Repositorio de Raquetas" }
-
-        getRaquetasInit().forEach {
-            raquetas[it.id] = it
-        }
     }
 
-    override suspend fun findAll(): Flow<Raqueta> {
+    override suspend fun findAll(): Flow<Raqueta> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todas las raquetas" }
 
-        // Filtramos por página y por perPage
-        return raquetas.values.toList().asFlow()
+        return@withContext (dataBaseService.client selectFrom RaquetasTable)
+            .fetchAll()
+            .map { it.toModel() }
     }
 
-    override fun findAllPageable(page: Int, perPage: Int): Flow<Raqueta> {
+    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Raqueta> = withContext(Dispatchers.IO) {
         logger.debug { "findAllPageable: Buscando todas las raquetas con página: $page y cantidad: $perPage" }
 
-        // Filtramos por página y por perPage
-        return raquetas.values
-            .drop(page * perPage)
-            .take(perPage)
-            .asFlow()
+        val myLimit = if (perPage > 100) 100L else perPage.toLong()
+        val myOffset = (page * perPage).toLong()
+
+        return@withContext (dataBaseService.client selectFrom RaquetasTable limit myLimit offset myOffset)
+            .fetchAll()
+            .map { it.toModel() }
 
     }
 
@@ -47,36 +51,45 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         logger.debug { "findById: Buscando raqueta con id: $id" }
 
         // Buscamos
-        return@withContext raquetas[id]
+        return@withContext (dataBaseService.client selectFrom RaquetasTable
+                where RaquetasTable.id eq id
+                ).fetchFirstOrNull()?.toModel()
     }
 
-    override fun findByMarca(marca: String): Flow<Raqueta> {
+    override suspend fun findByMarca(marca: String): Flow<Raqueta> = withContext(Dispatchers.IO) {
         logger.debug { "findByMarca: Buscando raqueta con marca: $marca" }
 
-        return raquetas.values.filter { it.marca.lowercase().contains(marca.lowercase()) }.asFlow()
+        return@withContext (dataBaseService.client selectFrom RaquetasTable
+                where RaquetasTable.marca eq marca
+                ).fetchAll().map { it.toModel() }
     }
 
     override suspend fun save(entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando raqueta: $entity" }
 
-        val raqueta =
-            entity.copy(id = UUID.randomUUID(), createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
-        raquetas[raqueta.id] = raqueta
-        return@withContext raqueta
+        return@withContext (dataBaseService.client insertAndReturn entity.toEntity())
+            .toModel()
 
     }
 
     override suspend fun update(id: UUID, entity: Raqueta): Raqueta? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando raqueta: $entity" }
 
-        // Buscamos la raqueta
-        val raqueta = findById(id)
-        // Si existe la actualizamos
-        raqueta?.let {
-            val raquetaActualizada =
-                entity.copy(id = id, marca = entity.marca, precio = entity.precio, updatedAt = LocalDateTime.now())
-            raquetas[id] = raquetaActualizada
-            return@withContext raquetaActualizada
+        entity.let {
+            val updateEntity = entity.toEntity()
+
+            val res = (dataBaseService.client update RaquetasTable
+                    set RaquetasTable.marca eq updateEntity.marca
+                    set RaquetasTable.precio eq updateEntity.precio
+                    set RaquetasTable.representanteId eq updateEntity.representanteId
+                    where RaquetasTable.id eq id)
+                .execute()
+
+            if (res > 0) {
+                return@withContext entity
+            } else {
+                return@withContext null
+            }
         }
 
     }
@@ -85,10 +98,16 @@ class RaquetasRepositoryImpl : RaquetasRepository {
         logger.debug { "delete: Guardando raqueta: ${entity.id}" }
 
         // Buscamos
-        val raqueta = findById(entity.id)
-        raqueta?.let {
-            raquetas.remove(entity.id)
-            return@withContext it
+        entity.let {
+            val res = (dataBaseService.client deleteFrom RaquetasTable
+                    where RaquetasTable.id eq it.id)
+                .execute()
+
+            if (res > 0) {
+                return@withContext entity
+            } else {
+                return@withContext null
+            }
         }
     }
 }

@@ -3,8 +3,13 @@ package joseluisgs.es.services.database
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactoryOptions
 import joseluisgs.es.config.DataBaseConfig
+import joseluisgs.es.db.getRaquetasInit
+import joseluisgs.es.db.getRepresentantesInit
+import joseluisgs.es.db.getUsuariosInit
+import joseluisgs.es.entities.RaquetasTable
 import joseluisgs.es.entities.RepresentantesTable
 import joseluisgs.es.entities.UsersTable
+import joseluisgs.es.mappers.toEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,16 +45,27 @@ class DataBaseService(
 
     fun initDataBaseService() {
         logger.debug { "Inicializando servicio de Bases de Datos: ${dataBaseConfig.database}" }
+
         // creamos las tablas
         createTables()
-    }
 
+        // Inicializamos los datos de la base de datos
+        if (initData) {
+            logger.debug { "Inicializando datos de la base de datos" }
+            clearDataBaseData()
+            initDataBaseData()
+        }
+    }
 
     private fun getTables(): H2Tables {
         // Creamos un objeto H2Tables con las tablas de la base de datos
         // Entidades de la base de datos
         return tables()
-            .h2(UsersTable, RepresentantesTable)
+            .h2(
+                UsersTable,
+                RepresentantesTable,
+                RaquetasTable
+            )
     }
 
     private fun createTables() = runBlocking {
@@ -59,6 +75,45 @@ class DataBaseService(
         scope.launch {
             client createTableIfNotExists UsersTable
             client createTableIfNotExists RepresentantesTable
+            client createTableIfNotExists RaquetasTable
         }
     }
+
+    fun clearDataBaseData() = runBlocking {
+        // Primero borramos los datos evitando la cascada
+        logger.debug { "Borrando datos..." }
+        try {
+            client deleteAllFrom RaquetasTable
+            client deleteAllFrom RepresentantesTable
+            client deleteAllFrom UsersTable
+        } catch (_: Exception) {
+
+        }
+    }
+
+    fun initDataBaseData() = runBlocking {
+
+        // Creamos los datos
+        logger.debug { "Creando datos..." }
+
+        // Seguimos el orden de las tablas
+
+        logger.debug { "Creando usuarios..." }
+        getUsuariosInit().forEach {
+            client insert it.toEntity()
+        }
+
+        logger.debug { "Creando representantes..." }
+        getRepresentantesInit().forEach {
+            client insert it.toEntity()
+        }
+
+        logger.debug { "Creando raquetas..." }
+        getRaquetasInit().forEach {
+            client insert it.toEntity()
+        }
+
+        // Tenistas
+    }
+
 }

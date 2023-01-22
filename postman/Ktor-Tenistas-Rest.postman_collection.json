@@ -200,7 +200,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6969/api/representantes/find?nombre=pepe",
+							"raw": "http://localhost:6969/api/representantes/find?nombre=Pepe Perez",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -214,8 +214,222 @@
 							"query": [
 								{
 									"key": "nombre",
-									"value": "pepe"
+									"value": "Pepe Perez"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Raquetas",
+			"item": [
+				{
+					"name": "GET ALL",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET ALL Pageable",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas?page=2&perPage=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "perPage",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET BY ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas/86084458-4733-4d71-a3db-34b50cd8d68f",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas",
+								"86084458-4733-4d71-a3db-34b50cd8d68f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"marca\": \"Created\",\n    \"precio\": \"199.8\",\n    \"representanteId\": \"b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"marca\": \"Updated\",\n    \"precio\": \"166.6\",\n    \"representanteId\": \"b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas/8061e439-6ec4-4327-bc7c-9e0181c4efcb",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas",
+								"8061e439-6ec4-4327-bc7c-9e0181c4efcb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas/8061e439-6ec4-4327-bc7c-9e0181c4efcb",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas",
+								"8061e439-6ec4-4327-bc7c-9e0181c4efcb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FIND BY",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas/find?marca=Babolat",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas",
+								"find"
+							],
+							"query": [
+								{
+									"key": "marca",
+									"value": "Babolat"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET REPRESENTANTE",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/raquetas/86084458-4733-4d71-a3db-34b50cd8d68f/representante",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"raquetas",
+								"86084458-4733-4d71-a3db-34b50cd8d68f",
+								"representante"
 							]
 						}
 					},

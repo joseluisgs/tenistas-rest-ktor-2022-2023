@@ -12,7 +12,7 @@ fun RequestValidationConfig.representantesValidation() {
         } else if (representante.email.isBlank()) {
             ValidationResult.Invalid("El email no puede estar vacío")
             // validar email con regex
-        } else if (!representante.email.contains("@")) {
+        } else if (!representante.email.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)\$"))) {
             ValidationResult.Invalid("El email no es válido")
         } else {
             ValidationResult.Valid

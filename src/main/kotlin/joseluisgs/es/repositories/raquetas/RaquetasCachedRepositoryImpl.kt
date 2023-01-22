@@ -1,7 +1,7 @@
-package joseluisgs.es.repositories.representantes
+package joseluisgs.es.repositories.raquetas
 
-import joseluisgs.es.models.Representante
-import joseluisgs.es.services.cache.representantes.RepresentantesCache
+import joseluisgs.es.models.Raqueta
+import joseluisgs.es.services.cache.raquetas.RaquetasCache
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -13,23 +13,22 @@ import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
-
 @Single
-@Named("RepresentantesCachedRepository")
-class RepresentantesCachedRepositoryImpl(
-    @Named("PersonasRepository") // Repositorio de datos originales
-    private val repository: RepresentantesRepository,
-    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
-) : RepresentantesRepository {
+@Named("RaquetasCachedRepository")
+class RaquetasCachedRepositoryImpl(
+    @Named("RaquetasRepository") // Repositorio de datos originales
+    private val repository: RaquetasRepository,
+    private val cacheRaquetas: RaquetasCache // Desacoplamos la cache
+) : RaquetasRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
 
 
     init {
-        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cacheRepresentantes.hasRefreshAllCacheJob}" }
+        logger.debug { "Inicializando el repositorio cache raquetas. AutoRefreshAll: ${cacheRaquetas.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
         // No es obligatorio hacerlo, pero si queremos que se refresque
-        if (cacheRepresentantes.hasRefreshAllCacheJob)
+        if (cacheRaquetas.hasRefreshAllCacheJob)
             refreshCacheJob()
     }
 
@@ -44,75 +43,74 @@ class RepresentantesCachedRepositoryImpl(
         refreshJob = CoroutineScope(Dispatchers.IO).launch {
             // refreshJob?.cancel() // Cancelamos el job si existe
             do {
-                logger.debug { "refreshCache: Refrescando cache de Representantes" }
+                logger.debug { "refreshCache: Refrescando cache de Raquetas" }
                 repository.findAll().collect { representante ->
-                    cacheRepresentantes.cache.put(representante.id, representante)
+                    cacheRaquetas.cache.put(representante.id, representante)
                 }
-                logger.debug { "refreshCache: Cache actualizada: ${cacheRepresentantes.cache.asMap().values.size}" }
-                delay(cacheRepresentantes.refreshTime)
+                logger.debug { "refreshCache: Cache actualizada: ${cacheRaquetas.cache.asMap().values.size}" }
+                delay(cacheRaquetas.refreshTime)
             } while (true)
         }
     }
 
-    override suspend fun findAll(): Flow<Representante> {
-        logger.debug { "findAll: Buscando todos los representantes en cache" }
+    override suspend fun findAll(): Flow<Raqueta> {
+        logger.debug { "findAll: Buscando todos las raquetas en cache" }
 
         // Si por alguna razón no tenemos datos en el cache, los buscamos en el repositorio
         // Ojo si le hemos puesto tamaño máximo a la caché, puede que no estén todos los datos
         // si no en los findAll, siempre devolver los datos del repositorio y no hacer refresco
 
-        return if (!cacheRepresentantes.hasRefreshAllCacheJob || cacheRepresentantes.cache.asMap().isEmpty()) {
+        return if (!cacheRaquetas.hasRefreshAllCacheJob || cacheRaquetas.cache.asMap().isEmpty()) {
             logger.debug { "findAll: Devolviendo datos de repositorio" }
             repository.findAll()
         } else {
             logger.debug { "findAll: Devolviendo datos de cache" }
-            cacheRepresentantes.cache.asMap().values.asFlow()
+            cacheRaquetas.cache.asMap().values.asFlow()
         }
     }
 
 
-    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
-        logger.debug { "findAllPageable: Buscando todos los representantes en cache con página: $page y cantidad: $perPage" }
+    override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Raqueta> {
+        logger.debug { "findAllPageable: Buscando todos las raquetas en cache con página: $page y cantidad: $perPage" }
 
         // Aquí no se puede cachear, ya que no se puede saber si hay más páginas
         // idem al findAll
         return repository.findAllPageable(page, perPage)
     }
 
-    override suspend fun findByNombre(nombre: String): Flow<Representante> {
-        logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
+    override suspend fun findByMarca(marca: String): Flow<Raqueta> {
+        logger.debug { "findByNombre: Buscando raquetas en cache con marca: $marca" }
 
-        return repository.findByNombre(nombre)
+        return repository.findByMarca(marca)
     }
 
-    override suspend fun findById(id: UUID): Representante? {
-        logger.debug { "findById: Buscando representante en cache con id: $id" }
+    override suspend fun findById(id: UUID): Raqueta? {
+        logger.debug { "findById: Buscando raqueta en cache con id: $id" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cacheRepresentantes.cache.get(id) ?: repository.findById(id)
-            ?.also { cacheRepresentantes.cache.put(id, it) }
+        return cacheRaquetas.cache.get(id) ?: repository.findById(id)
+            ?.also { cacheRaquetas.cache.put(id, it) }
     }
 
-
-    override suspend fun save(entity: Representante): Representante {
-        logger.debug { "save: Guardando representante en cache" }
+    override suspend fun save(entity: Raqueta): Raqueta {
+        logger.debug { "save: Guardando raqueta en cache" }
 
         // Guardamos en el repositorio y en la cache en paralelo, creando antes el id
-        val representante =
+        val raqueta =
             entity.copy(id = UUID.randomUUID(), createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            cacheRepresentantes.cache.put(representante.id, representante)
+            cacheRaquetas.cache.put(raqueta.id, raqueta)
         }
         scope.launch {
-            repository.save(representante)
+            repository.save(raqueta)
         }
-        return representante
+        return raqueta
     }
 
-    override suspend fun update(id: UUID, entity: Representante): Representante? {
-        logger.debug { "update: Actualizando representante en cache" }
+    override suspend fun update(id: UUID, entity: Raqueta): Raqueta? {
+        logger.debug { "update: Actualizando raqueta en cache" }
 
         // Debemos ver si existe en la cache, pero...
         // si no existe puede que esté en el repositorio, pero no en la cache
@@ -121,21 +119,21 @@ class RepresentantesCachedRepositoryImpl(
         val existe = findById(id) // hace todo lo anterior
         return existe?.let {
             // Actualizamos en el repositorio y en la cache en paralelo creando antes el id, tomamos el created de quien ya estaba
-            val representante = entity.copy(id = id, createdAt = existe.createdAt, updatedAt = LocalDateTime.now())
+            val raqueta = entity.copy(id = id, createdAt = existe.createdAt, updatedAt = LocalDateTime.now())
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.put(representante.id, representante)
+                cacheRaquetas.cache.put(raqueta.id, raqueta)
             }
             scope.launch {
-                repository.update(id, representante)
+                repository.update(id, raqueta)
             }
-            return representante
+            return raqueta
         }
     }
 
-    override suspend fun delete(entity: Representante): Representante? {
-        logger.debug { "delete: Eliminando representante en cache" }
+    override suspend fun delete(entity: Raqueta): Raqueta? {
+        logger.debug { "delete: Eliminando raqueta en cache" }
 
         // existe?
         val existe = findById(entity.id)
@@ -144,7 +142,7 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.invalidate(entity.id)
+                cacheRaquetas.cache.invalidate(entity.id)
             }
             scope.launch {
                 repository.delete(entity)

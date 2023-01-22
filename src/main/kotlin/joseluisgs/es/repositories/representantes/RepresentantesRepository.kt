@@ -8,7 +8,4 @@ import java.util.*
 interface RepresentantesRepository : CrudRepository<Representante, UUID> {
     suspend fun findAllPageable(page: Int = 0, perPage: Int = 10): Flow<Representante>
     suspend fun findByNombre(nombre: String): Flow<Representante>
-    fun initData()
-    fun clearData()
-
 }

@@ -1,6 +1,5 @@
 package joseluisgs.es.repositories.representantes
 
-import joseluisgs.es.db.getRepresentantesInit
 import joseluisgs.es.entities.RepresentantesTable
 import joseluisgs.es.mappers.toEntity
 import joseluisgs.es.mappers.toModel
@@ -9,7 +8,6 @@ import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
@@ -24,49 +22,14 @@ class RepresentantesRepositoryImpl(
     private val dataBaseService: DataBaseService
 ) : RepresentantesRepository {
 
-    // Fuente de datos
-    private val representantes: MutableMap<UUID, Representante> = mutableMapOf()
 
     init {
         logger.debug { "Iniciando Repositorio de Representantes" }
-        clearData()
-        initData()
-
-        getRepresentantesInit().forEach {
-            representantes[it.id] = it
-        }
-    }
-
-    override fun initData() {
-        if (dataBaseService.initData) {
-            logger.debug { "Cargando datos de prueba de representantes" }
-            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
-            runBlocking {
-                getRepresentantesInit().forEach {
-                    dataBaseService.client insert it.toEntity()
-                }
-            }
-        }
-    }
-
-    override fun clearData() {
-        if (dataBaseService.initData) {
-            logger.debug { "Borrando datos de prueba de representantes" }
-            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
-            runBlocking {
-                try {
-                    dataBaseService.client deleteAllFrom RepresentantesTable
-                } catch (e: Exception) {
-                    logger.error { "Error al borrar los datos de prueba: ${e.message}" }
-                }
-            }
-        }
     }
 
     override suspend fun findAll(): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los representantes" }
 
-        // Filtramos por página y por perPage
         return@withContext (dataBaseService.client selectFrom RepresentantesTable)
             .fetchAll()
             .map { it.toModel() }
