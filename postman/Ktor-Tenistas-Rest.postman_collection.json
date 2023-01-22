@@ -141,7 +141,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"nombre\": \"Antonio Fernandez\",\n    \"email\": \"antonio@antonio.com\"\n}",
+							"raw": "{\n    \"nombre\": \"Updated\",\n    \"email\": \"updated@updated.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
