@@ -24,17 +24,11 @@ class RepresentantesRepositoryImpl(
     private val dataBaseService: DataBaseService
 ) : RepresentantesRepository {
 
-    // Fuente de datos
-    private val representantes: MutableMap<UUID, Representante> = mutableMapOf()
 
     init {
         logger.debug { "Iniciando Repositorio de Representantes" }
         clearData()
         initData()
-
-        getRepresentantesInit().forEach {
-            representantes[it.id] = it
-        }
     }
 
     override fun initData() {
@@ -66,7 +60,6 @@ class RepresentantesRepositoryImpl(
     override suspend fun findAll(): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los representantes" }
 
-        // Filtramos por página y por perPage
         return@withContext (dataBaseService.client selectFrom RepresentantesTable)
             .fetchAll()
             .map { it.toModel() }
