@@ -41,3 +41,23 @@ data class RaquetaDto(
         val deleted: Boolean = false
     )
 }
+
+@Serializable
+data class RaquetaNotificationDto(
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID? = null,
+    val marca: String,
+    val precio: Double,
+    @Serializable(with = UUIDSerializer::class)
+    val represetanteId: UUID,
+    val metadata: MetaData? = null,
+) {
+    @Serializable
+    data class MetaData(
+        @Serializable(with = LocalDateTimeSerializer::class)
+        val createdAt: LocalDateTime? = LocalDateTime.now(),
+        @Serializable(with = LocalDateTimeSerializer::class)
+        val updatedAt: LocalDateTime? = LocalDateTime.now(),
+        val deleted: Boolean = false
+    )
+}
