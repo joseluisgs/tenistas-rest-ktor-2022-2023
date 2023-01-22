@@ -1,30 +1,42 @@
 package joseluisgs.es.repositories.users
 
 import joseluisgs.es.db.getUsuariosInit
+import joseluisgs.es.entities.UsersTable
+import joseluisgs.es.mappers.toEntity
+import joseluisgs.es.mappers.toModel
 import joseluisgs.es.models.User
+import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Single
 import org.mindrot.jbcrypt.BCrypt
+import java.time.LocalDateTime
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
 private const val BCRYPT_SALT = 12
 
 @Single
-class UsersRepositoryImpl : UsersRepository {
+class UsersRepositoryImpl(
+    private val dataBaseService: DataBaseService
+) : UsersRepository {
 
-    // Fuente de datos
-    private val usuarios: MutableMap<UUID, User> = mutableMapOf()
+    private val db = dataBaseService.client
 
     init {
         logger.debug { "Inicializando el repositorio de Usuarios" }
+        logger.debug { "Cargando datos de prueba: ${dataBaseService.initData}" }
 
-        getUsuariosInit().forEach {
-            usuarios[it.id] = it
+        if (dataBaseService.initData) {
+            runBlocking {
+                getUsuariosInit().forEach {
+                    db insert it.toEntity()
+                }
+            }
         }
     }
 
@@ -32,13 +44,19 @@ class UsersRepositoryImpl : UsersRepository {
     override suspend fun findAll(limit: Int?): Flow<User> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los usuarios" }
 
-        return@withContext usuarios.values.take(limit ?: Int.MAX_VALUE).asFlow()
+        val myLimit = limit ?: Int.MAX_VALUE
+
+        return@withContext (db selectFrom UsersTable limit myLimit.toLong())
+            .fetchAll()
+            .map { it.toModel() }
     }
 
     override suspend fun findAll(): Flow<User> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los usuarios" }
 
-        return@withContext usuarios.values.asFlow()
+        return@withContext (db selectFrom UsersTable)
+            .fetchAll()
+            .map { it.toModel() }
     }
 
 
@@ -58,44 +76,73 @@ class UsersRepositoryImpl : UsersRepository {
     override suspend fun findById(id: UUID): User? = withContext(Dispatchers.IO) {
         logger.debug { "findById: Buscando usuario con id: $id" }
 
-        return@withContext usuarios[id]
+        return@withContext (db selectFrom UsersTable
+                where UsersTable.id eq id
+                ).fetchFirstOrNull()?.toModel()
     }
 
     override suspend fun findByUsername(username: String): User? = withContext(Dispatchers.IO) {
         logger.debug { "findByUsername: Buscando usuario con username: $username" }
 
-        return@withContext usuarios.values.find { it.username.lowercase().contains(username.lowercase()) }
+        return@withContext (db selectFrom UsersTable
+                where UsersTable.username eq username
+                ).fetchFirstOrNull()?.toModel()
     }
 
 
     override suspend fun save(entity: User): User = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando usuario: $entity" }
 
-        usuarios[entity.id] = entity
-        return@withContext entity
+        return@withContext (db insertAndReturn entity.toEntity())
+            .toModel()
+
     }
 
-    override suspend fun update(id: UUID, entity: User): User = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: User): User? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando usuario: $entity" }
 
         // Buscamos
-        // val representante = findById(id) // no va a ser null por que lo filtro en la cache
+        val usuario = findById(id) // no va a ser null por que lo filtro en la cache
+
         // Actualizamos los datos
-        val usuarioUpdate = entity.copy(
-            nombre = entity.nombre,
-            email = entity.email,
-            password = entity.password,
-            avatar = entity.avatar,
-            role = entity.role,
-            createdAt = entity.createdAt,
-        )
-        usuarios[id] = usuarioUpdate
-        return@withContext usuarioUpdate
+        usuario?.let {
+            val userEntity = entity.toEntity()
+
+            val res = (db update UsersTable
+                    set UsersTable.nombre eq userEntity.nombre
+                    set UsersTable.email eq userEntity.email
+                    set UsersTable.password eq userEntity.password
+                    set UsersTable.avatar eq userEntity.avatar
+                    set UsersTable.role eq userEntity.role
+                    set UsersTable.updatedAt eq LocalDateTime.now()
+                    where UsersTable.id eq id)
+                .execute()
+
+            if (res > 0) {
+                return@withContext entity
+            } else {
+                return@withContext null
+            }
+        }
+        return@withContext null
     }
 
     override suspend fun delete(id: UUID): User? = withContext(Dispatchers.IO) {
         logger.debug { "delete: Eliminando usuario con id: $id" }
 
-        return@withContext usuarios.remove(id)
+        val usuario = findById(id)
+
+        usuario?.let {
+            val res = (db deleteFrom UsersTable
+                    where UsersTable.id eq it.id)
+                .execute()
+
+            if (res > 0) {
+                return@withContext usuario
+            } else {
+                return@withContext null
+            }
+        }
+        return@withContext null
     }
 }

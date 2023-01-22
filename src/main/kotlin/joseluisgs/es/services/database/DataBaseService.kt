@@ -34,6 +34,8 @@ class DataBaseService(
         .get(connectionOptions)
         .sqlClient(getTables())
 
+    val initData get() = dataBaseConfig.initDatabaseData
+
 
     fun initDataBaseService() {
         logger.debug { "Inicializando servicio de Bases de Datos: ${dataBaseConfig.database}" }
@@ -41,9 +43,6 @@ class DataBaseService(
         createTables()
     }
 
-    private fun initDatabaseData() {
-        logger.debug { "Cargando datos iniciales de la base de datos" }
-    }
 
     private fun getTables(): H2Tables {
         // Creamos un objeto H2Tables con las tablas de la base de datos

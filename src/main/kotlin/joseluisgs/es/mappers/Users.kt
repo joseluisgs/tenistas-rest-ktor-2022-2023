@@ -27,8 +27,8 @@ fun UserCreateDto.toModel(): User {
         email = this.email,
         username = this.username,
         password = this.password,
-        avatar = this.avatar,
-        role = this.role
+        avatar = this.avatar ?: "https://upload.wikimedia.org/wikipedia/commons/f/f4/User_Avatar_2.png",
+        role = this.role ?: User.Role.USER
     )
 }
 
