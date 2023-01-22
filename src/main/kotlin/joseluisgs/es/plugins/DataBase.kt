@@ -24,5 +24,4 @@ fun Application.configureDataBase() {
     val dataBaseService: DataBaseService by inject()
     // Inicializamos el servicio de storage
     dataBaseService.initDataBaseService()
-
 }

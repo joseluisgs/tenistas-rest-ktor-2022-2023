@@ -21,6 +21,7 @@ private val logger = KotlinLogging.logger {}
 class RaquetasServiceImpl(
     @Named("RaquetasCachedRepository")  // Repositorio de Representantes Cacheado
     private val repository: RaquetasRepository,
+    @Named("RepresentantesCachedRepository")  // Repositorio de Representantes Cacheado
     private val reprepresentesRepository: RepresentantesRepository
 ) : RaquetasService {
 

@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mindrot.jbcrypt.BCrypt
@@ -32,15 +32,15 @@ class UsersRepositoryImplTest {
         role = User.Role.USER
     )
 
-    @AfterEach
+    @BeforeEach
     fun setUp() {
-        repository.clearData()
-        repository.initData()
+        dataBaseService.clearDataBaseData()
+        dataBaseService.initDataBaseData()
     }
 
     @AfterAll
     fun tearDown() {
-        repository.clearData()
+        dataBaseService.clearDataBaseData()
     }
 
 

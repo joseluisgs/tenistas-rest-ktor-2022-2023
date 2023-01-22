@@ -8,7 +8,4 @@ import java.util.*
 interface RaquetasRepository : CrudRepository<Raqueta, UUID> {
     suspend fun findAllPageable(page: Int = 0, perPage: Int = 10): Flow<Raqueta>
     suspend fun findByMarca(marca: String): Flow<Raqueta>
-    fun initData()
-    fun clearData()
-
 }

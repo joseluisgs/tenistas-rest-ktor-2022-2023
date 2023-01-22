@@ -10,7 +10,7 @@ import java.util.*
 data class RaquetasPageDto(
     val page: Int,
     val perPage: Int,
-    val data: List<RepresentanteDto>,
+    val data: List<RaquetaDto>,
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime? = LocalDateTime.now()
 )
@@ -20,7 +20,7 @@ data class RaquetaCreateDto(
     val marca: String,
     val precio: Double,
     @Serializable(with = UUIDSerializer::class)
-    val represetanteId: UUID
+    val representanteId: UUID,
 )
 
 @Serializable

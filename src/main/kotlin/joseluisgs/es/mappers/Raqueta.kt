@@ -1,5 +1,6 @@
 package joseluisgs.es.mappers
 
+import joseluisgs.es.dto.RaquetaCreateDto
 import joseluisgs.es.dto.RaquetaDto
 import joseluisgs.es.dto.RaquetaNotificationDto
 import joseluisgs.es.entities.RaquetaEntity
@@ -28,6 +29,12 @@ fun Raqueta.toNotificationDto() = RaquetaNotificationDto(
         updatedAt = this.updatedAt,
         deleted = this.deleted // Solo se verá en el Json si es true
     )
+)
+
+fun RaquetaCreateDto.toModel() = Raqueta(
+    marca = this.marca,
+    precio = this.precio,
+    represetanteId = this.representanteId,
 )
 
 fun Raqueta.toEntity() = RaquetaEntity(

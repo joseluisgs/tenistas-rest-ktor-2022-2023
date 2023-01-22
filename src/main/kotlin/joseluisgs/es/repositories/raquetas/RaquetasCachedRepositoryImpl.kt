@@ -53,16 +53,6 @@ class RaquetasCachedRepositoryImpl(
         }
     }
 
-    override fun initData() {
-        cacheRaquetas.cache.invalidateAll()
-        repository.initData()
-    }
-
-    override fun clearData() {
-        repository.clearData()
-        cacheRaquetas.cache.invalidateAll()
-    }
-
     override suspend fun findAll(): Flow<Raqueta> {
         logger.debug { "findAll: Buscando todos las raquetas en cache" }
 
@@ -91,10 +81,7 @@ class RaquetasCachedRepositoryImpl(
     override suspend fun findByMarca(marca: String): Flow<Raqueta> {
         logger.debug { "findByNombre: Buscando raquetas en cache con marca: $marca" }
 
-        // Buscamos en la cache
-        return cacheRaquetas.cache.asMap().values.filter {
-            it.marca.lowercase().contains(marca.lowercase())
-        }.asFlow()
+        return repository.findByMarca(marca)
     }
 
     override suspend fun findById(id: UUID): Raqueta? {

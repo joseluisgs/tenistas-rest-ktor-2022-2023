@@ -54,16 +54,6 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
-    override fun initData() {
-        cacheRepresentantes.cache.invalidateAll()
-        repository.initData()
-    }
-
-    override fun clearData() {
-        repository.clearData()
-        cacheRepresentantes.cache.invalidateAll()
-    }
-
     override suspend fun findAll(): Flow<Representante> {
         logger.debug { "findAll: Buscando todos los representantes en cache" }
 
@@ -92,10 +82,7 @@ class RepresentantesCachedRepositoryImpl(
     override suspend fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
 
-        // Buscamos en la cache
-        return cacheRepresentantes.cache.asMap().values.filter {
-            it.nombre.lowercase().contains(nombre.lowercase())
-        }.asFlow()
+        return repository.findByNombre(nombre)
     }
 
     override suspend fun findById(id: UUID): Representante? {

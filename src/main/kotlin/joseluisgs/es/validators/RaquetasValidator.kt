@@ -9,7 +9,7 @@ fun RequestValidationConfig.raquetasValidation() {
     validate<RaquetaCreateDto> { raqueta ->
         if (raqueta.marca.isBlank()) {
             ValidationResult.Invalid("El nombre no puede estar vacío")
-        } else if (raqueta.represetanteId.toString().isBlank()) {
+        } else if (raqueta.representanteId.toString().isBlank()) {
             ValidationResult.Invalid("El identificador del representante no puede estar vacío")
             // validar email con regex
         } else if (raqueta.precio < 0) {

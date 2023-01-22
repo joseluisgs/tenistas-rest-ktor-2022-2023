@@ -1,6 +1,5 @@
 package joseluisgs.es.repositories.users
 
-import joseluisgs.es.db.getUsuariosInit
 import joseluisgs.es.entities.UsersTable
 import joseluisgs.es.mappers.toEntity
 import joseluisgs.es.mappers.toModel
@@ -9,7 +8,6 @@ import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Single
@@ -26,36 +24,7 @@ class UsersRepositoryImpl(
 
     init {
         logger.debug { "Inicializando el repositorio de Usuarios" }
-        clearData()
-        initData()
     }
-
-    override fun initData() {
-        if (dataBaseService.initData) {
-            logger.debug { "Cargando datos de prueba de usuarios" }
-            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
-            runBlocking {
-                getUsuariosInit().forEach {
-                    dataBaseService.client insert it.toEntity()
-                }
-            }
-        }
-    }
-
-    override fun clearData() {
-        if (dataBaseService.initData) {
-            logger.debug { "Borrando datos de prueba de usuarios" }
-            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
-            runBlocking {
-                try {
-                    dataBaseService.client deleteAllFrom UsersTable
-                } catch (e: Exception) {
-                    logger.error { "Error al borrar los datos de prueba: ${e.message}" }
-                }
-            }
-        }
-    }
-
 
     override suspend fun findAll(limit: Int?): Flow<User> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los usuarios" }

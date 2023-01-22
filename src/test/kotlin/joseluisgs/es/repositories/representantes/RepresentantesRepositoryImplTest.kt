@@ -29,15 +29,15 @@ class RepresentantesRepositoryImplKtTest {
 
 
     // Con run test podemos ejecutar código asíncrono
-    @AfterEach
+    @BeforeEach
     fun setUp() {
-        repository.clearData()
-        repository.initData()
+        dataBaseService.clearDataBaseData()
+        dataBaseService.initDataBaseData()
     }
 
     @AfterAll
     fun tearDown() {
-        repository.clearData()
+        dataBaseService.clearDataBaseData()
     }
 
     @Test
