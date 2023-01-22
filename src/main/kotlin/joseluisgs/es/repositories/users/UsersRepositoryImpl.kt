@@ -1,10 +1,15 @@
 package joseluisgs.es.repositories.users
 
 import joseluisgs.es.db.getUsuariosInit
+import joseluisgs.es.entities.UsersTable
+import joseluisgs.es.mappers.toEntity
+import joseluisgs.es.mappers.toModel
 import joseluisgs.es.models.User
+import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Single
@@ -15,16 +20,39 @@ private val logger = KotlinLogging.logger {}
 private const val BCRYPT_SALT = 12
 
 @Single
-class UsersRepositoryImpl : UsersRepository {
-
-    // Fuente de datos
-    private val usuarios: MutableMap<UUID, User> = mutableMapOf()
+class UsersRepositoryImpl(
+    private val dataBaseService: DataBaseService
+) : UsersRepository {
 
     init {
         logger.debug { "Inicializando el repositorio de Usuarios" }
+        clearData()
+        initData()
+    }
 
-        getUsuariosInit().forEach {
-            usuarios[it.id] = it
+    override fun initData() {
+        if (dataBaseService.initData) {
+            logger.debug { "Cargando datos de prueba de usuarios" }
+            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
+            runBlocking {
+                getUsuariosInit().forEach {
+                    dataBaseService.client insert it.toEntity()
+                }
+            }
+        }
+    }
+
+    override fun clearData() {
+        if (dataBaseService.initData) {
+            logger.debug { "Borrando datos de prueba de usuarios" }
+            // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
+            runBlocking {
+                try {
+                    dataBaseService.client deleteAllFrom UsersTable
+                } catch (e: Exception) {
+                    logger.error { "Error al borrar los datos de prueba: ${e.message}" }
+                }
+            }
         }
     }
 
@@ -32,13 +60,19 @@ class UsersRepositoryImpl : UsersRepository {
     override suspend fun findAll(limit: Int?): Flow<User> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los usuarios" }
 
-        return@withContext usuarios.values.take(limit ?: Int.MAX_VALUE).asFlow()
+        val myLimit = limit ?: Int.MAX_VALUE
+
+        return@withContext (dataBaseService.client selectFrom UsersTable limit myLimit.toLong())
+            .fetchAll()
+            .map { it.toModel() }
     }
 
     override suspend fun findAll(): Flow<User> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los usuarios" }
 
-        return@withContext usuarios.values.asFlow()
+        return@withContext (dataBaseService.client selectFrom UsersTable)
+            .fetchAll()
+            .map { it.toModel() }
     }
 
 
@@ -58,44 +92,72 @@ class UsersRepositoryImpl : UsersRepository {
     override suspend fun findById(id: UUID): User? = withContext(Dispatchers.IO) {
         logger.debug { "findById: Buscando usuario con id: $id" }
 
-        return@withContext usuarios[id]
+        return@withContext (dataBaseService.client selectFrom UsersTable
+                where UsersTable.id eq id
+                ).fetchFirstOrNull()?.toModel()
     }
 
     override suspend fun findByUsername(username: String): User? = withContext(Dispatchers.IO) {
         logger.debug { "findByUsername: Buscando usuario con username: $username" }
 
-        return@withContext usuarios.values.find { it.username.lowercase().contains(username.lowercase()) }
+        return@withContext (dataBaseService.client selectFrom UsersTable
+                where UsersTable.username eq username
+                ).fetchFirstOrNull()?.toModel()
     }
 
 
     override suspend fun save(entity: User): User = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando usuario: $entity" }
 
-        usuarios[entity.id] = entity
-        return@withContext entity
+        return@withContext (dataBaseService.client insertAndReturn entity.toEntity())
+            .toModel()
+
     }
 
-    override suspend fun update(id: UUID, entity: User): User = withContext(Dispatchers.IO) {
+    override suspend fun update(id: UUID, entity: User): User? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando usuario: $entity" }
 
-        // Buscamos
-        // val representante = findById(id) // no va a ser null por que lo filtro en la cache
+        // Buscamos, viene filtrado y si no el update no hace nada
+        // val usuario = findById(id)
+
         // Actualizamos los datos
-        val usuarioUpdate = entity.copy(
-            nombre = entity.nombre,
-            email = entity.email,
-            password = entity.password,
-            avatar = entity.avatar,
-            role = entity.role,
-            createdAt = entity.createdAt,
-        )
-        usuarios[id] = usuarioUpdate
-        return@withContext usuarioUpdate
+        entity.let {
+            val updateEntity = entity.toEntity()
+
+            val res = (dataBaseService.client update UsersTable
+                    set UsersTable.nombre eq updateEntity.nombre
+                    set UsersTable.email eq updateEntity.email
+                    set UsersTable.password eq updateEntity.password
+                    set UsersTable.avatar eq updateEntity.avatar
+                    set UsersTable.role eq updateEntity.role
+                    set UsersTable.updatedAt eq updateEntity.updatedAt
+                    where UsersTable.id eq id)
+                .execute()
+
+            if (res > 0) {
+                return@withContext entity
+            } else {
+                return@withContext null
+            }
+        }
+
     }
 
-    override suspend fun delete(id: UUID): User? = withContext(Dispatchers.IO) {
-        logger.debug { "delete: Eliminando usuario con id: $id" }
+    override suspend fun delete(entity: User): User? = withContext(Dispatchers.IO) {
+        logger.debug { "delete: Eliminando usuario con id: ${entity.id}" }
 
-        return@withContext usuarios.remove(id)
+        //val usuario = findById(id)
+
+        entity.let {
+            val res = (dataBaseService.client deleteFrom UsersTable
+                    where UsersTable.id eq it.id)
+                .execute()
+
+            if (res > 0) {
+                return@withContext entity
+            } else {
+                return@withContext null
+            }
+        }
     }
 }

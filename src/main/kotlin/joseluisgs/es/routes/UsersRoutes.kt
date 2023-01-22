@@ -59,7 +59,7 @@ fun Application.usersRoutes() {
                     val dto = call.receive<UserLoginDto>()
                     val user = usersService.checkUserNameAndPassword(dto.username, dto.password)
                     user?.let {
-                        val token = tokenService.generateJWTToken(user)
+                        val token = tokenService.generateJWT(user)
                         call.respond(HttpStatusCode.OK, UserWithTokenDto(user.toDto(), token))
                     }
                 } catch (e: UserUnauthorizedException) {

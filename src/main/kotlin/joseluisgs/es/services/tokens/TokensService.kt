@@ -20,7 +20,7 @@ class TokensService(
         logger.debug { "Iniciando servicio de tokens con audience: ${tokenConfig.audience}" }
     }
 
-    fun generateJWTToken(user: User): String {
+    fun generateJWT(user: User): String {
         return JWT.create()
             .withAudience(tokenConfig.audience)
             .withIssuer(tokenConfig.issuer)
@@ -36,7 +36,7 @@ class TokensService(
             .sign(Algorithm.HMAC512(tokenConfig.secret))
     }
 
-    fun verifyJWTToken(): JWTVerifier {
+    fun verifyJWT(): JWTVerifier {
         return JWT.require(Algorithm.HMAC512(tokenConfig.secret))
             .withAudience(tokenConfig.audience)
             .withIssuer(tokenConfig.issuer)

@@ -2,11 +2,11 @@ package joseluisgs.es.mappers
 
 import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.models.Representante
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.test.assertEquals
 
 
 class RepresentantesKtTest {
@@ -23,7 +23,12 @@ class RepresentantesKtTest {
     val representanteDto = RepresentanteDto(
         id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
         nombre = "Test",
-        email = "test@example.com"
+        email = "test@example.com",
+        metadata = RepresentanteDto.MetaData(
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
+            deleted = false
+        )
     )
 
     @Test

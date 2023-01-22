@@ -47,6 +47,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [WebSockets](#websockets)
     - [SSL y Certificados](#ssl-y-certificados)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
+    - [Testing](#testing)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
@@ -56,7 +57,9 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
     - [CORS](#cors-1)
     - [BCrypt](#bcrypt)
-  - [Postman](#postman)
+  - [Testing](#testing-1)
+    - [Postman](#postman)
+  - [Reactividad](#reactividad)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -94,6 +97,8 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Asincronía: [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Librería de Kotlin para la programación asíncrona.
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma de [Caffeine](https://github.com/ben-manes/caffeine).
+- Base de datos: [H2](https://www.h2database.com/) - Base de datos relacional que te permite trabajar en memoria, fichero y servidor.
+- Librería base de Datos: [Kotysa](https://ufoss.org/kotysa/kotysa.html) - Librería para la gestión de bases de datos en Kotlin que te permite operar reactivamente bajo [R2DBC](https://r2dbc.io/).
 - Notificaciones en tiempo real: [Ktor WebSockets](https://ktor.io/docs/websocket.html) - Framework para la gestión de websockets.
 - Testing: [JUnit 5](https://junit.org/junit5/) - Framework para la realización de tests unitarios, [Mockk](https://mockk.io/) librería de Mocks para Kotlin, así como las propias herramientas de Ktor.
 - Cliente: [Postman](https://www.postman.com/) - Cliente para realizar peticiones HTTP.
@@ -508,6 +513,41 @@ routing {
 
 ```
 
+### Testing
+Ktor tiene una [API de testing](https://ktor.io/docs/testing.html) que nos permite testear nuestras aplicaciones. Para ello, debemos añadir la librería de soporte para [Ktor Test](https://ktor.io/docs/test-client.html) y configurar sus opciones.
+
+Podemos usar la función testApplication para configurar una instancia configurada de nuestro servicio de prueba que se ejecuta localmente. Con ello podemos usar la instancia de cliente HTTP de Ktor dentro de una aplicación de prueba para realizar una solicitud a su servidor, recibir una respuesta y testear resultados.
+```kotlin
+fun registerUserTest() = testApplication {
+    // Configuramos el entorno de test
+    environment { config }
+
+    val client = createClient {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    // Lanzamos la consulta
+    val response = client.post("/api/users/register") {
+        contentType(ContentType.Application.Json)
+        setBody(userDto)
+    }
+
+    // Comprobamos que la respuesta y el contenido es correcto
+    assertEquals(response.status, HttpStatusCode.Created)
+    // Tambien podemos comprobar el contenido
+    val res = json.decodeFromString<UserDto>(response.bodyAsText())
+    assertAll(
+        { assertEquals(res.nombre, userDto.nombre) },
+        { assertEquals(res.email, userDto.email) },
+        { assertEquals(res.username, userDto.username) },
+        { assertEquals(res.avatar, userDto.avatar) },
+        { assertEquals(res.role, userDto.role) },
+    )
+}
+```
+
 ## Inmutabilidad
 Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
 
@@ -578,12 +618,31 @@ Para la seguridad de las comunicaciones usaremos [Bcrypt](https://en.wikipedia.o
 
 ![bcrypt](./images/bcrypt.png)
 
-## Postman
+## Testing
+Para testear se ha usado JUnit y MocKK como librerías de apoyo. Además, Hemos usado la propia api de Ktor para testear las peticiones. Con ello podemos simular un Postman para testear las peticiones de manera local, con una instancia de prueba de nuestro servicio.
+![testear](./images/testing.png)
+
+### Postman
 Para probar con un cliente nuestro servicio usaremos [Postman](https://www.postman.com/) que es una herramienta de colaboración para el desarrollo de APIs. Permite a los usuarios crear y compartir colecciones de peticiones HTTP, así como documentar y probar sus APIs.
 
 El fichero para probar nuestra api lo tienes en la carpera [postman](./postman) y puedes importarlo en tu Postman para probar el resultado.
 
 ![postman](./images/postman.png)
+
+## Reactividad
+Como todo concepto que aunque complicado de conseguir implica una serie de condiciones. La primera de ellas es asegurar la asincronía en todo momento. Cosa que se ha hecho mediante Ktor y el uso de corrutinas. 
+
+Por otro lado el acceso de la base de datos no debe ser bloqueante, por lo que no se ha usado la librería Exposed de Kotlin para acceder a la base de datos y que trabaja por debajo con el driver JDBC. Sabemos que esto se puede podemos acercarnos a la Asincronía pura usando corrutinas y el manejo de [contexto de transaccion asíncrono](https://github.com/JetBrains/Exposed/wiki/Transactions).
+
+En cualquier caso, hemos decidido usar el driver R2DBC con el objetivo que el acceso a la base de datos sea no bloqueante y así poder aprovechar el uso de Flows en Kotlin y así poder usar la reactividad total en la base de datos con las corrutinas y Ktor.
+
+![reactividad](./images/reactive.gif)
+
+
+> **Programación reactiva: programación asíncrona de flujos observables**
+> 
+> Programar reactivamente una api comienza desde observar y procesar las colecciones existentes de manera asíncrona desde la base de datos hasta la respuesta que se ofrezca.
+
 
 
 ## Recursos

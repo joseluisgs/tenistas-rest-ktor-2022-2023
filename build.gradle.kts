@@ -14,15 +14,20 @@ val cache_version: String by project
 // Test
 val junit_version: String by project
 val mockk_version: String by project
+val coroutines_version: String by project
 
 // Koin
-// val koin_version: String by project
 val koin_ktor_version: String by project
 val ksp_version: String by project
 val koin_ksp_version: String by project
+val koin_version: String by project
 
 // BCrypt
 val bcrypt_version: String by project
+
+// Bases de datos
+val kotysa_version: String by project
+val h2_r2dbc_version: String by project
 
 
 plugins {
@@ -94,13 +99,19 @@ dependencies {
     implementation("io.insert-koin:koin-annotations:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
     ksp("io.insert-koin:koin-ksp-compiler:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
 
+    // Bases de datos
+    // Reactividad con Kotysa
+    implementation("org.ufoss.kotysa:kotysa-r2dbc-coroutines:$kotysa_version")
+    // H2 R2DBC para usar H2 como base de datos
+    runtimeOnly("io.r2dbc:r2dbc-h2:$h2_r2dbc_version")
+
     // BCrypt
     // implementation("de.nycode:bcrypt:2.2.0")
     implementation("org.mindrot:jbcrypt:$bcrypt_version")
 
     // Para testear
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version") // Usar deps de JUNIT 5 y no estas!
 
     // JUnit 5 en vez del por defecto de Kotlin...
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
@@ -109,8 +120,21 @@ dependencies {
     // MockK para testear Mockito con Kotlin
     testImplementation("io.mockk:mockk:$mockk_version")
 
+    // Para testear métodos suspendidos o corrutinas
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+
+    // Para testear con content negotiation
+    testImplementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    // Auth para tokens usando el metodo de clienteAuth
+    implementation("io.ktor:ktor-client-auth:$ktor_version")
+
     // Para testear con Koin
+    // testImplementation("io.insert-koin:koin-test:$koin_version")
     // testImplementation("io.insert-koin:koin-test-junit5:$koin_version")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 // Para Koin Annotations, directorio donde se encuentran las clases compiladas

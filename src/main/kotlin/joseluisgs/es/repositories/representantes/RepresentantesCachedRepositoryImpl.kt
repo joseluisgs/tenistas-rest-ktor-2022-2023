@@ -1,7 +1,7 @@
 package joseluisgs.es.repositories.representantes
 
 import joseluisgs.es.models.Representante
-import joseluisgs.es.services.cache.representantes.RepresentantesCacheImpl
+import joseluisgs.es.services.cache.representantes.RepresentantesCache
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesCachedRepositoryImpl(
     @Named("PersonasRepository") // Repositorio de datos originales
     private val repository: RepresentantesRepository,
-    private val cacheRepresentantes: RepresentantesCacheImpl // Desacoplamos la cache
+    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
 ) : RepresentantesRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
@@ -88,6 +88,16 @@ class RepresentantesCachedRepositoryImpl(
         }.asFlow()
     }
 
+    override fun initData() {
+        cacheRepresentantes.cache.invalidateAll()
+        repository.initData()
+    }
+
+    override fun clearData() {
+        repository.clearData()
+        cacheRepresentantes.cache.invalidateAll()
+    }
+
 
     override suspend fun findById(id: UUID): Representante? {
         logger.debug { "findById: Buscando representante en cache con id: $id" }
@@ -138,20 +148,20 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
-    override suspend fun delete(id: UUID): Representante? {
+    override suspend fun delete(entity: Representante): Representante? {
         logger.debug { "delete: Eliminando representante en cache" }
 
         // existe?
-        val existe = findById(id)
+        val existe = findById(entity.id)
         return existe?.let {
             // Eliminamos en el repositorio y en la cache en paralelo
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.invalidate(id)
+                cacheRepresentantes.cache.invalidate(entity.id)
             }
             scope.launch {
-                repository.delete(id)
+                repository.delete(entity)
             }
             return existe
         }

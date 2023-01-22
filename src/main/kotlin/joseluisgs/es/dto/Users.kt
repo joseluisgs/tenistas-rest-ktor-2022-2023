@@ -35,8 +35,8 @@ data class UserCreateDto(
     val email: String,
     val username: String,
     val password: String,
-    val avatar: String,
-    val role: User.Role,
+    val avatar: String? = null,
+    val role: User.Role? = User.Role.USER,
 )
 
 @Serializable

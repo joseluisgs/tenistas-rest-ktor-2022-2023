@@ -21,7 +21,7 @@ data class RepresentanteDto(
     val id: UUID? = null,
     val nombre: String,
     val email: String,
-    val metadata: MetaData,
+    val metadata: MetaData? = null,
 ) {
     @Serializable
     data class MetaData(
