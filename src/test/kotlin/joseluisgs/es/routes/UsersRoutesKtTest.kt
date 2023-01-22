@@ -27,7 +27,6 @@ private val json = Json { ignoreUnknownKeys = true }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-
 class UsersRoutesKtTest {
     // Cargamos la configuración del entorno
     private val config = ApplicationConfig("application.conf")
@@ -42,6 +41,7 @@ class UsersRoutesKtTest {
     )
 
     @Test
+    @Order(1)
     fun registerUserTest() = testApplication {
         // Configuramos el entorno de test
         environment { config }
@@ -72,11 +72,12 @@ class UsersRoutesKtTest {
     }
 
     @Test
+    @Order(2)
     fun login() = testApplication {
         // Configuramos el entorno de test
         environment { config }
 
-        // Creamos el usuario
+
         val client = createClient {
             install(ContentNegotiation) {
                 json()
@@ -91,7 +92,7 @@ class UsersRoutesKtTest {
 
         val loginDto = UserLoginDto(
             username = userDto.username,
-            password = userDto.password
+            password = userDto.password,
         )
 
         // Lanzamos la consulta
@@ -115,18 +116,17 @@ class UsersRoutesKtTest {
     }
 
     @Test
+    @Order(3)
     fun meInfoTest() = testApplication {
         // Configuramos el entorno de test
         environment { config }
 
-        // Creamos el usuario
         var client = createClient {
             install(ContentNegotiation) {
                 json()
             }
         }
 
-        // Lanzamos la consulta
         var response = client.post("/api/users/register") {
             contentType(ContentType.Application.Json)
             setBody(userDto)
@@ -138,16 +138,16 @@ class UsersRoutesKtTest {
         )
 
         // Lanzamos la consulta
-        val responseLogin = client.post("/api/users/login") {
+        response = client.post("/api/users/login") {
             contentType(ContentType.Application.Json)
             setBody(loginDto)
         }
 
         // Comprobamos que la respuesta y el contenido es correcto
-        assertEquals(responseLogin.status, HttpStatusCode.OK)
+        assertEquals(response.status, HttpStatusCode.OK)
         // Tambien podemos comprobar el contenido
 
-        val res = json.decodeFromString<UserWithTokenDto>(responseLogin.bodyAsText())
+        val res = json.decodeFromString<UserWithTokenDto>(response.bodyAsText())
         // tomamos el token
         client = createClient {
             install(ContentNegotiation) {

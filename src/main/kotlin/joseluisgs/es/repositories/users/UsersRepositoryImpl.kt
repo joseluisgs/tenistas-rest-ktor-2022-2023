@@ -26,6 +26,7 @@ class UsersRepositoryImpl(
 
     init {
         logger.debug { "Inicializando el repositorio de Usuarios" }
+        clearData()
         initData()
     }
 
@@ -46,7 +47,11 @@ class UsersRepositoryImpl(
             logger.debug { "Borrando datos de prueba" }
             // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
             runBlocking {
-                dataBaseService.client deleteAllFrom UsersTable
+                try {
+                    dataBaseService.client deleteAllFrom UsersTable
+                } catch (e: Exception) {
+                    logger.error { "Error al borrar los datos de prueba: ${e.message}" }
+                }
             }
         }
     }
