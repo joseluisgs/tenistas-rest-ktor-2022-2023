@@ -32,7 +32,7 @@ class UsersRepositoryImpl(
 
     override fun initData() {
         if (dataBaseService.initData) {
-            logger.debug { "Cargando datos de prueba" }
+            logger.debug { "Cargando datos de prueba de usuarios" }
             // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
             runBlocking {
                 getUsuariosInit().forEach {
@@ -44,7 +44,7 @@ class UsersRepositoryImpl(
 
     override fun clearData() {
         if (dataBaseService.initData) {
-            logger.debug { "Borrando datos de prueba" }
+            logger.debug { "Borrando datos de prueba de usuarios" }
             // Lo hago runBlocking para que se ejecute antes de que se ejecute el resto
             runBlocking {
                 try {
@@ -108,6 +108,7 @@ class UsersRepositoryImpl(
 
     override suspend fun save(entity: User): User = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando usuario: $entity" }
+
         return@withContext (dataBaseService.client insertAndReturn entity.toEntity())
             .toModel()
 

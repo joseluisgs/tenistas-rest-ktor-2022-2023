@@ -88,6 +88,16 @@ class RepresentantesCachedRepositoryImpl(
         }.asFlow()
     }
 
+    override fun initData() {
+        cacheRepresentantes.cache.invalidateAll()
+        repository.initData()
+    }
+
+    override fun clearData() {
+        repository.clearData()
+        cacheRepresentantes.cache.invalidateAll()
+    }
+
 
     override suspend fun findById(id: UUID): Representante? {
         logger.debug { "findById: Buscando representante en cache con id: $id" }

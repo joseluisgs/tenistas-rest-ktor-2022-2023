@@ -20,8 +20,8 @@ object UsersTable : H2Table<UserEntity>("users") {
     val role = varchar(UserEntity::role, size = 100)
 
     // Historicos y metadata
-    val createdAt = timestamp(UserEntity::createdAt)
-    val updatedAt = timestamp(UserEntity::updatedAt)
+    val createdAt = timestamp(UserEntity::createdAt, "created_at")
+    val updatedAt = timestamp(UserEntity::updatedAt, "updated_at")
     val deleted = boolean(UserEntity::deleted)
 }
 
@@ -29,6 +29,8 @@ object UsersTable : H2Table<UserEntity>("users") {
 data class UserEntity(
     // Identificador
     val id: UUID = UUID.randomUUID(),
+
+    // Datos
     val nombre: String,
     val email: String,
     val username: String,
