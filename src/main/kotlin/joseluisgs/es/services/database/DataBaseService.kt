@@ -3,6 +3,7 @@ package joseluisgs.es.services.database
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactoryOptions
 import joseluisgs.es.config.DataBaseConfig
+import joseluisgs.es.entities.RaquetasTable
 import joseluisgs.es.entities.RepresentantesTable
 import joseluisgs.es.entities.UsersTable
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +50,7 @@ class DataBaseService(
         // Creamos un objeto H2Tables con las tablas de la base de datos
         // Entidades de la base de datos
         return tables()
-            .h2(UsersTable, RepresentantesTable)
+            .h2(UsersTable, RepresentantesTable, RaquetasTable)
     }
 
     private fun createTables() = runBlocking {
@@ -59,6 +60,7 @@ class DataBaseService(
         scope.launch {
             client createTableIfNotExists UsersTable
             client createTableIfNotExists RepresentantesTable
+            client createTableIfNotExists RaquetasTable
         }
     }
 }
