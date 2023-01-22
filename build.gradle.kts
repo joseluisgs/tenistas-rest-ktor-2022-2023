@@ -25,6 +25,10 @@ val koin_ksp_version: String by project
 // BCrypt
 val bcrypt_version: String by project
 
+// Bases de datos
+val kotysa_version: String by project
+val h2_r2dbc_version: String by project
+
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -94,6 +98,12 @@ dependencies {
     // implementation("io.insert-koin:koin-core:$koin_version") // Koin Core no es necesario para Ktor, lo hemos añadido antes
     implementation("io.insert-koin:koin-annotations:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
     ksp("io.insert-koin:koin-ksp-compiler:$koin_ksp_version") // Si usamos Koin con KSP Anotaciones
+
+    // Bases de datos
+    // Reactividad con Kotysa
+    implementation("org.ufoss.kotysa:kotysa-r2dbc-coroutines:$kotysa_version")
+    // H2 R2DBC para usar H2 como base de datos
+    runtimeOnly("io.r2dbc:r2dbc-h2:$h2_r2dbc_version")
 
     // BCrypt
     // implementation("de.nycode:bcrypt:2.2.0")

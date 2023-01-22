@@ -19,7 +19,7 @@ fun Application.configureStorage() {
 
     // Inyectamos la configuración de Storage
     val storageConfig: StorageConfig = get { parametersOf(storageConfigParams) }
-    // Inyectamos el servicio de tokens
+    // Inyectamos el servicio de storage
     val storageService: StorageService by inject()
     // Inicializamos el servicio de storage
     storageService.initStorageDirectory()

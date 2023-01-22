@@ -18,6 +18,9 @@ fun Application.module() {
     // El primero es Koin, para que tenga poder inyectar dependencias del resto de cosas que necesitamos
     configureKoin()
 
+    // Luego la base de datos, porque sin ella no podemos hacer nada
+    configureDataBase()
+
     // Configuramos el almacenamiento
     configureStorage()
 
