@@ -39,25 +39,22 @@ class RaquetasRepositoryImplKtTest {
 
     @Test
     fun findAll() = runTest {
-        val result = repository.findAll().take(1).toList()
+        val result = repository.findAll().toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals(1, result.size) },
             { assertEquals("Babolat", result[0].marca) },
         )
     }
 
     @Test
     fun findAllPageable() = runTest {
-        val result = repository.findAllPageable(0, 10).take(1).toList()
-        val raquetas = mutableListOf<Raqueta>()
+        val result = repository.findAllPageable(0, 10).toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals(1, result.size) },
             { assertEquals("Babolat", result[0].marca) },
         )
 

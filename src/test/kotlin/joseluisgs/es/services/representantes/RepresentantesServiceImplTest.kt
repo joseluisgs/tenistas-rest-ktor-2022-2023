@@ -12,6 +12,7 @@ import joseluisgs.es.models.Representante
 import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
 import joseluisgs.es.utils.toUUID
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -51,16 +52,11 @@ class RepresentantesServiceImplTest {
         coEvery { repository.findAll() } returns flowOf(representante)
 
         // Llamamos al método
-        val result = service.findAll()
-        val representantes = mutableListOf<Representante>()
-
-        result.collect {
-            representantes.add(it)
-        }
+        val result = service.findAll().toList()
 
         assertAll(
-            { assertEquals(1, representantes.size) },
-            { assertEquals(representante, representantes[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(representante, result[0]) }
         )
 
         coVerify(exactly = 1) { repository.findAll() }
@@ -70,15 +66,11 @@ class RepresentantesServiceImplTest {
     fun findAllPageable() = runTest {
         coEvery { repository.findAllPageable(any()) } returns flowOf(representante)
 
-        val result = service.findAllPageable(1, 10)
-        val representantes = mutableListOf<Representante>()
-        result.collect {
-            representantes.add(it)
-        }
+        val result = service.findAllPageable(1, 10).toList()
 
         assertAll(
-            { assertEquals(1, representantes.size) },
-            { assertEquals(representante, representantes[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(representante, result[0]) }
         )
 
         coVerify(exactly = 1) { repository.findAllPageable(any()) }
@@ -116,15 +108,11 @@ class RepresentantesServiceImplTest {
     fun findByNombre() = runTest {
         coEvery { repository.findByNombre(any()) } returns flowOf(representante)
 
-        val result = service.findByNombre(representante.nombre)
-        val representantes = mutableListOf<Representante>()
-        result.collect {
-            representantes.add(it)
-        }
+        val result = service.findByNombre(representante.nombre).toList()
 
         assertAll(
-            { assertEquals(1, representantes.size) },
-            { assertEquals(representante, representantes[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(representante, result[0]) }
         )
 
         coVerify(exactly = 1) { repository.findByNombre(any()) }

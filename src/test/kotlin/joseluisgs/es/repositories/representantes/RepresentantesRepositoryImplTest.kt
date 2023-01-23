@@ -42,25 +42,22 @@ class RepresentantesRepositoryImplKtTest {
 
     @Test
     fun findAll() = runTest {
-        val result = repository.findAll().take(1).toList()
+        val result = repository.findAll().toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals(1, result.size) },
             { assertEquals("Pepe Perez", result[0].nombre) },
         )
     }
 
     @Test
     fun findAllPageable() = runTest {
-        val result = repository.findAllPageable(0, 10).take(1).toList()
-        val representantes = mutableListOf<Representante>()
+        val result = repository.findAllPageable(0, 10).toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals(1, result.size) },
             { assertEquals("Pepe Perez", result[0].nombre) },
         )
 

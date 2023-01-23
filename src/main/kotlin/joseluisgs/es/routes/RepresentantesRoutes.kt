@@ -18,6 +18,7 @@ import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.representantes.RepresentantesService
 import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
+import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
 
@@ -39,20 +40,19 @@ fun Application.representantesRoutes() {
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
-                val res = mutableListOf<RepresentanteDto>()
+
                 if (page != null && page > 0) {
                     logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
                     // Procesamos el flow
-                    representantesService.findAllPageable(page - 1, perPage).collect {
-                        res.add(it.toDto())
-                    }
-                    call.respond(HttpStatusCode.OK, RepresentantesPageDto(page, perPage, res))
+                    representantesService.findAllPageable(page - 1, perPage)
+                        .toList()
+                        .map { it.toDto() }
+                        .let { res -> call.respond(HttpStatusCode.OK, RepresentantesPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
-                    representantesService.findAll().collect {
-                        res.add(it.toDto())
-                    }
-                    call.respond(HttpStatusCode.OK, res)
+                    representantesService.findAll()
+                        .toList().map { it.toDto() }
+                        .let { res -> call.respond(HttpStatusCode.OK, res) }
                 }
             }
 
@@ -125,12 +125,11 @@ fun Application.representantesRoutes() {
                 // se puede combinar varias
                 logger.debug { "GET BY NOMBRE /$ENDPOINT/find?nombre={nombre}" }
                 val nombre = call.request.queryParameters["nombre"]
-                val res = mutableListOf<RepresentanteDto>()
                 nombre?.let {
-                    representantesService.findByNombre(nombre).collect {
-                        res.add(it.toDto())
-                    }
-                    call.respond(HttpStatusCode.OK, res)
+                    representantesService.findByNombre(nombre)
+                        .toList()
+                        .map { it.toDto() }
+                        .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
 

@@ -15,6 +15,7 @@ import joseluisgs.es.repositories.raquetas.RaquetasCachedRepositoryImpl
 import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
 import joseluisgs.es.utils.toUUID
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -60,16 +61,11 @@ class RaquetasServiceImplTest {
         coEvery { repository.findAll() } returns flowOf(raqueta)
 
         // Llamamos al método
-        val result = service.findAll()
-        val raquetas = mutableListOf<Raqueta>()
-
-        result.collect {
-            raquetas.add(it)
-        }
+        val result = service.findAll().toList()
 
         assertAll(
-            { assertEquals(1, raquetas.size) },
-            { assertEquals(raqueta, raquetas[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(raqueta, result[0]) }
         )
 
         coVerify(exactly = 1) { repository.findAll() }
@@ -79,15 +75,11 @@ class RaquetasServiceImplTest {
     fun findAllPageable() = runTest {
         coEvery { repository.findAllPageable(any()) } returns flowOf(raqueta)
 
-        val result = service.findAllPageable(1, 10)
-        val raquetas = mutableListOf<Raqueta>()
-        result.collect {
-            raquetas.add(it)
-        }
+        val result = service.findAllPageable(1, 10).toList()
 
         assertAll(
-            { assertEquals(1, raquetas.size) },
-            { assertEquals(raqueta, raquetas[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(raqueta, result[0]) }
         )
 
         coVerify(exactly = 1) { repository.findAllPageable(any()) }
@@ -125,15 +117,11 @@ class RaquetasServiceImplTest {
     fun findByNombre() = runTest {
         coEvery { repository.findByMarca(any()) } returns flowOf(raqueta)
 
-        val result = service.findByMarca(raqueta.marca)
-        val raquetas = mutableListOf<Raqueta>()
-        result.collect {
-            raquetas.add(it)
-        }
+        val result = service.findByMarca(raqueta.marca).toList()
 
         assertAll(
-            { assertEquals(1, raquetas.size) },
-            { assertEquals(raqueta, raquetas[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(raqueta, result[0]) }
         )
 
         coVerify(exactly = 1) { repository.findByMarca(any()) }

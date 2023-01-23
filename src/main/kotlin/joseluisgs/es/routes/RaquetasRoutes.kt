@@ -10,7 +10,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.RaquetaCreateDto
-import joseluisgs.es.dto.RaquetaDto
 import joseluisgs.es.dto.RaquetasPageDto
 import joseluisgs.es.exceptions.RaquetaConflictIntegrityException
 import joseluisgs.es.exceptions.RaquetaNotFoundException
@@ -20,6 +19,7 @@ import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.raquetas.RaquetasService
 import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
+import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
 
@@ -41,28 +41,20 @@ fun Application.raquetasRoutes() {
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
-                val res = mutableListOf<RaquetaDto>()
+
                 if (page != null && page > 0) {
                     logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
                     // Procesamos el flow
-                    raquetasService.findAllPageable(page - 1, perPage).collect {
-                        res.add(
-                            it.toDto(
-                                raquetasService.findRepresentante(it.represetanteId)
-                            )
-                        )
-                    }
-                    call.respond(HttpStatusCode.OK, RaquetasPageDto(page, perPage, res))
+                    val res = raquetasService.findAllPageable(page - 1, perPage)
+                        .toList()
+                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .let { res -> call.respond(HttpStatusCode.OK, RaquetasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
-                    raquetasService.findAll().collect {
-                        res.add(
-                            it.toDto(
-                                raquetasService.findRepresentante(it.represetanteId)
-                            )
-                        )
-                    }
-                    call.respond(HttpStatusCode.OK, res)
+                    val res = raquetasService.findAll()
+                        .toList()
+                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .let { res -> call.respond(HttpStatusCode.OK, res) }
                 }
             }
 
@@ -152,16 +144,11 @@ fun Application.raquetasRoutes() {
                 // se puede combinar varias
                 logger.debug { "GET BY MARCA /$ENDPOINT/find?marca={marca}" }
                 val marca = call.request.queryParameters["marca"]
-                val res = mutableListOf<RaquetaDto>()
                 marca?.let {
-                    raquetasService.findByMarca(marca).collect {
-                        res.add(
-                            it.toDto(
-                                raquetasService.findRepresentante(it.represetanteId)
-                            )
-                        )
-                    }
-                    call.respond(HttpStatusCode.OK, res)
+                    val res = raquetasService.findByMarca(marca)
+                        .toList()
+                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
 

@@ -10,6 +10,7 @@ import io.mockk.junit5.MockKExtension
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.services.cache.raquetas.RaquetasCacheImpl
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -48,16 +49,11 @@ class RaquetasCachedRepositoryImplKtTest {
         coEvery { repo.findAll() } returns flowOf(raqueta)
 
         // Llamamos al método
-        val result = repository.findAll()
-        val raquetas = mutableListOf<Raqueta>()
-
-        result.collect {
-            raquetas.add(it)
-        }
+        val result = repository.findAll().toList()
 
         assertAll(
-            { assertEquals(1, raquetas.size) },
-            { assertEquals(raqueta, raquetas[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(raqueta, result[0]) }
         )
 
         coVerify(exactly = 1) { repo.findAll() }
@@ -70,16 +66,11 @@ class RaquetasCachedRepositoryImplKtTest {
         coEvery { repo.findAllPageable(0, 10) } returns flowOf(raqueta)
 
         // Llamamos al método
-        val result = repository.findAllPageable(0, 10)
-        val raquetas = mutableListOf<Raqueta>()
-
-        result.collect {
-            raquetas.add(it)
-        }
+        val result = repository.findAllPageable(0, 10).toList()
 
         assertAll(
-            { assertEquals(1, raquetas.size) },
-            { assertEquals(raqueta, raquetas[0]) }
+            { assertEquals(1, result.size) },
+            { assertEquals(raqueta, result[0]) }
         )
 
         coVerify(exactly = 1) { repo.findAllPageable(0, 10) }
