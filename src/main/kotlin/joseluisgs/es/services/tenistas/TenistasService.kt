@@ -11,11 +11,11 @@ interface TenistasService {
     suspend fun findAllPageable(page: Int, perPage: Int): Flow<Tenista>
     suspend fun findById(id: UUID): Tenista
     suspend fun findByNombre(nombre: String): Flow<Tenista>
-    suspend fun findByRanking(ranking: Int): Tenista?
+    suspend fun findByRanking(ranking: Int): Tenista
     suspend fun save(tenista: Tenista): Tenista
     suspend fun update(id: UUID, tenista: Tenista): Tenista
     suspend fun delete(id: UUID): Tenista
-    suspend fun findRaqueta(id: UUID?): Raqueta?
+    suspend fun findRaqueta(raquetaId: UUID?): Raqueta?
 
     // Suscripción a cambios para notificar tiempo real
     fun addSuscriptor(id: Int, suscriptor: suspend (TenistasNotification) -> Unit)

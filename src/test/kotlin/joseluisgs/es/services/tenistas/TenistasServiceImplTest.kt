@@ -7,6 +7,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import joseluisgs.es.exceptions.TenistaNotFoundException
+import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.Tenista
 import joseluisgs.es.repositories.raquetas.RaquetasRepositoryImpl
 import joseluisgs.es.repositories.tenistas.TenistasCachedRepositoryImpl
@@ -38,6 +39,13 @@ class TenistasServiceImplTest {
         puntos = 3789,
         pais = "Suiza",
         raquetaId = UUID.fromString("b0b5b2a1-5b1f-4b0f-8b1f-1b2c2b3c4d5e")
+    )
+
+    val raqueta = Raqueta(
+        id = UUID.fromString("e4a7b78e-f9ca-43df-b186-3811554eeeb2"),
+        marca = "Head",
+        precio = 225.0,
+        represetanteId = UUID.fromString("a33cd6a6-e767-48c3-b07b-ab7e015a73cd")
     )
 
 
@@ -141,6 +149,7 @@ class TenistasServiceImplTest {
 
     @Test
     fun save() = runTest {
+        coEvery { raquetasRepository.findById(any()) } returns raqueta
         coEvery { repository.save(any()) } returns tenista
 
         val result = service.save(tenista)
@@ -157,6 +166,7 @@ class TenistasServiceImplTest {
     @Test
     fun update() = runTest {
         coEvery { repository.findById(any()) } returns tenista
+        coEvery { raquetasRepository.findById(any()) } returns raqueta
         coEvery { repository.update(any(), any()) } returns tenista
 
         val result = service.update(tenista.id, tenista)

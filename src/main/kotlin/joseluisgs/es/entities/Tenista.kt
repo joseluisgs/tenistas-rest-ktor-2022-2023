@@ -20,7 +20,7 @@ object TenistasTable : H2Table<TenistaEntity>("tenistas") {
     val tipoReves = varchar(TenistaEntity::tipoReves, "tipo_reves", size = 15)
     val puntos = integer(TenistaEntity::puntos)
     val pais = varchar(TenistaEntity::pais, size = 100)
-    val raquetaId = uuid(TenistaEntity::raquetaId, "raqueta_id", null).foreignKey(RepresentantesTable.id)
+    val raquetaId = uuid(TenistaEntity::raquetaId, "raqueta_id", null).foreignKey(RaquetasTable.id)
 
     // Historicos y metadata
     val createdAt = timestamp(TenistaEntity::createdAt, "created_at")

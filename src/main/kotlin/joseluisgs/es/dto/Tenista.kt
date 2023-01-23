@@ -46,12 +46,11 @@ data class TenistaDto(
     val añoProfesional: Int,
     val altura: Int,
     val peso: Int,
-    val manoDominante: Tenista.ManoDominante? = Tenista.ManoDominante.DERECHA,
-    val tipoReves: Tenista.TipoReves? = Tenista.TipoReves.DOS_MANOS,
+    val manoDominante: Tenista.ManoDominante,
+    val tipoReves: Tenista.TipoReves,
     val puntos: Int,
     val pais: String,
-    @Serializable(with = UUIDSerializer::class)
-    val raqueta: RaquetaTenistaDto? = null,
+    val raqueta: RaquetaTenistaDto?,
     val metadata: MetaData? = null,
 ) {
     @Serializable

@@ -96,7 +96,7 @@ class RaquetasServiceImpl(
             } catch (e: Exception) {
                 throw RaquetaConflictIntegrityException("No se puede borrar la raqueta con id: $id porque tiene tenistas asociados")
             }
-        } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
+        } ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $id")
     }
 
     override suspend fun findRepresentante(id: UUID): Representante {

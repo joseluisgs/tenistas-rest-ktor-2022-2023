@@ -38,6 +38,8 @@ class RepresentantesRoutesKtTest {
         deleted = false
     )
 
+    val create = representante.toDto()
+
     // Esto es muy similar a hacerlo con Postman
     @Test
     @Order(1)
@@ -74,7 +76,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(3)
     fun testPost() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -105,7 +107,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(4)
     fun testPut() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -144,7 +146,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(5)
     fun testPutNotFound() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -168,7 +170,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(6)
     fun testDelete() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -196,7 +198,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(7)
     fun testDeleteNotFound() = testApplication {
-        val create = representante.toDto()
+        
         // Configuramos el entorno de test
         environment { config }
 

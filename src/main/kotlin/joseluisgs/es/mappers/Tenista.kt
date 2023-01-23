@@ -52,6 +52,7 @@ fun Tenista.toEntity() = TenistaEntity(
     tipoReves = this.tipoReves.name,
     puntos = this.puntos,
     pais = this.pais,
+    raquetaId = this.raquetaId,
     createdAt = this.createdAt,
     updatedAt = this.updatedAt,
     deleted = this.deleted

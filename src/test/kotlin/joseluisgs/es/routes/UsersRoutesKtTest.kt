@@ -40,6 +40,11 @@ class UsersRoutesKtTest {
         role = User.Role.USER
     )
 
+    val loginDto = UserLoginDto(
+        username = userDto.username,
+        password = userDto.password,
+    )
+
     @Test
     @Order(1)
     fun registerUserTest() = testApplication {
@@ -77,7 +82,6 @@ class UsersRoutesKtTest {
         // Configuramos el entorno de test
         environment { config }
 
-
         val client = createClient {
             install(ContentNegotiation) {
                 json()
@@ -89,11 +93,6 @@ class UsersRoutesKtTest {
             contentType(ContentType.Application.Json)
             setBody(userDto)
         }
-
-        val loginDto = UserLoginDto(
-            username = userDto.username,
-            password = userDto.password,
-        )
 
         // Lanzamos la consulta
         val responseLogin = client.post("/api/users/login") {
@@ -131,11 +130,6 @@ class UsersRoutesKtTest {
             contentType(ContentType.Application.Json)
             setBody(userDto)
         }
-
-        val loginDto = UserLoginDto(
-            username = userDto.username,
-            password = userDto.password
-        )
 
         // Lanzamos la consulta
         response = client.post("/api/users/login") {

@@ -1,7 +1,6 @@
 package joseluisgs.es.services.tenistas
 
 import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.exceptions.TenistaNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.*
@@ -55,14 +54,18 @@ class TenistasServiceImpl(
         return repository.findByNombre(nombre)
     }
 
-    override suspend fun findByRanking(ranking: Int): Tenista? {
+    override suspend fun findByRanking(ranking: Int): Tenista {
         logger.debug { "findByRanking: Buscando tenistas en servicio con ranking: $ranking" }
 
         return repository.findByRanking(ranking)
+            ?: throw TenistaNotFoundException("No se ha encontrado el tenista con ranking: $ranking")
     }
 
     override suspend fun save(tenista: Tenista): Tenista {
         logger.debug { "create: Creando tenistas en servicio" }
+
+        // Existe la raqueta!!
+        val raqueta = findRaqueta(tenista.raquetaId)
 
         // Insertamos el representante y devolvemos el resultado y avisa a los subscriptores
         return repository.save(tenista)
@@ -74,10 +77,13 @@ class TenistasServiceImpl(
 
         val existe = repository.findById(id)
 
+        // Existe la raqueta!!
+        val raqueta = findRaqueta(tenista.raquetaId)
+
         existe?.let {
             return repository.update(id, tenista)
                 ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw RepresentanteNotFoundException("No se ha encontrado el tenista con id: $id")
+        } ?: throw TenistaNotFoundException("No se ha encontrado el tenista con id: $id")
     }
 
     override suspend fun delete(id: UUID): Tenista {
@@ -90,18 +96,17 @@ class TenistasServiceImpl(
             return repository.delete(existe)
                 .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
 
-        } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
+        } ?: throw TenistaNotFoundException("No se ha encontrado el tenista con id: $id")
 
     }
 
-    override suspend fun findRaqueta(id: UUID?): Raqueta? {
+    override suspend fun findRaqueta(raquetaId: UUID?): Raqueta? {
         logger.debug { "findRepresentante: Buscando raqueta en servicio" }
 
-        id?.let {
-            return raquetasRepository.findById(id)
-                ?: throw RaquetaNotFoundException("No se ha encontrado el raqueta con id: $id")
-        }
-        return null
+        raquetaId?.let {
+            return raquetasRepository.findById(raquetaId)
+                ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $raquetaId")
+        } ?: return null
     }
 
     /// ---- Tiempo real, patrón observer!!!
