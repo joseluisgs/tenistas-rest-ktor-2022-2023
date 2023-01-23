@@ -6,7 +6,7 @@ import joseluisgs.es.entities.TenistaEntity
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.Tenista
 
-fun Tenista.toDto(raqueta: Raqueta) = TenistaDto(
+fun Tenista.toDto(raqueta: Raqueta?) = TenistaDto(
     id = this.id,
     nombre = this.nombre,
     ranking = this.ranking,
@@ -18,7 +18,7 @@ fun Tenista.toDto(raqueta: Raqueta) = TenistaDto(
     tipoReves = this.tipoReves,
     puntos = this.puntos,
     pais = this.pais,
-    raqueta = raqueta.toTenistaDto(),
+    raqueta = raqueta?.toTenistaDto(),
     metadata = TenistaDto.MetaData(
         createdAt = this.createdAt,
         updatedAt = this.updatedAt,

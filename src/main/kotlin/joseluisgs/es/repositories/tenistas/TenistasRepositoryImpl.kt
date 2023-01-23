@@ -29,7 +29,8 @@ class TenistasRepositoryImpl(
     override suspend fun findAll(): Flow<Tenista> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando los tenistas" }
 
-        return@withContext (dataBaseService.client selectFrom TenistasTable)
+        return@withContext (dataBaseService.client selectFrom TenistasTable
+                orderByAsc TenistasTable.ranking)
             .fetchAll()
             .map { it.toModel() }
     }
@@ -40,7 +41,10 @@ class TenistasRepositoryImpl(
         val myLimit = if (perPage > 100) 100L else perPage.toLong()
         val myOffset = (page * perPage).toLong()
 
-        return@withContext (dataBaseService.client selectFrom TenistasTable limit myLimit offset myOffset)
+        // Ojo que están ordenados por ranking
+        return@withContext (dataBaseService.client selectFrom TenistasTable
+                orderByAsc TenistasTable.ranking
+                limit myLimit offset myOffset)
             .fetchAll()
             .map { it.toModel() }
 
@@ -86,16 +90,19 @@ class TenistasRepositoryImpl(
         entity.let {
             val updateEntity = entity.toEntity()
 
-            /*val res = (dataBaseService.client update TenistasTable
-                    set TenistasTable.nombre to updateEntity.nombre
-                    set TenistasTable.ranking to updateEntity.ranking
-                    set TenistasTable.pais to updateEntity.pais
-                    set TenistasTable.altura to updateEntity.altura
-                    set TenistasTable.peso to updateEntity.peso
-                        set TenistasTable.estado to updateEntity.estado
-                .execute()*/
-
-            val res = 1
+            val res = (dataBaseService.client update TenistasTable
+                    set TenistasTable.nombre eq updateEntity.nombre
+                    set TenistasTable.ranking eq updateEntity.ranking
+                    set TenistasTable.fechaNacimiento eq updateEntity.fechaNacimiento
+                    set TenistasTable.añoProfesional eq updateEntity.añoProfesional
+                    set TenistasTable.altura eq updateEntity.altura
+                    set TenistasTable.peso eq updateEntity.peso
+                    set TenistasTable.manoDominante eq updateEntity.manoDominante
+                    set TenistasTable.tipoReves eq updateEntity.tipoReves
+                    set TenistasTable.puntos eq updateEntity.puntos
+                    set TenistasTable.pais eq updateEntity.pais
+                    where TenistasTable.id eq id)
+                .execute()
 
             if (res > 0) {
                 return@withContext entity
