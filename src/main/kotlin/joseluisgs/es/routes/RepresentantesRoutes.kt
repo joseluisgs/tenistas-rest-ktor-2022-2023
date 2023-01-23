@@ -1,5 +1,6 @@
 package joseluisgs.es.routes
 
+// import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -10,6 +11,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.dto.RepresentantesPageDto
+import joseluisgs.es.exceptions.RepresentanteConflictIntegrityException
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
@@ -17,8 +19,6 @@ import joseluisgs.es.services.representantes.RepresentantesService
 import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
 import mu.KotlinLogging
-
-// import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
 import org.koin.ktor.ext.inject
 
 private val logger = KotlinLogging.logger {}
@@ -111,6 +111,8 @@ fun Application.representantesRoutes() {
                     call.respond(HttpStatusCode.NoContent)
                 } catch (e: RepresentanteNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
+                } catch (e: RepresentanteConflictIntegrityException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }

@@ -25,7 +25,6 @@ private val json = Json { ignoreUnknownKeys = true }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-
 class RepresentantesRoutesKtTest {
     // Cargamos la configuración del entorno
     private val config = ApplicationConfig("application.conf")

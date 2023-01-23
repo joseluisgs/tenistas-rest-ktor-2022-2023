@@ -1,5 +1,6 @@
 package joseluisgs.es.repositories.representantes
 
+import joseluisgs.es.exceptions.DataBaseIntegrityViolationException
 import joseluisgs.es.models.Representante
 import joseluisgs.es.services.cache.representantes.RepresentantesCache
 import kotlinx.coroutines.*
@@ -140,15 +141,24 @@ class RepresentantesCachedRepositoryImpl(
         // existe?
         val existe = findById(entity.id)
         return existe?.let {
+
             // Eliminamos en el repositorio y en la cache en paralelo
-            // Creamos scope
+            // Creamos scope y un handler para el error
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
                 cacheRepresentantes.cache.invalidate(entity.id)
             }
-            scope.launch {
+
+            val delete = scope.async {
                 repository.delete(entity)
             }
+            // igual que try catch
+            runCatching {
+                delete.await()
+            }.onFailure {
+                throw DataBaseIntegrityViolationException()
+            }
+
             return existe
         }
     }

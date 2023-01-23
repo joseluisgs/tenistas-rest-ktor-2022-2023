@@ -6,9 +6,11 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import joseluisgs.es.exceptions.RepresentanteConflictIntegrityException
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.models.Representante
 import joseluisgs.es.repositories.representantes.RepresentantesCachedRepositoryImpl
+import joseluisgs.es.utils.toUUID
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
@@ -191,13 +193,28 @@ class RepresentantesServiceImplTest {
 
     @Test
     fun deleteNotFound() = runTest {
-        coEvery { repository.delete(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${representante.id}")
+        coEvery { repository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${representante.id}")
 
         val res = assertThrows<RepresentanteNotFoundException> {
-            service.delete(representante.id)
+            service.delete(UUID.randomUUID())
         }
 
         assertEquals("No se ha encontrado el representante con id: ${representante.id}", res.message)
+
+        coVerify { repository.delete(any()) }
+    }
+
+    @Test
+    fun deleteNotRaquetaConflict() = runTest {
+        val uuid = "b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf".toUUID()
+        coEvery { repository.findById(any()) } returns representante
+        coEvery { repository.delete(any()) } throws RepresentanteConflictIntegrityException("No se puede borrar el representante con id: $uuid porque tiene raquetas asociadas")
+
+        val res = assertThrows<RepresentanteConflictIntegrityException> {
+            service.delete(uuid)
+        }
+
+        assertEquals("No se puede borrar el representante con id: $uuid porque tiene raquetas asociadas", res.message)
 
         coVerify { repository.delete(any()) }
     }
