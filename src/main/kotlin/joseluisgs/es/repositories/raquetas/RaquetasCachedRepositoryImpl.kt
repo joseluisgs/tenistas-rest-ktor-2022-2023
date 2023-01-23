@@ -1,5 +1,6 @@
 package joseluisgs.es.repositories.raquetas
 
+import joseluisgs.es.exceptions.DataBaseIntegrityViolationException
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.services.cache.raquetas.RaquetasCache
 import kotlinx.coroutines.*
@@ -18,17 +19,17 @@ private val logger = KotlinLogging.logger {}
 class RaquetasCachedRepositoryImpl(
     @Named("RaquetasRepository") // Repositorio de datos originales
     private val repository: RaquetasRepository,
-    private val cacheRaquetas: RaquetasCache // Desacoplamos la cache
+    private val cache: RaquetasCache // Desacoplamos la cache
 ) : RaquetasRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
 
 
     init {
-        logger.debug { "Inicializando el repositorio cache raquetas. AutoRefreshAll: ${cacheRaquetas.hasRefreshAllCacheJob}" }
+        logger.debug { "Inicializando el repositorio cache raquetas. AutoRefreshAll: ${cache.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
         // No es obligatorio hacerlo, pero si queremos que se refresque
-        if (cacheRaquetas.hasRefreshAllCacheJob)
+        if (cache.hasRefreshAllCacheJob)
             refreshCacheJob()
     }
 
@@ -45,10 +46,10 @@ class RaquetasCachedRepositoryImpl(
             do {
                 logger.debug { "refreshCache: Refrescando cache de Raquetas" }
                 repository.findAll().collect { representante ->
-                    cacheRaquetas.cache.put(representante.id, representante)
+                    cache.cache.put(representante.id, representante)
                 }
-                logger.debug { "refreshCache: Cache actualizada: ${cacheRaquetas.cache.asMap().values.size}" }
-                delay(cacheRaquetas.refreshTime)
+                logger.debug { "refreshCache: Cache actualizada: ${cache.cache.asMap().values.size}" }
+                delay(cache.refreshTime)
             } while (true)
         }
     }
@@ -60,12 +61,12 @@ class RaquetasCachedRepositoryImpl(
         // Ojo si le hemos puesto tamaño máximo a la caché, puede que no estén todos los datos
         // si no en los findAll, siempre devolver los datos del repositorio y no hacer refresco
 
-        return if (!cacheRaquetas.hasRefreshAllCacheJob || cacheRaquetas.cache.asMap().isEmpty()) {
+        return if (!cache.hasRefreshAllCacheJob || cache.cache.asMap().isEmpty()) {
             logger.debug { "findAll: Devolviendo datos de repositorio" }
             repository.findAll()
         } else {
             logger.debug { "findAll: Devolviendo datos de cache" }
-            cacheRaquetas.cache.asMap().values.asFlow()
+            cache.cache.asMap().values.asFlow()
         }
     }
 
@@ -88,8 +89,8 @@ class RaquetasCachedRepositoryImpl(
         logger.debug { "findById: Buscando raqueta en cache con id: $id" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cacheRaquetas.cache.get(id) ?: repository.findById(id)
-            ?.also { cacheRaquetas.cache.put(id, it) }
+        return cache.cache.get(id) ?: repository.findById(id)
+            ?.also { cache.cache.put(id, it) }
     }
 
     override suspend fun save(entity: Raqueta): Raqueta {
@@ -101,7 +102,7 @@ class RaquetasCachedRepositoryImpl(
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            cacheRaquetas.cache.put(raqueta.id, raqueta)
+            cache.cache.put(raqueta.id, raqueta)
         }
         scope.launch {
             repository.save(raqueta)
@@ -123,7 +124,7 @@ class RaquetasCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRaquetas.cache.put(raqueta.id, raqueta)
+                cache.cache.put(raqueta.id, raqueta)
             }
             scope.launch {
                 repository.update(id, raqueta)
@@ -138,15 +139,24 @@ class RaquetasCachedRepositoryImpl(
         // existe?
         val existe = findById(entity.id)
         return existe?.let {
+
             // Eliminamos en el repositorio y en la cache en paralelo
-            // Creamos scope
+            // Creamos scope y un handler para el error
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRaquetas.cache.invalidate(entity.id)
+                cache.cache.invalidate(entity.id)
             }
-            scope.launch {
+
+            val delete = scope.async {
                 repository.delete(entity)
             }
+            // igual que try catch
+            runCatching {
+                delete.await()
+            }.onFailure {
+                throw DataBaseIntegrityViolationException()
+            }
+
             return existe
         }
     }

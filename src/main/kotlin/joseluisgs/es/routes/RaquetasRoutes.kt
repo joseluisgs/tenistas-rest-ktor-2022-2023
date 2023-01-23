@@ -12,6 +12,7 @@ import io.ktor.websocket.*
 import joseluisgs.es.dto.RaquetaCreateDto
 import joseluisgs.es.dto.RaquetaDto
 import joseluisgs.es.dto.RaquetasPageDto
+import joseluisgs.es.exceptions.RaquetaConflictIntegrityException
 import joseluisgs.es.exceptions.RaquetaNotFoundException
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
@@ -137,6 +138,8 @@ fun Application.raquetasRoutes() {
                     call.respond(HttpStatusCode.NoContent)
                 } catch (e: RaquetaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
+                } catch (e: RaquetaConflictIntegrityException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }

@@ -1,5 +1,6 @@
 package joseluisgs.es.services.raquetas
 
+import joseluisgs.es.exceptions.RaquetaConflictIntegrityException
 import joseluisgs.es.exceptions.RaquetaNotFoundException
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
@@ -88,9 +89,14 @@ class RaquetasServiceImpl(
         val existe = repository.findById(id)
 
         existe?.let {
-            return repository.delete(existe)
-                ?.also { onChange(Notificacion.Tipo.DELETE, it.id) }!!
-        } ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $id")
+            // meto el try catch para que no se caiga la aplicación si no se puede borrar por tener raquetas asociadas
+            try {
+                return repository.delete(existe)
+                    .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
+            } catch (e: Exception) {
+                throw RaquetaConflictIntegrityException("No se puede borrar la raqueta con id: $id porque tiene tenistas asociados")
+            }
+        } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
     }
 
     override suspend fun findRepresentante(id: UUID): Representante {

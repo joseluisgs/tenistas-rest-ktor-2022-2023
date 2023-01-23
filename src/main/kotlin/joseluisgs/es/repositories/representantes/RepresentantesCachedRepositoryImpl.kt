@@ -20,17 +20,17 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesCachedRepositoryImpl(
     @Named("PersonasRepository") // Repositorio de datos originales
     private val repository: RepresentantesRepository,
-    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
+    private val cache: RepresentantesCache // Desacoplamos la cache
 ) : RepresentantesRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
 
 
     init {
-        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cacheRepresentantes.hasRefreshAllCacheJob}" }
+        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cache.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
         // No es obligatorio hacerlo, pero si queremos que se refresque
-        if (cacheRepresentantes.hasRefreshAllCacheJob)
+        if (cache.hasRefreshAllCacheJob)
             refreshCacheJob()
     }
 
@@ -47,10 +47,10 @@ class RepresentantesCachedRepositoryImpl(
             do {
                 logger.debug { "refreshCache: Refrescando cache de Representantes" }
                 repository.findAll().collect { representante ->
-                    cacheRepresentantes.cache.put(representante.id, representante)
+                    cache.cache.put(representante.id, representante)
                 }
-                logger.debug { "refreshCache: Cache actualizada: ${cacheRepresentantes.cache.asMap().values.size}" }
-                delay(cacheRepresentantes.refreshTime)
+                logger.debug { "refreshCache: Cache actualizada: ${cache.cache.asMap().values.size}" }
+                delay(cache.refreshTime)
             } while (true)
         }
     }
@@ -62,12 +62,12 @@ class RepresentantesCachedRepositoryImpl(
         // Ojo si le hemos puesto tamaño máximo a la caché, puede que no estén todos los datos
         // si no en los findAll, siempre devolver los datos del repositorio y no hacer refresco
 
-        return if (!cacheRepresentantes.hasRefreshAllCacheJob || cacheRepresentantes.cache.asMap().isEmpty()) {
+        return if (!cache.hasRefreshAllCacheJob || cache.cache.asMap().isEmpty()) {
             logger.debug { "findAll: Devolviendo datos de repositorio" }
             repository.findAll()
         } else {
             logger.debug { "findAll: Devolviendo datos de cache" }
-            cacheRepresentantes.cache.asMap().values.asFlow()
+            cache.cache.asMap().values.asFlow()
         }
     }
 
@@ -90,8 +90,8 @@ class RepresentantesCachedRepositoryImpl(
         logger.debug { "findById: Buscando representante en cache con id: $id" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cacheRepresentantes.cache.get(id) ?: repository.findById(id)
-            ?.also { cacheRepresentantes.cache.put(id, it) }
+        return cache.cache.get(id) ?: repository.findById(id)
+            ?.also { cache.cache.put(id, it) }
     }
 
 
@@ -104,7 +104,7 @@ class RepresentantesCachedRepositoryImpl(
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            cacheRepresentantes.cache.put(representante.id, representante)
+            cache.cache.put(representante.id, representante)
         }
         scope.launch {
             repository.save(representante)
@@ -126,7 +126,7 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.put(representante.id, representante)
+                cache.cache.put(representante.id, representante)
             }
             scope.launch {
                 repository.update(id, representante)
@@ -146,7 +146,7 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope y un handler para el error
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.invalidate(entity.id)
+                cache.cache.invalidate(entity.id)
             }
 
             val delete = scope.async {
