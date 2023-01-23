@@ -5,9 +5,11 @@ import io.r2dbc.spi.ConnectionFactoryOptions
 import joseluisgs.es.config.DataBaseConfig
 import joseluisgs.es.db.getRaquetasInit
 import joseluisgs.es.db.getRepresentantesInit
+import joseluisgs.es.db.getTenistasInit
 import joseluisgs.es.db.getUsuariosInit
 import joseluisgs.es.entities.RaquetasTable
 import joseluisgs.es.entities.RepresentantesTable
+import joseluisgs.es.entities.TenistasTable
 import joseluisgs.es.entities.UsersTable
 import joseluisgs.es.mappers.toEntity
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +66,8 @@ class DataBaseService(
             .h2(
                 UsersTable,
                 RepresentantesTable,
-                RaquetasTable
+                RaquetasTable,
+                TenistasTable
             )
     }
 
@@ -76,6 +79,7 @@ class DataBaseService(
             client createTableIfNotExists UsersTable
             client createTableIfNotExists RepresentantesTable
             client createTableIfNotExists RaquetasTable
+            client createTableIfNotExists TenistasTable
         }
     }
 
@@ -83,6 +87,7 @@ class DataBaseService(
         // Primero borramos los datos evitando la cascada
         logger.debug { "Borrando datos..." }
         try {
+            client deleteAllFrom TenistasTable
             client deleteAllFrom RaquetasTable
             client deleteAllFrom RepresentantesTable
             client deleteAllFrom UsersTable
@@ -113,7 +118,10 @@ class DataBaseService(
             client insert it.toEntity()
         }
 
-        // Tenistas
+        logger.debug { "Creando tenistas..." }
+        getTenistasInit().forEach {
+            client insert it.toEntity()
+        }
     }
 
 }

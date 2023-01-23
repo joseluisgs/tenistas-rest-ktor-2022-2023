@@ -26,3 +26,4 @@ data class Notificacion<T>(
 // visibles en el DTO igual que se ven en las llamadas REST
 typealias RepresentantesNotification = Notificacion<RepresentanteDto?> // RepresentanteDto?
 typealias RaquetasNotification = Notificacion<RaquetaDto?> // RaquetaDto?
+typealias TenistasNotification = Notificacion<RaquetaDto?> // TenistaDto?

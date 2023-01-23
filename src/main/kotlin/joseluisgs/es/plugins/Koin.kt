@@ -11,6 +11,5 @@ fun Application.configureKoin() {
         slf4jLogger()
         // Modulos con las dependencias, usamos el default, si no crear modulos
         defaultModule()
-
     }
 }
