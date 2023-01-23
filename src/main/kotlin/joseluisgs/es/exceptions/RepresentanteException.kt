@@ -4,3 +4,4 @@ package joseluisgs.es.exceptions
 sealed class RepresentanteException(message: String) : RuntimeException(message)
 class RepresentanteNotFoundException(message: String) : RepresentanteException(message)
 class RepresentanteBadRequestException(message: String) : RepresentanteException(message)
+class RepresentanteConflictIntegrityException(message: String) : RepresentanteException(message)

@@ -25,7 +25,6 @@ private val json = Json { ignoreUnknownKeys = true }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-
 class RepresentantesRoutesKtTest {
     // Cargamos la configuración del entorno
     private val config = ApplicationConfig("application.conf")
@@ -38,6 +37,8 @@ class RepresentantesRoutesKtTest {
         updatedAt = LocalDateTime.now(),
         deleted = false
     )
+
+    val create = representante.toDto()
 
     // Esto es muy similar a hacerlo con Postman
     @Test
@@ -75,7 +76,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(3)
     fun testPost() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -106,7 +107,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(4)
     fun testPut() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -145,7 +146,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(5)
     fun testPutNotFound() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -169,7 +170,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(6)
     fun testDelete() = testApplication {
-        val create = representante.toDto()
+
         // Configuramos el entorno de test
         environment { config }
 
@@ -197,7 +198,7 @@ class RepresentantesRoutesKtTest {
     @Test
     @Order(7)
     fun testDeleteNotFound() = testApplication {
-        val create = representante.toDto()
+        
         // Configuramos el entorno de test
         environment { config }
 

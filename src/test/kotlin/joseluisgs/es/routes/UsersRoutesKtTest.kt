@@ -4,6 +4,7 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -19,6 +20,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
+import java.io.File
 import java.util.*
 import kotlin.test.*
 
@@ -38,6 +40,11 @@ class UsersRoutesKtTest {
         password = "test12345",
         avatar = "https://www.google.com/avatar.png",
         role = User.Role.USER
+    )
+
+    val loginDto = UserLoginDto(
+        username = userDto.username,
+        password = userDto.password,
     )
 
     @Test
@@ -77,7 +84,6 @@ class UsersRoutesKtTest {
         // Configuramos el entorno de test
         environment { config }
 
-
         val client = createClient {
             install(ContentNegotiation) {
                 json()
@@ -89,11 +95,6 @@ class UsersRoutesKtTest {
             contentType(ContentType.Application.Json)
             setBody(userDto)
         }
-
-        val loginDto = UserLoginDto(
-            username = userDto.username,
-            password = userDto.password,
-        )
 
         // Lanzamos la consulta
         val responseLogin = client.post("/api/users/login") {
@@ -131,11 +132,6 @@ class UsersRoutesKtTest {
             contentType(ContentType.Application.Json)
             setBody(userDto)
         }
-
-        val loginDto = UserLoginDto(
-            username = userDto.username,
-            password = userDto.password
-        )
 
         // Lanzamos la consulta
         response = client.post("/api/users/login") {
@@ -179,6 +175,71 @@ class UsersRoutesKtTest {
             { assertEquals(resUser.avatar, userDto.avatar) },
             { assertEquals(resUser.role, userDto.role) },
         )
+    }
+
+    @Test
+    fun testUpload() = testApplication {
+
+        environment { config }
+
+        var client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        var response = client.post("/api/users/register") {
+            contentType(ContentType.Application.Json)
+            setBody(userDto)
+        }
+
+        // Lanzamos la consulta
+        response = client.post("/api/users/login") {
+            contentType(ContentType.Application.Json)
+            setBody(loginDto)
+        }
+
+        // Comprobamos que la respuesta y el contenido es correcto
+        assertEquals(response.status, HttpStatusCode.OK)
+        // Tambien podemos comprobar el contenido
+
+        val res = json.decodeFromString<UserWithTokenDto>(response.bodyAsText())
+        // tomamos el token
+        client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        // Load tokens from a local storage and return them as the 'BearerTokens' instance
+                        BearerTokens(res.token, res.token)
+                    }
+                }
+            }
+        }
+
+        // Lanzamos la consulta
+        val boundary = "WebAppBoundary"
+        response = client.patch("/api/users/me") {
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        // Cojo una imagen de un directorio resources y la envío
+                        val image = File("./images/ktor.png")
+                        append("file", image.readBytes(), Headers.build {
+                            append(HttpHeaders.ContentType, "image/png")
+                            append(HttpHeaders.ContentDisposition, "filename=\"ktor.png\"")
+                        })
+                    },
+                    boundary,
+                    ContentType.MultiPart.FormData.withParameter("boundary", boundary)
+                )
+            )
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        // Puedes ver lo que sale!!!
+        println(response.bodyAsText())
     }
 
     // Como ves estamos haciendo como con Postman, pero en código

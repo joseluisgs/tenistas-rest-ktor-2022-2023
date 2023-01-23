@@ -1,5 +1,6 @@
 package joseluisgs.es.services.representantes
 
+import joseluisgs.es.exceptions.RepresentanteConflictIntegrityException
 import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.Notificacion
@@ -80,8 +81,13 @@ class RepresentantesServiceImpl(
         val existe = repository.findById(id)
 
         existe?.let {
-            return repository.delete(existe)
-                ?.also { onChange(Notificacion.Tipo.DELETE, it.id) }!!
+            // meto el try catch para que no se caiga la aplicación si no se puede borrar por tener raquetas asociadas
+            try {
+                return repository.delete(existe)
+                    .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
+            } catch (e: Exception) {
+                throw RepresentanteConflictIntegrityException("No se puede borrar el representante con id: $id porque tiene raquetas asociadas")
+            }
         } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
 
     }

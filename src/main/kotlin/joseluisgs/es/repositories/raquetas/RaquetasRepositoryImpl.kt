@@ -1,6 +1,7 @@
 package joseluisgs.es.repositories.raquetas
 
 import joseluisgs.es.entities.RaquetasTable
+import joseluisgs.es.exceptions.DataBaseIntegrityViolationException
 import joseluisgs.es.mappers.toEntity
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.models.Raqueta
@@ -99,14 +100,19 @@ class RaquetasRepositoryImpl(
 
         // Buscamos
         entity.let {
-            val res = (dataBaseService.client deleteFrom RaquetasTable
-                    where RaquetasTable.id eq it.id)
-                .execute()
+            // meto el try catch para que no una raqueta puede tener tenistas y no se pueda borrar
+            try {
+                val res = (dataBaseService.client deleteFrom RaquetasTable
+                        where RaquetasTable.id eq it.id)
+                    .execute()
 
-            if (res > 0) {
-                return@withContext entity
-            } else {
-                return@withContext null
+                if (res > 0) {
+                    return@withContext entity
+                } else {
+                    return@withContext null
+                }
+            } catch (e: Exception) {
+                throw DataBaseIntegrityViolationException()
             }
         }
     }

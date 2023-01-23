@@ -15,11 +15,14 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Dominio](#dominio)
     - [Representante](#representante)
     - [Raqueta](#raqueta)
+    - [Tenista](#tenista)
     - [Usuario](#usuario)
   - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
   - [Arquitectura](#arquitectura)
   - [Endpoints](#endpoints)
     - [Representantes](#representantes)
+    - [Raquetas](#raquetas)
+    - [Tenistas](#tenistas)
     - [Usuarios](#usuarios)
     - [Storage](#storage)
   - [Ktor](#ktor)
@@ -126,6 +129,21 @@ Gestionar tenistas, raquetas y representantes de marcas de raquetas. Sabemos que
 | precio | Double | Precio de la raqueta |
 | representante | Representante | Representante de la raqueta (no nulo) |
 
+### Tenista
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| id | UUID | Identificador único |
+| nombre | String | Nombre del tenista |
+| ranking | Int | Ranking del tenista |
+| fechaNacimiento | LocalDate | Fecha de nacimiento del tenista |
+| añoProfesional | Int | Año en el que se convirtió en profesional |
+| altura | Double | Altura del tenista |
+| peso | Double | Peso del tenista |
+| manoDominante | String | Mano dominante del tenista (DERECHA/IZQUIERDA) |
+| tipoReves | String | Tipo de revés del tenista (UNA_MANO/DOS_MANOS)|
+| puntos | Int | Puntos del tenista |
+| pais | String | País del tenista |
+| raquetaID | UUID | Identificador de la raqueta (puede ser nulo) |
 
 ### Usuario
 | Campo | Tipo | Descripción |
@@ -171,6 +189,32 @@ Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos 
 | GET | /representantes/find/nombre=X | No | Devuelve los representantes con nombre X | 200 | JSON |
 | WS | /representantes/updates | No | Websocket para notificaciones los cambios en los representantes en tiempo real | --- | JSON |
 
+### Raquetas
+| Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /raquetas | No | Devuelve todas las raquetas | 200 | JSON |
+| GET | /raquetas?page=X&perPage=Y | No | Devuelve raquetas paginadas | 200 | JSON |
+| GET | /raquetas/{id} | No | Devuelve una raqueta por su id | 200 | JSON |
+| POST | /raquetas | No | Crea una nueva raqueta | 201 | JSON |
+| PUT | /raquetas/{id} | No | Actualiza una raqueta por su id | 200 | JSON |
+| DELETE | /raquetas/{id} | No | Elimina una raqueta por su id | 204 | No Content |
+| GET | /raquetas/find/marca=X | No | Devuelve las raquetas con marca X | 200 | JSON |
+| GET | /raquetas/{id}/representante | No | Devuelve el representante de la raqueta dado su id | 200 | JSON |
+| WS | /raquetas/updates | No | Websocket para notificaciones los cambios en las raquetas en tiempo real | --- | JSON |
+
+### Tenistas
+| Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /tenistas | No | Devuelve todos los tenistas | 200 | JSON |
+| GET | /tenistas?page=X&perPage=Y | No | Devuelve tenistas paginados | 200 | JSON |
+| GET | /tenistas/{id} | No | Devuelve un tenista por su id | 200 | JSON |
+| POST | /tenistas | No | Crea un nuevo tenista | 201 | JSON |
+| PUT | /tenistas/{id} | No | Actualiza un tenista por su id | 200 | JSON |
+| DELETE | /tenistas/{id} | No | Elimina un tenista por su id | 204 | No Content |
+| GET | /tenistas/find/nombre=X | No | Devuelve los tenistas con nombre X | 200 | JSON |
+| GET | /tenistas/{id}/raqueta | No | Devuelve la raqueta del tenista dado su id | 200 | JSON |
+| GET | /tenistas/ranking/{ranking} | No | Devuelve el tenista con ranking X | 200 | JSON |
+| WS | /tenistas/updates | No | Websocket para notificaciones los cambios en los tenistas en tiempo real | --- | JSON |
 
 ### Usuarios    
 | Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |

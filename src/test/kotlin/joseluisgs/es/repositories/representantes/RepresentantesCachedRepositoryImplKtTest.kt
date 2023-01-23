@@ -10,6 +10,7 @@ import io.mockk.junit5.MockKExtension
 import joseluisgs.es.models.Representante
 import joseluisgs.es.services.cache.representantes.RepresentantesCacheImpl
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -51,16 +52,10 @@ class RepresentantesCachedRepositoryImplKtTest {
         coEvery { repo.findAll() } returns flowOf(representante)
 
         // Llamamos al método
-        val result = repository.findAll()
-        val representantes = mutableListOf<Representante>()
-
-        result.collect {
-            representantes.add(it)
-        }
+        val result = repository.findAll().toList()
 
         assertAll(
-            { assertEquals(1, representantes.size) },
-            { assertEquals(representante, representantes[0]) }
+            { assertEquals(representante, result[0]) }
         )
 
         coVerify(exactly = 1) { repo.findAll() }
@@ -73,16 +68,10 @@ class RepresentantesCachedRepositoryImplKtTest {
         coEvery { repo.findAllPageable(0, 10) } returns flowOf(representante)
 
         // Llamamos al método
-        val result = repository.findAllPageable(0, 10)
-        val representantes = mutableListOf<Representante>()
-
-        result.collect {
-            representantes.add(it)
-        }
+        val result = repository.findAllPageable(0, 10).toList()
 
         assertAll(
-            { assertEquals(1, representantes.size) },
-            { assertEquals(representante, representantes[0]) }
+            { assertEquals(representante, result[0]) }
         )
 
         coVerify(exactly = 1) { repo.findAllPageable(0, 10) }

@@ -1,5 +1,6 @@
 package joseluisgs.es.repositories.representantes
 
+import joseluisgs.es.exceptions.DataBaseIntegrityViolationException
 import joseluisgs.es.models.Representante
 import joseluisgs.es.services.cache.representantes.RepresentantesCache
 import kotlinx.coroutines.*
@@ -19,17 +20,17 @@ private val logger = KotlinLogging.logger {}
 class RepresentantesCachedRepositoryImpl(
     @Named("PersonasRepository") // Repositorio de datos originales
     private val repository: RepresentantesRepository,
-    private val cacheRepresentantes: RepresentantesCache // Desacoplamos la cache
+    private val cache: RepresentantesCache // Desacoplamos la cache
 ) : RepresentantesRepository {
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
 
 
     init {
-        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cacheRepresentantes.hasRefreshAllCacheJob}" }
+        logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cache.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
         // No es obligatorio hacerlo, pero si queremos que se refresque
-        if (cacheRepresentantes.hasRefreshAllCacheJob)
+        if (cache.hasRefreshAllCacheJob)
             refreshCacheJob()
     }
 
@@ -46,10 +47,10 @@ class RepresentantesCachedRepositoryImpl(
             do {
                 logger.debug { "refreshCache: Refrescando cache de Representantes" }
                 repository.findAll().collect { representante ->
-                    cacheRepresentantes.cache.put(representante.id, representante)
+                    cache.cache.put(representante.id, representante)
                 }
-                logger.debug { "refreshCache: Cache actualizada: ${cacheRepresentantes.cache.asMap().values.size}" }
-                delay(cacheRepresentantes.refreshTime)
+                logger.debug { "refreshCache: Cache actualizada: ${cache.cache.asMap().values.size}" }
+                delay(cache.refreshTime)
             } while (true)
         }
     }
@@ -61,18 +62,18 @@ class RepresentantesCachedRepositoryImpl(
         // Ojo si le hemos puesto tamaño máximo a la caché, puede que no estén todos los datos
         // si no en los findAll, siempre devolver los datos del repositorio y no hacer refresco
 
-        return if (!cacheRepresentantes.hasRefreshAllCacheJob || cacheRepresentantes.cache.asMap().isEmpty()) {
+        return if (!cache.hasRefreshAllCacheJob || cache.cache.asMap().isEmpty()) {
             logger.debug { "findAll: Devolviendo datos de repositorio" }
             repository.findAll()
         } else {
             logger.debug { "findAll: Devolviendo datos de cache" }
-            cacheRepresentantes.cache.asMap().values.asFlow()
+            cache.cache.asMap().values.asFlow()
         }
     }
 
 
     override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
-        logger.debug { "findAllPageable: Buscando todos los representantes en cache con página: $page y cantidad: $perPage" }
+        logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
         // Aquí no se puede cachear, ya que no se puede saber si hay más páginas
         // idem al findAll
@@ -80,7 +81,7 @@ class RepresentantesCachedRepositoryImpl(
     }
 
     override suspend fun findByNombre(nombre: String): Flow<Representante> {
-        logger.debug { "findByNombre: Buscando representante en cache con nombre: $nombre" }
+        logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
         return repository.findByNombre(nombre)
     }
@@ -89,8 +90,8 @@ class RepresentantesCachedRepositoryImpl(
         logger.debug { "findById: Buscando representante en cache con id: $id" }
 
         // Buscamos en la cache y si no está, lo buscamos en el repositorio y lo añadimos a la cache
-        return cacheRepresentantes.cache.get(id) ?: repository.findById(id)
-            ?.also { cacheRepresentantes.cache.put(id, it) }
+        return cache.cache.get(id) ?: repository.findById(id)
+            ?.also { cache.cache.put(id, it) }
     }
 
 
@@ -103,7 +104,7 @@ class RepresentantesCachedRepositoryImpl(
         // Creamos scope
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            cacheRepresentantes.cache.put(representante.id, representante)
+            cache.cache.put(representante.id, representante)
         }
         scope.launch {
             repository.save(representante)
@@ -125,7 +126,7 @@ class RepresentantesCachedRepositoryImpl(
             // Creamos scope
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.put(representante.id, representante)
+                cache.cache.put(representante.id, representante)
             }
             scope.launch {
                 repository.update(id, representante)
@@ -140,15 +141,24 @@ class RepresentantesCachedRepositoryImpl(
         // existe?
         val existe = findById(entity.id)
         return existe?.let {
+
             // Eliminamos en el repositorio y en la cache en paralelo
-            // Creamos scope
+            // Creamos scope y un handler para el error
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                cacheRepresentantes.cache.invalidate(entity.id)
+                cache.cache.invalidate(entity.id)
             }
-            scope.launch {
+
+            val delete = scope.async {
                 repository.delete(entity)
             }
+            // igual que try catch
+            runCatching {
+                delete.await()
+            }.onFailure {
+                throw DataBaseIntegrityViolationException()
+            }
+
             return existe
         }
     }

@@ -1,6 +1,6 @@
-package joseluisgs.es.repositories.raquetas
+package joseluisgs.es.repositories.tenistas
 
-import joseluisgs.es.models.Raqueta
+import joseluisgs.es.models.Tenista
 import joseluisgs.es.repositories.utils.getDataBaseService
 import joseluisgs.es.utils.toUUID
 import kotlinx.coroutines.flow.take
@@ -8,20 +8,29 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import java.time.LocalDate
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RaquetasRepositoryImplKtTest {
+class RepresentantesRepositoryImplKtTest {
 
     val dataBaseService = getDataBaseService()
 
-    var repository = RaquetasRepositoryImpl(dataBaseService)
+    var repository = TenistasRepositoryImpl(dataBaseService)
 
-    val raqueta = Raqueta(
-        id = UUID.fromString("044e6ec7-aa6c-46bb-9433-8094ef4ae8bc"),
-        marca = "Test",
-        precio = 199.9,
-        represetanteId = UUID.fromString("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf")
+    val tenista = Tenista(
+        id = UUID.fromString("5d1e6fe1-5fa6-4494-a492-ae9725959035"),
+        nombre = "Test",
+        ranking = 99,
+        fechaNacimiento = LocalDate.parse("1981-01-01"),
+        añoProfesional = 2000,
+        altura = 188,
+        peso = 83,
+        manoDominante = Tenista.ManoDominante.DERECHA,
+        tipoReves = Tenista.TipoReves.UNA_MANO,
+        puntos = 3789,
+        pais = "Suiza",
+        raquetaId = UUID.fromString("b0b5b2a1-5b1f-4b0f-8b1f-1b2c2b3c4d5e")
     )
 
 
@@ -44,7 +53,7 @@ class RaquetasRepositoryImplKtTest {
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals("Babolat", result[0].marca) },
+            { assertEquals("Carlos Alcaraz", result[0].nombre) },
         )
     }
 
@@ -55,19 +64,19 @@ class RaquetasRepositoryImplKtTest {
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals("Babolat", result[0].marca) },
+            { assertEquals("Carlos Alcaraz", result[0].nombre) },
         )
 
     }
 
     @Test
     fun findById() = runTest {
-        val result = repository.findById("86084458-4733-4d71-a3db-34b50cd8d68f".toUUID())
+        val result = repository.findById("ea2962c6-2142-41b8-8dfb-0ecfe67e27df".toUUID())
 
         // Comprobamos que el resultado es correcto
-        Assertions.assertAll(
-            { assertEquals("Babolat", result?.marca) },
-            { assertEquals(200.0, result?.precio) },
+        assertAll(
+            { assertEquals("Rafael Nadal", result?.nombre) },
+            { assertEquals(2, result?.ranking) }
         )
     }
 
@@ -82,19 +91,19 @@ class RaquetasRepositoryImplKtTest {
 
     @Test
     fun findByNombre() = runTest {
-        val result = repository.findByMarca("Babolat").take(1).toList()
+        val result = repository.findByNombre("Rafael Nadal").take(1).toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
             { assertNotNull(result) },
-            { assertEquals(1, result.size) },
-            { assertEquals("Babolat", result[0].marca) },
+            { assertEquals("Rafael Nadal", result[0].nombre) },
+            { assertEquals(2, result[0].ranking) }
         )
     }
 
     @Test
     fun findByUsernameNotFound() = runTest {
-        val result = repository.findByMarca("caca").take(1).toList()
+        val result = repository.findByNombre("caca").take(1).toList()
 
         // Comprobamos que el resultado es correcto
         assertAll(
@@ -104,26 +113,45 @@ class RaquetasRepositoryImplKtTest {
     }
 
     @Test
-    fun save() = runTest {
-        val result = repository.save(raqueta)
+    fun findByRanking() = runTest {
+        val result = repository.findByRanking(2)
 
         // Comprobamos que el resultado es correcto
         assertAll(
-            { assertEquals(result.marca, raqueta.marca) },
-            { assertEquals(result.precio, raqueta.precio) }
+            { assertNotNull(result) },
+            { assertEquals("Rafael Nadal", result?.nombre) },
+        )
+    }
+
+    @Test
+    fun findByRankingNotFound() = runTest {
+        val result = repository.findByRanking(999)
+
+        // Comprobamos que el resultado es correcto
+        assertNull(result)
+    }
+
+    @Test
+    fun save() = runTest {
+        val result = repository.save(tenista)
+
+        // Comprobamos que el resultado es correcto
+        assertAll(
+            { assertEquals(result.nombre, tenista.nombre) },
+            { assertEquals(result.ranking, tenista.ranking) }
         )
     }
 
     @Test
     fun update() = runTest {
-        val res = repository.save(raqueta)
-        val update = res.copy(marca = "Test2")
-        val result = repository.update(raqueta.id, update)
+        val res = repository.save(tenista)
+        val update = res.copy(nombre = "Test2")
+        val result = repository.update(tenista.id, update)
 
         // Comprobamos que el resultado es correcto
         assertAll(
-            { assertEquals(result?.marca, update.marca) },
-            { assertEquals(result?.precio, update.precio) }
+            { assertEquals(result?.nombre, update.nombre) },
+            { assertEquals(result?.ranking, update.ranking) }
         )
     }
 
@@ -140,19 +168,19 @@ class RaquetasRepositoryImplKtTest {
 
     @Test
     fun delete() = runTest {
-        val res = repository.save(raqueta)
+        val res = repository.save(tenista)
         val result = repository.delete(res)
 
         // Comprobamos que el resultado es correcto
         assertAll(
-            { assertEquals(result?.marca, res.marca) },
-            { assertEquals(result?.precio, res.precio) }
+            { assertEquals(result?.nombre, res.nombre) },
+            { assertEquals(result?.ranking, res.ranking) }
         )
     }
 
     @Test
     fun deleteNotExists() = runTest {
-        val delete = raqueta.copy(id = UUID.randomUUID())
+        val delete = tenista.copy(id = UUID.randomUUID())
         val result = repository.delete(delete)
 
         // Comprobamos que el resultado es correcto

@@ -438,6 +438,220 @@
 			]
 		},
 		{
+			"name": "Tenistas",
+			"item": [
+				{
+					"name": "GET ALL",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET ALL Pageable",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas?page=2&perPage=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "perPage",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET BY ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas/a711040a-fb0d-4fe4-b726-75883ca8d907",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas",
+								"a711040a-fb0d-4fe4-b726-75883ca8d907"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Created\",\n    \"ranking\": 99,\n    \"fechaNacimiento\": \"2003-05-05\",\n    \"añoProfesional\": 2019,\n    \"altura\": 185,\n    \"peso\": 80,\n    \"manoDominante\": \"DERECHA\",\n    \"tipoReves\": \"DOS_MANOS\",\n    \"puntos\": 6880,\n    \"pais\": \"España\",\n    \"raquetaId\": \"86084458-4733-4d71-a3db-34b50cd8d68f\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Updated\",\n    \"ranking\": 99,\n    \"fechaNacimiento\": \"2003-05-05\",\n    \"añoProfesional\": 2019,\n    \"altura\": 185,\n    \"peso\": 80,\n    \"manoDominante\": \"DERECHA\",\n    \"tipoReves\": \"DOS_MANOS\",\n    \"puntos\": 6880,\n    \"pais\": \"España\",\n    \"raquetaId\": \"86084458-4733-4d71-a3db-34b50cd8d68f\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas/a711040a-fb0d-4fe4-b726-75883ca8d907",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas",
+								"a711040a-fb0d-4fe4-b726-75883ca8d907"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas/a711040a-fb0d-4fe4-b726-75883ca8d907",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas",
+								"a711040a-fb0d-4fe4-b726-75883ca8d907"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FIND BY",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas/find?nombre=Rafael Nadal",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas",
+								"find"
+							],
+							"query": [
+								{
+									"key": "nombre",
+									"value": "Rafael Nadal"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FIND BY Ranking",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/tenistas/ranking/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"tenistas",
+								"ranking",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Users",
 			"item": [
 				{
