@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
 import joseluisgs.es.validators.raquetasValidation
 import joseluisgs.es.validators.representantesValidation
+import joseluisgs.es.validators.tenistasValidation
 import joseluisgs.es.validators.usersValidation
 
 fun Application.configureValidation() {
@@ -11,5 +12,6 @@ fun Application.configureValidation() {
         usersValidation()
         representantesValidation()
         raquetasValidation()
+        tenistasValidation()
     }
 }
