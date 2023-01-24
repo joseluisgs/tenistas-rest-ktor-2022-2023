@@ -51,6 +51,11 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [SSL y Certificados](#ssl-y-certificados)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
     - [Testing](#testing)
+    - [Despliegue](#despliegue)
+      - [JAR](#jar)
+      - [Aplicación](#aplicación)
+      - [Docker](#docker)
+  - [Reactividad](#reactividad)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
@@ -62,7 +67,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [BCrypt](#bcrypt)
   - [Testing](#testing-1)
     - [Postman](#postman)
-  - [Reactividad](#reactividad)
+  - [Distribución y Despliegue](#distribución-y-despliegue)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -105,6 +110,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Notificaciones en tiempo real: [Ktor WebSockets](https://ktor.io/docs/websocket.html) - Framework para la gestión de websockets.
 - Testing: [JUnit 5](https://junit.org/junit5/) - Framework para la realización de tests unitarios, [Mockk](https://mockk.io/) librería de Mocks para Kotlin, así como las propias herramientas de Ktor.
 - Cliente: [Postman](https://www.postman.com/) - Cliente para realizar peticiones HTTP.
+- Contenedor: [Docker](https://www.docker.com/) - Plataforma para la creación y gestión de contenedores.
 
 ## Dominio
 
@@ -592,6 +598,56 @@ fun registerUserTest() = testApplication {
 }
 ```
 
+### Despliegue
+Podemos distribuir nuestra app de distintas maneras
+#### JAR
+Podemos crear un JAR con nuestra aplicación y ejecutarla con el comando java -jar. Para ello, debemos añadir la librería de soporte para [Ktor JAR](https://ktor.io/docs/jar.html) y configurar sus opciones en Gradle.
+- buildFatJar: construye un JAR combinado de un proyecto y dependencias,  como *-all.jar en el directorio build/libs cuando se complete esta compilación.
+- runFatJar: construye un JAR del proyecto y lo ejecuta.
+
+#### Aplicación
+Podemos crear una aplicación y ejecutarla gracias a Gradle. Para ello, debemos añadir la librería de soporte para [Ktor Application](https://ktor.io/docs/gradle-application-plugin.html#apply-plugin) y configurar sus opciones.
+
+Esta opción nos proporciona varias formas de empaquetar la aplicación, por ejemplo, la tarea installDist instala la aplicación con todas las dependencias de tiempo de ejecución y los scripts de inicio. Para crear archivos de distribución completos.
+
+#### Docker
+Ktor tiene una [API de Docker](https://ktor.io/docs/docker.html) que nos permite crear una imagen de Docker con nuestra aplicación. 
+- buildImage: construye la imagen de Docker de un proyecto en un tarball. Esta tarea genera un archivo jib-image.tar en el directorio de compilación. Puede cargar esta imagen en un demonio de Docker con el comando de carga de Docker: docker load < build/jib-image.tar
+- publishImageToLocalRegistry: compila y publica la imagen de Docker de un proyecto en un registro local.
+- runDocker: crea la imagen de un proyecto en un demonio Docker y lo ejecuta. Ejecutar esta tarea iniciará el servidor Ktor, respondiendo en http://0.0.0.0:8080 por defecto. Si su servidor está configurado para usar otro puerto, puede ajustar la asignación de puertos.
+- publishImage: compila y publica la imagen de Docker de un proyecto en un registro externo, como Docker Hub o Google Container Registry. Tenga en cuenta que debe configurar el registro externo mediante la propiedad ktor.docker.externalRegistry para esta tarea.
+
+```kotlin
+ktor {
+    docker {
+        jreVersion.set(io.ktor.plugin.features.JreVersion.JRE_11)
+        localImageName.set("sample-docker-image")
+        imageTag.set("0.0.1-preview")
+        portMappings.set(listOf(
+            io.ktor.plugin.features.DockerPortMapping(
+                80,
+                8080,
+                io.ktor.plugin.features.DockerPortMappingProtocol.TCP
+            )
+        ))
+    }
+}
+```
+
+## Reactividad
+Como todo concepto que aunque complicado de conseguir implica una serie de condiciones. La primera de ellas es asegurar la asincronía en todo momento. Cosa que se ha hecho mediante Ktor y el uso de corrutinas. 
+
+Por otro lado el acceso de la base de datos no debe ser bloqueante, por lo que no se ha usado la librería Exposed de Kotlin para acceder a la base de datos y que trabaja por debajo con el driver JDBC. Sabemos que esto se puede podemos acercarnos a la Asincronía pura usando corrutinas y el manejo de [contexto de transaccion asíncrono](https://github.com/JetBrains/Exposed/wiki/Transactions).
+
+En cualquier caso, hemos decidido usar el driver R2DBC con el objetivo que el acceso a la base de datos sea no bloqueante y así poder aprovechar el uso de Flows en Kotlin y así poder usar la reactividad total en la base de datos con las corrutinas y Ktor.
+
+![reactividad](./images/reactive.gif)
+
+
+> **Programación reactiva: programación asíncrona de flujos observables**
+> 
+> Programar reactivamente una api comienza desde observar y procesar las colecciones existentes de manera asíncrona desde la base de datos hasta la respuesta que se ofrezca.
+
 ## Inmutabilidad
 Es importante que los datos sean inmutables, es decir, que no se puedan modificar una vez creados en todo el proceso de las capas de nuestra arquitectura. Esto nos permite tener un código más seguro y predecible. En Kotlin, por defecto, podemos hacer que una clase sea inmutable, añadiendo el modificador val a sus propiedades.
 
@@ -665,7 +721,6 @@ Para la seguridad de las comunicaciones usaremos [Bcrypt](https://en.wikipedia.o
 ## Testing
 Para testear se ha usado JUnit y MocKK como librerías de apoyo. Además, Hemos usado la propia api de Ktor para testear las peticiones. Con ello podemos simular un Postman para testear las peticiones de manera local, con una instancia de prueba de nuestro servicio.
 ![testear](./images/testing.png)
-
 ### Postman
 Para probar con un cliente nuestro servicio usaremos [Postman](https://www.postman.com/) que es una herramienta de colaboración para el desarrollo de APIs. Permite a los usuarios crear y compartir colecciones de peticiones HTTP, así como documentar y probar sus APIs.
 
@@ -673,21 +728,15 @@ El fichero para probar nuestra api lo tienes en la carpera [postman](./postman) 
 
 ![postman](./images/postman.png)
 
-## Reactividad
-Como todo concepto que aunque complicado de conseguir implica una serie de condiciones. La primera de ellas es asegurar la asincronía en todo momento. Cosa que se ha hecho mediante Ktor y el uso de corrutinas. 
 
-Por otro lado el acceso de la base de datos no debe ser bloqueante, por lo que no se ha usado la librería Exposed de Kotlin para acceder a la base de datos y que trabaja por debajo con el driver JDBC. Sabemos que esto se puede podemos acercarnos a la Asincronía pura usando corrutinas y el manejo de [contexto de transaccion asíncrono](https://github.com/JetBrains/Exposed/wiki/Transactions).
+## Distribución y Despliegue
+Para la distribución de la aplicación usaremos [Docker](https://www.docker.com/) con su [Dockerfile](./Dockerfile). Además,  podemos usar [Docker Compose](https://docs.docker.com/compose/) con [docker-compose.yml](./docker-compose.yml) que es una herramienta para definir y ejecutar aplicaciones Docker de múltiples contenedores.
 
-En cualquier caso, hemos decidido usar el driver R2DBC con el objetivo que el acceso a la base de datos sea no bloqueante y así poder aprovechar el uso de Flows en Kotlin y así poder usar la reactividad total en la base de datos con las corrutinas y Ktor.
+![docker](./images/docker.jpg)
 
-![reactividad](./images/reactive.gif)
+Por otro lado, podemos usar JAR o Aplicaciones de sistema tal y como hemos descrito en el apartado de [Despliegue](#despliegue).
 
-
-> **Programación reactiva: programación asíncrona de flujos observables**
-> 
-> Programar reactivamente una api comienza desde observar y procesar las colecciones existentes de manera asíncrona desde la base de datos hasta la respuesta que se ofrezca.
-
-
+**Recuerda**: Si haces una imagen Docker mete todos los certificados y recursos que necesites que use adicionalmente nuestra aplicación (directorios), si no no funcionará, pues así los usas en tu fichero de configuración. Recuerda lo que usa tu fichero de [configuración](./src/main/kotlin/../resources/application.conf) para incluirlo.
 
 ## Recursos
 
