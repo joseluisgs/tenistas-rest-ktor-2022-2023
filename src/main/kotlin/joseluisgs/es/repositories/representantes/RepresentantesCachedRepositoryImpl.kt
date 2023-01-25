@@ -17,6 +17,16 @@ private val logger = KotlinLogging.logger {}
 
 @Single
 @Named("RepresentantesCachedRepository")
+/**
+ * Repositorio de [Representante] con caché
+ * @param repository Repositorio de datos originales
+ * @param cache Desacoplamos la cache
+ * @property refreshJob Job para cancelar la ejecución
+ * @constructor Crea un repositorio de Representantes con caché
+ * @see RepresentantesRepository
+ * @see RepresentantesCache
+ * @see Representante
+ */
 class RepresentantesCachedRepositoryImpl(
     @Named("PersonasRepository") // Repositorio de datos originales
     private val repository: RepresentantesRepository,
@@ -25,7 +35,12 @@ class RepresentantesCachedRepositoryImpl(
 
     private var refreshJob: Job? = null // Job para cancelar la ejecución
 
-
+    /**
+     * Inicializamos el repositorio
+     * Si tenemos un proceso de refresco de datos, lo iniciamos
+     * @see refreshCacheJob
+     * @see RepresentantesCache.hasRefreshAllCacheJob
+     */
     init {
         logger.debug { "Inicializando el repositorio cache representantes. AutoRefreshAll: ${cache.hasRefreshAllCacheJob}" }
         // Iniciamos el proceso de refresco de datos
@@ -34,6 +49,11 @@ class RepresentantesCachedRepositoryImpl(
             refreshCacheJob()
     }
 
+    /**
+     * Refrescamos el cache, con un job en segundo plano
+     * @see refreshJob
+     * @see RepresentantesCache.refreshTime
+     */
     private fun refreshCacheJob() {
         // Background job para refrescar el cache
         // Si tenemos muchos datos, solo se mete en el cache los que se van a usar:
@@ -55,6 +75,11 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
+    /**
+     * Buscamos todos los representantes en cache
+     * Si no tenemos datos en cache, los buscamos en el repositorio
+     * @return Flow de Representantes
+     */
     override suspend fun findAll(): Flow<Representante> {
         logger.debug { "findAll: Buscando todos los representantes en cache" }
 
@@ -71,7 +96,14 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
-
+    /**
+     * Buscamos todos los representantes en cache paginados
+     * Si no tenemos datos en cache, los buscamos en el repositorio
+     * @param page Página
+     * @param perPage Cantidad por página
+     * @return Flow de Representantes
+     * @see findAll
+     */
     override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> {
         logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
@@ -80,12 +112,25 @@ class RepresentantesCachedRepositoryImpl(
         return repository.findAllPageable(page, perPage)
     }
 
+    /**
+     * Buscamos todos los representantes en cache por nombre
+     * Si no tenemos datos en cache, los buscamos en el repositorio
+     * @param nombre Nombre del representante
+     * @return Flow de Representantes
+     */
     override suspend fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
         return repository.findByNombre(nombre)
     }
 
+    /**
+     * Buscamos todos los representantes por su id
+     * Si no tenemos datos en cache, los buscamos en el repositorio
+     * @param id Id del representante
+     * @return Representante? null si no existe
+     * @see RepresentantesRepositoryImpl.findById
+     */
     override suspend fun findById(id: UUID): Representante? {
         logger.debug { "findById: Buscando representante en cache con id: $id" }
 
@@ -94,7 +139,12 @@ class RepresentantesCachedRepositoryImpl(
             ?.also { cache.cache.put(id, it) }
     }
 
-
+    /**
+     * Guardamos un representante en cache y en el repositorio
+     * @param entity Representante a guardar
+     * @return Representante guardado
+     * @see RepresentantesRepositoryImpl.save
+     */
     override suspend fun save(entity: Representante): Representante {
         logger.debug { "save: Guardando representante en cache" }
 
@@ -112,6 +162,13 @@ class RepresentantesCachedRepositoryImpl(
         return representante
     }
 
+    /**
+     * Actualizamos un representante en cache y en el repositorio
+     * @param id Id del representante a actualizar
+     * @param entity Representante a actualizar
+     * @return Representante? actualizado o null si no existe
+     * @see RepresentantesRepositoryImpl.update
+     */
     override suspend fun update(id: UUID, entity: Representante): Representante? {
         logger.debug { "update: Actualizando representante en cache" }
 
@@ -135,6 +192,12 @@ class RepresentantesCachedRepositoryImpl(
         }
     }
 
+    /**
+     * Eliminamos un representante en cache y en el repositorio
+     * @param entity Representante a eliminar
+     * @return Representante? eliminado o null si no existe
+     * @see RepresentantesRepositoryImpl.delete
+     */
     override suspend fun delete(entity: Representante): Representante? {
         logger.debug { "delete: Eliminando representante en cache" }
 

@@ -25,6 +25,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
     - [Tenistas](#tenistas)
     - [Usuarios](#usuarios)
     - [Storage](#storage)
+    - [Test](#test)
   - [Ktor](#ktor)
     - [Creando un proyecto](#creando-un-proyecto)
     - [Punto de Entrada](#punto-de-entrada)
@@ -55,6 +56,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [JAR](#jar)
       - [Aplicación](#aplicación)
       - [Docker](#docker)
+    - [Documentación](#documentación)
   - [Reactividad](#reactividad)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
@@ -68,6 +70,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Testing](#testing-1)
     - [Postman](#postman)
   - [Distribución y Despliegue](#distribución-y-despliegue)
+  - [Documentación](#documentación-1)
   - [Recursos](#recursos)
   - [Autor](#autor)
     - [Contacto](#contacto)
@@ -111,6 +114,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Testing: [JUnit 5](https://junit.org/junit5/) - Framework para la realización de tests unitarios, [Mockk](https://mockk.io/) librería de Mocks para Kotlin, así como las propias herramientas de Ktor.
 - Cliente: [Postman](https://www.postman.com/) - Cliente para realizar peticiones HTTP.
 - Contenedor: [Docker](https://www.docker.com/) - Plataforma para la creación y gestión de contenedores.
+- Documentación: [Dokka](https://kotlinlang.org/docs/dokka-introduction.html) y [Swagger](https://swagger.io/) - Herramienta para la generación de documentación y pruebas de API REST respectivamente mediante [OpenAPI](https://www.openapis.org/).
 
 ## Dominio
 
@@ -240,6 +244,16 @@ Los endpoints que vamos a usar a nivel de api, parten de /api/ y puedes usarlos 
 | GET | /storage/{fileName} | No | Descarga un fichero por su nombre | 200 | JSON |
 | DELETE | /storage/{fileName} | JWT | Elimina un fichero por su nombre | 204 | No Content |
 
+### Test
+| Método | Endpoint (/api) | Auth | Descripción | Status Code (OK) | Content |
+| ------ | -------- | ---- | ----------- | ----------- | ------- |
+| GET | /test | No | Devuelve un JSON con datos de prueba | 200 | JSON |
+| GET | /test/{id} | No | Devuelve un JSON con datos de prueba por su id | 200 | JSON |
+| POST | /test | No | Crea un nuevo JSON con datos de prueba | 201 | JSON |
+| PUT | /test/{id} | No | Actualiza un JSON con datos de prueba por su id | 200 | JSON |
+| PATCH | /test/{id} | No | Actualiza un JSON con datos de prueba por su id | 200 | JSON |
+| DELETE | /test/{id} | No | Elimina un JSON con datos de prueba por su id | 204 | No Content |
+
 ## Ktor
 
 [Ktor](https://ktor.io/) es el framework para desarrollar servicios y clientes asincrónicos. Es
@@ -312,7 +326,6 @@ fun Application.configureSerialization() {
 ```
 
 ### Creando rutas
-
 Las [rutas](https://ktor.io/docs/routing-in-ktor.html) se definen creando una función de extensión sobre Route. A su vez, usando DSL se definen las rutase en base a
 las petición HTTP sobre ella. Podemos responder a la petición usando call.respondText(), para texto; call.respondHTML(),
 para contenido HTML usando [Kotlin HTML DSL](https://github.com/Kotlin/kotlinx.html); o call.respond() para devolver una
@@ -634,6 +647,46 @@ ktor {
 }
 ```
 
+### Documentación
+A la hora de documentar nuestro código hemos hecho uso de [Dokka](https://kotlinlang.org/docs/dokka-get-started.html) el cual haciendo uso de [KDoc](https://kotlinlang.org/docs/dokka-get-started.html) nos va a permitir comentar nuestro código y ver dicha documentación en html.
+Puedes ver un ejemplo completo en todo lo relacionado con Representantes (modelos, repositorios y/o servicios) y consultar la documentación en /build/dokka/html/index.html
+
+Por otro lado se ha usado Swagger con OpenAPI para la documentación de la API. En vez de las librerías ofrecidas por el equipo de Ktor ([OpenAPI](https://ktor.io/docs/openapi.html) y [Swagger](https://ktor.io/docs/swagger-ui.html)) hemos usado [Ktor Swagger-UI](https://github.com/SMILEY4/ktor-swagger-ui) la cual extiende el DSL de Ktor para añadir la documentación de Swagger-UI a nuestra aplicación sobre la marcha.
+
+Puedes ver un ejemplo completo en todo lo relacionado con endpoint de Test (modelos, repositorios y/o servicios). Lo he hecho así para no llenar el proyecto de código y ser un proyecto didáctico. Puedes consultar swagger en: http://xxx/swagger/
+
+```kotlin
+// Put -> /{id}
+put("{id}", {
+    description = "Put By Id: Mensaje de prueba"
+    request {
+        pathParameter<String>("id") {
+            description = "Id del mensaje de prueba"
+            required = true // Opcional
+        }
+        body<TestDto> {
+            description = "Mensaje de prueba de actualización"
+        }
+    }
+    response {
+        default {
+            description = "Respuesta de prueba"
+        }
+        HttpStatusCode.OK to {
+            description = "Mensaje de prueba modificado"
+            body<TestDto> { description = "Mensaje de test modificado" }
+        }
+
+    }
+}) {
+    logger.debug { "PUT /test/{id}" }
+    val id = call.parameters["id"]
+    val input = call.receive<TestDto>()
+    val dto = TestDto("TEST OK PUT $id : ${input.message}")
+    call.respond(HttpStatusCode.OK, dto)
+}
+```
+
 ## Reactividad
 Como todo concepto que aunque complicado de conseguir implica una serie de condiciones. La primera de ellas es asegurar la asincronía en todo momento. Cosa que se ha hecho mediante Ktor y el uso de corrutinas. 
 
@@ -737,6 +790,12 @@ Para la distribución de la aplicación usaremos [Docker](https://www.docker.com
 Por otro lado, podemos usar JAR o Aplicaciones de sistema tal y como hemos descrito en el apartado de [Despliegue](#despliegue).
 
 **Recuerda**: Si haces una imagen Docker mete todos los certificados y recursos que necesites que use adicionalmente nuestra aplicación (directorios), si no no funcionará, pues así los usas en tu fichero de configuración. Recuerda lo que usa tu fichero de [configuración](./src/main/kotlin/../resources/application.conf) para incluirlo.
+
+## Documentación
+La documentación sobre los métodos se pueden consultar en HTML realizada con Dokka.
+
+La documentación de los endpoints se puede consultar en HTML realizada con Swagger.
+![swagger](./images/swagger.png)
 
 ## Recursos
 

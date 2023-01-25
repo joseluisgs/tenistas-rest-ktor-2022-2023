@@ -18,7 +18,12 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 
 @Single
-// @Named("RepresentantesService")
+/**
+ * Servicio de [Representante]
+ * @property repository Repositorio de [Representante]
+ * @constructor Crea el servicio de [Representante]
+ * @see RepresentantesRepository
+ */
 class RepresentantesServiceImpl(
     @Named("RepresentantesCachedRepository")  // Repositorio de Representantes Cacheado
     private val repository: RepresentantesRepository
@@ -28,18 +33,34 @@ class RepresentantesServiceImpl(
         logger.debug { "Inicializando el servicio de representantes" }
     }
 
+    /**
+     * Devuelve un flujo de representantes
+     * @return un flujo de [Representante]
+     */
     override suspend fun findAll(): Flow<Representante> {
         logger.debug { "findAll: Buscando todos los representantes en servicio" }
 
         return repository.findAll()
     }
 
+    /**
+     * Devuelve un flujo de representantes de acuerdo a la página solicitada y su tamaño
+     * @param page Número de página
+     * @param perPage Número de elementos por página
+     * @return un flujo de [Representantes]
+     */
     override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAllPageable: Buscando todos los representantes en servicio con página: $page y cantidad: $perPage" }
 
         return@withContext repository.findAllPageable(page, perPage)
     }
 
+    /**
+     * Busca un representante en base a su id
+     * @param id representante id
+     * @return representante en base a su id
+     * @throws RepresentanteNotFoundException representante no encontrado con el identificador
+     */
     override suspend fun findById(id: UUID): Representante {
         logger.debug { "findById: Buscando representante en servicio con id: $id" }
 
@@ -49,13 +70,22 @@ class RepresentantesServiceImpl(
 
     }
 
+    /**
+     * Busca representantes en base a su nombre
+     * @param name representante nombre
+     * @return Flow de [Representante]
+     */
     override suspend fun findByNombre(nombre: String): Flow<Representante> {
         logger.debug { "findByNombre: Buscando representante en servicio con nombre: $nombre" }
 
         return repository.findByNombre(nombre)
     }
 
-
+    /**
+     * Salva un representante en el sistema de almacenamiento
+     * @param representante Representante a salvar
+     * @return Representante en el sistema de almacenamiento
+     */
     override suspend fun save(representante: Representante): Representante {
         logger.debug { "create: Creando representante en servicio" }
 
@@ -64,6 +94,13 @@ class RepresentantesServiceImpl(
             .also { onChange(Notificacion.Tipo.CREATE, it.id, it) }
     }
 
+    /**
+     * Actualiza el representante en base a su identificador
+     * @param id representante identificador
+     * @param representante Representante a actualizar
+     * @return Representante actualizado
+     * @throws RepresentanteNotFoundException representante no encontrado con el identificador
+     */
     override suspend fun update(id: UUID, representante: Representante): Representante {
         logger.debug { "update: Actualizando representante en servicio" }
 
@@ -75,6 +112,13 @@ class RepresentantesServiceImpl(
         } ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
     }
 
+    /**
+     * Elimina representante en base a su identificador
+     * @param id representante identificador
+     * @return Representante eliminado
+     * @throws RepresentanteNotFoundException representante no encontrado con el identificador
+     * @throws RepresentanteConflictIntegrityException no se pudo eliminar debido a que tiene raquetas asociadas
+     */
     override suspend fun delete(id: UUID): Representante {
         logger.debug { "delete: Borrando representante en servicio" }
 

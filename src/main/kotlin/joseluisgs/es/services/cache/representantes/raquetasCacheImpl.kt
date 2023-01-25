@@ -10,6 +10,15 @@ import kotlin.time.Duration.Companion.minutes
 private val logger = KotlinLogging.logger {}
 
 @Single
+/**
+ * Cache de [Representante]
+ * @property hasRefreshAllCacheJob Si queremos que se refresque el cache
+ * @property refreshTime Tiempo de refresco de la caché
+ * @property cache Caché de [Representante]
+ * @constructor Crea una caché de [Representante]
+ * @see [Cache4k](https://reactivecircus.github.io/cache4k/)
+ * @see Representante
+ */
 class RepresentantesCacheImpl : RepresentantesCache {
     override val hasRefreshAllCacheJob: Boolean = false // Si queremos que se refresque el cache
     override val refreshTime = 60 * 60 * 1000L // 1 hora en milisegundos

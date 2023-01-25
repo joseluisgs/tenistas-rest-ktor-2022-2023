@@ -19,15 +19,28 @@ private val logger = KotlinLogging.logger {}
 
 @Single
 @Named("PersonasRepository")
+/**
+ * Repositorio de [Representante]
+ * @param dataBaseService Servicio de base de datos
+ * @constructor Crea un repositorio de Representantes
+ * @see RepresentantesRepository
+ * @see Representante
+ */
 class RepresentantesRepositoryImpl(
     private val dataBaseService: DataBaseService
 ) : RepresentantesRepository {
 
-
+    /**
+     * Inicializamos el repositorio
+     */
     init {
         logger.debug { "Iniciando Repositorio de Representantes" }
     }
 
+    /**
+     * Buscamos todos los representantes
+     * @return Flow de Representantes
+     */
     override suspend fun findAll(): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAll: Buscando todos los representantes" }
 
@@ -36,6 +49,12 @@ class RepresentantesRepositoryImpl(
             .map { it.toModel() }
     }
 
+    /**
+     * Buscamos todos los representantes paginados
+     * @param page Página
+     * @param perPage Cantidad por página
+     * @return Flow de Representantes
+     */
     override suspend fun findAllPageable(page: Int, perPage: Int): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findAllPageable: Buscando todos los representantes con página: $page y cantidad: $perPage" }
 
@@ -47,6 +66,11 @@ class RepresentantesRepositoryImpl(
             .map { it.toModel() }
     }
 
+    /**
+     * Buscamos un representante por su id
+     * @param id Id del representante
+     * @return Representante? Representante si existe o null si no existe
+     */
     override suspend fun findById(id: UUID): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "findById: Buscando representante con id: $id" }
 
@@ -56,7 +80,11 @@ class RepresentantesRepositoryImpl(
                 ).fetchFirstOrNull()?.toModel()
     }
 
-
+    /**
+     * Buscamos un representante por su nombre
+     * @param nombre Nombre del representante
+     * @return Flow de Representantes
+     */
     override suspend fun findByNombre(nombre: String): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
@@ -65,7 +93,11 @@ class RepresentantesRepositoryImpl(
                 ).fetchAll().map { it.toModel() }
     }
 
-
+    /**
+     * Salvamos un representante
+     * @param entity Representante a salvar
+     * @return Representante salvado
+     */
     override suspend fun save(entity: Representante): Representante = withContext(Dispatchers.IO) {
         logger.debug { "save: Guardando representante: $entity" }
 
@@ -73,6 +105,12 @@ class RepresentantesRepositoryImpl(
             .toModel()
     }
 
+    /**
+     * Actualizamos un representante
+     * @param id Id del representante
+     * @param entity Representante a actualizar
+     * @return Representante? actualizado o null si no se ha podido actualizar
+     */
     override suspend fun update(id: UUID, entity: Representante): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "update: Actualizando representante: $entity" }
 
@@ -96,6 +134,11 @@ class RepresentantesRepositoryImpl(
         }
     }
 
+    /**
+     * Borramos un representante
+     * @param entity Representante a borrar
+     * @return Representante? borrado o null si no se ha podido borrar
+     */
     override suspend fun delete(entity: Representante): Representante? = withContext(Dispatchers.IO) {
         logger.debug { "delete: Borrando representante con id: ${entity.id}" }
 
