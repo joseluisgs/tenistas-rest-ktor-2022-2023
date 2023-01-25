@@ -795,6 +795,7 @@ Por otro lado, podemos usar JAR o Aplicaciones de sistema tal y como hemos descr
 La documentación sobre los métodos se pueden consultar en HTML realizada con Dokka.
 
 La documentación de los endpoints se puede consultar en HTML realizada con Swagger.
+
 ![swagger](./images/swagger.png)
 
 ## Recursos
