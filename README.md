@@ -55,6 +55,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [JAR](#jar)
       - [Aplicación](#aplicación)
       - [Docker](#docker)
+    - [Documentación](#documentación)
   - [Reactividad](#reactividad)
   - [Inmutabilidad](#inmutabilidad)
   - [Caché](#caché)
@@ -111,6 +112,7 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Testing: [JUnit 5](https://junit.org/junit5/) - Framework para la realización de tests unitarios, [Mockk](https://mockk.io/) librería de Mocks para Kotlin, así como las propias herramientas de Ktor.
 - Cliente: [Postman](https://www.postman.com/) - Cliente para realizar peticiones HTTP.
 - Contenedor: [Docker](https://www.docker.com/) - Plataforma para la creación y gestión de contenedores.
+- Documentación: [Dokka](https://kotlinlang.org/docs/dokka-introduction.html)
 
 ## Dominio
 
@@ -633,6 +635,10 @@ ktor {
     }
 }
 ```
+
+### Documentación
+A la hora de documentar nuestro código hemos hecho uso de [Dokka](https://kotlinlang.org/docs/dokka-get-started.html) el cual haciendo uso de [KDoc](https://kotlinlang.org/docs/dokka-get-started.html) nos va a permitir comentar nuestro código y ver dicha documentación en html.
+Puedes ver un ejemplo completo en todo lo relacionado con Reprentantes (modelos, repositorios y/o servicios).
 
 ## Reactividad
 Como todo concepto que aunque complicado de conseguir implica una serie de condiciones. La primera de ellas es asegurar la asincronía en todo momento. Cosa que se ha hecho mediante Ktor y el uso de corrutinas. 
