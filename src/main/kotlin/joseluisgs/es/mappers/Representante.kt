@@ -4,6 +4,9 @@ import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.entities.RepresentanteEntity
 import joseluisgs.es.models.Representante
 
+/**
+ * Transformamos un Representante en un RepresentanteDto
+ */
 fun Representante.toDto() = RepresentanteDto(
     id = this.id,
     nombre = this.nombre,
@@ -15,11 +18,17 @@ fun Representante.toDto() = RepresentanteDto(
     )
 )
 
+/**
+ * Transformamos un RepresentanteDto en un Representante
+ */
 fun RepresentanteDto.toModel() = Representante(
     nombre = this.nombre,
     email = this.email
 )
 
+/**
+ * Transformamos un Representante en un Representante Entity
+ */
 fun Representante.toEntity() = RepresentanteEntity(
     id = this.id,
     nombre = this.nombre,
@@ -29,6 +38,9 @@ fun Representante.toEntity() = RepresentanteEntity(
     deleted = this.deleted
 )
 
+/**
+ * Transformamos un Representante Entity en un Representante
+ */
 fun RepresentanteEntity.toModel() = Representante(
     id = this.id,
     nombre = this.nombre,

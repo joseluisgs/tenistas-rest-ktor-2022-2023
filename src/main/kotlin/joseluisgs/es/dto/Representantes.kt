@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 import java.util.*
 
+/**
+ * Representante DTO para paginas de datos
+ */
 @Serializable
 data class RepresentantesPageDto(
     val page: Int,
@@ -15,6 +18,9 @@ data class RepresentantesPageDto(
     val createdAt: LocalDateTime? = LocalDateTime.now()
 )
 
+/**
+ * Representante DTO
+ */
 @Serializable
 data class RepresentanteDto(
     @Serializable(with = UUIDSerializer::class)

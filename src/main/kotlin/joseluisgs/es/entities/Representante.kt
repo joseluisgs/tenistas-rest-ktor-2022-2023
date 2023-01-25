@@ -4,6 +4,9 @@ import org.ufoss.kotysa.h2.H2Table
 import java.time.LocalDateTime
 import java.util.*
 
+/**
+ * Objeto que representa la estructura relacional de [Representante]
+ */
 object RepresentantesTable : H2Table<RepresentanteEntity>("representantes") {
     // Identificador
     val id = uuid(RepresentanteEntity::id).primaryKey()
@@ -18,7 +21,10 @@ object RepresentantesTable : H2Table<RepresentanteEntity>("representantes") {
     val deleted = boolean(RepresentanteEntity::deleted)
 }
 
-// El DTO de la base de datos
+/**
+ * Entidad que representa una fila de [Representante]
+ * @see RepresentantesTable
+ */
 data class RepresentanteEntity(
     // Identificador
     val id: UUID = UUID.randomUUID(),

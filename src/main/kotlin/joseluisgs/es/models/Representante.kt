@@ -3,6 +3,9 @@ package joseluisgs.es.models
 import java.time.LocalDateTime
 import java.util.*
 
+/**
+ * Representante Model
+ */
 data class Representante(
     // Identificador
     val id: UUID = UUID.randomUUID(),
