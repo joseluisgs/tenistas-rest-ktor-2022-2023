@@ -47,10 +47,13 @@ fun Application.module() {
     configureCors()
 
     // Configuramos los headers de cacheo,
-    configureCachingHeaders()
+    // configureCachingHeaders()
 
     // Configuramos el compreso de gzip y otros
-    configureCompression()
+    // configureCompression()
+
+    // Configuración de Swagger UI
+    configureSwagger()
 
     // Otros...
 

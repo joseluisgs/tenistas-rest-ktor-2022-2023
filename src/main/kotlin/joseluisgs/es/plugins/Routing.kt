@@ -1,5 +1,7 @@
 package joseluisgs.es.plugins
 
+import io.github.smiley4.ktorswaggerui.dsl.get
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -13,7 +15,18 @@ fun Application.configureRouting() {
         // Defínelas por orden de prioridad y sin que se solapen
 
         // Ruta raíz
-        get("/") {
+        get("/", {
+            description = "Hola Tenistas Ktor"
+            response {
+                default {
+                    description = "Default Response"
+                }
+                HttpStatusCode.OK to {
+                    description = "Respuesta por defecto"
+                    body<String> { description = "el saludo" }
+                }
+            }
+        }) {
             call.respondText("Tenistas API REST Ktor. 2º DAM")
         }
 

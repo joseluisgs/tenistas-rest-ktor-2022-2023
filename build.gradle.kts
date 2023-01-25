@@ -29,6 +29,9 @@ val bcrypt_version: String by project
 val kotysa_version: String by project
 val h2_r2dbc_version: String by project
 
+// Ktow Swagger UI
+val ktor_swagger_ui_version: String by project
+
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -49,6 +52,8 @@ application {
 
 repositories {
     mavenCentral()
+    // Para ktor-swagger-ui
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -128,6 +133,14 @@ dependencies {
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     // Auth para tokens usando el metodo de clienteAuth
     implementation("io.ktor:ktor-client-auth:$ktor_version")
+
+    // Para documentar con Swagger y Open API sobre la marcha en nuestro codigo con DSL
+    implementation("io.github.smiley4:ktor-swagger-ui:$ktor_swagger_ui_version")
+
+    // Si queremos OpenAPI  generado por Ktor Team
+    // implementation("io.ktor:ktor-server-openapi:$ktor_version")
+    // Si queremos Swagger generado por Ktor Team
+    // implementation("io.ktor:ktor-server-swagger:$ktor_version")
 
     // Para testear con Koin
     // testImplementation("io.insert-koin:koin-test:$koin_version")
