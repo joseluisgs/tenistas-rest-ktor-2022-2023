@@ -7,6 +7,7 @@ import joseluisgs.es.models.Tenista
 import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -62,9 +63,10 @@ class TenistasRepositoryImpl(
     override suspend fun findByNombre(nombre: String): Flow<Tenista> = withContext(Dispatchers.IO) {
         logger.debug { "findByMarca: Buscando tenista con nombre: $nombre" }
 
-        return@withContext (dataBaseService.client selectFrom TenistasTable
-                where TenistasTable.nombre eq nombre
-                ).fetchAll().map { it.toModel() }
+        return@withContext (dataBaseService.client selectFrom TenistasTable)
+            .fetchAll()
+            .filter { it.nombre.lowercase().contains(nombre.lowercase()) }
+            .map { it.toModel() }
     }
 
     override suspend fun findByRanking(ranking: Int): Tenista? = withContext(Dispatchers.IO) {

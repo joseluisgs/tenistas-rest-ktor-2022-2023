@@ -8,6 +8,7 @@ import joseluisgs.es.models.Raqueta
 import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -60,9 +61,9 @@ class RaquetasRepositoryImpl(
     override suspend fun findByMarca(marca: String): Flow<Raqueta> = withContext(Dispatchers.IO) {
         logger.debug { "findByMarca: Buscando raqueta con marca: $marca" }
 
-        return@withContext (dataBaseService.client selectFrom RaquetasTable
-                where RaquetasTable.marca eq marca
-                ).fetchAll().map { it.toModel() }
+        return@withContext (dataBaseService.client selectFrom RaquetasTable).fetchAll()
+            .filter { it.marca.lowercase().contains(marca.lowercase()) }
+            .map { it.toModel() }
     }
 
     override suspend fun save(entity: Raqueta): Raqueta = withContext(Dispatchers.IO) {

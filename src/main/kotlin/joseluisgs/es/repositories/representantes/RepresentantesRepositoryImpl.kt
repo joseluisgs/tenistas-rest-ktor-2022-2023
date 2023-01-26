@@ -8,6 +8,7 @@ import joseluisgs.es.models.Representante
 import joseluisgs.es.services.database.DataBaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -88,9 +89,10 @@ class RepresentantesRepositoryImpl(
     override suspend fun findByNombre(nombre: String): Flow<Representante> = withContext(Dispatchers.IO) {
         logger.debug { "findByNombre: Buscando representante con nombre: $nombre" }
 
-        return@withContext (dataBaseService.client selectFrom RepresentantesTable
-                where RepresentantesTable.nombre eq nombre
-                ).fetchAll().map { it.toModel() }
+        return@withContext (dataBaseService.client selectFrom RepresentantesTable)
+            .fetchAll()
+            .filter { it.nombre.lowercase().contains(nombre.lowercase()) }
+            .map { it.toModel() }
     }
 
     /**
