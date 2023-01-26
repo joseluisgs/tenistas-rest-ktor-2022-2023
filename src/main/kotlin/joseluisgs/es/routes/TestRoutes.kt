@@ -24,6 +24,12 @@ fun Application.testRoutes() {
             // Get all -> /
             get({
                 description = "Get All Test: Lista de mensaje de prueba"
+                request {
+                    queryParameter<String>("texto") {
+                        description = "texto de prueba"
+                        required = false // Opcional
+                    }
+                }
                 response {
                     default {
                         description = "Respuesta de prueba como lista de mensajes"
@@ -35,8 +41,9 @@ fun Application.testRoutes() {
                 }
             }) {
                 logger.debug { "GET /test" }
-                // respond
-                val dto = TestDto("TEST OK GET")
+                // query params
+                val texto = call.request.queryParameters["texto"] ?: "No hay texto"
+                val dto = TestDto("TEST OK GET : Query: $texto")
                 call.respond(HttpStatusCode.OK, listOf(dto))
             }
 
