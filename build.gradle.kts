@@ -156,3 +156,26 @@ tasks.test {
 sourceSets.main {
     java.srcDirs("build/generated/ksp/main/kotlin")
 }
+
+// Para docker
+ktor {
+    docker {
+        localImageName.set("tenistas-rest-ktor")
+        imageTag.set("0.0.1-preview")
+        jreVersion.set(io.ktor.plugin.features.JreVersion.JRE_11)
+        portMappings.set(
+            listOf(
+                io.ktor.plugin.features.DockerPortMapping(
+                    6969,
+                    6969,
+                    io.ktor.plugin.features.DockerPortMappingProtocol.TCP
+                ),
+                io.ktor.plugin.features.DockerPortMapping(
+                    6963,
+                    6963,
+                    io.ktor.plugin.features.DockerPortMappingProtocol.TCP
+                )
+            )
+        )
+    }
+}
