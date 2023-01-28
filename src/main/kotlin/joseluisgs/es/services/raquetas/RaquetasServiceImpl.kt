@@ -23,7 +23,7 @@ class RaquetasServiceImpl(
     @Named("RaquetasCachedRepository")  // Repositorio de Representantes Cacheado
     private val repository: RaquetasRepository,
     @Named("RepresentantesCachedRepository")  // Repositorio de Representantes Cacheado
-    private val reprepresentesRepository: RepresentantesRepository
+    private val representantesRepository: RepresentantesRepository
 ) : RaquetasService {
 
     init {
@@ -102,7 +102,7 @@ class RaquetasServiceImpl(
     override suspend fun findRepresentante(id: UUID): Representante {
         logger.debug { "findRepresentante: Buscando representante en servicio" }
 
-        return reprepresentesRepository.findById(id)
+        return representantesRepository.findById(id)
             ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
     }
 
