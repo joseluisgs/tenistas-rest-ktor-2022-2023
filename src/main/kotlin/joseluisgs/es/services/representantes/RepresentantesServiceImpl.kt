@@ -7,8 +7,10 @@ import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Representante
 import joseluisgs.es.models.RepresentantesNotification
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
@@ -163,14 +165,17 @@ class RepresentantesServiceImpl(
 
         // Por cada suscriptor, ejecutamos la función que se ha almacenado
         // Si almacenas el objeto de la sesión, puedes usar el método de la sesión, que es sendSerialized
-        suscriptores.values.forEach {
-            it.invoke(
-                Notificacion(
-                    tipo,
-                    id,
-                    data?.toDto() // Convertimos a DTO
+        val myScope = CoroutineScope(Dispatchers.IO)
+        myScope.launch {
+            suscriptores.values.forEach {
+                it.invoke(
+                    RepresentantesNotification(
+                        tipo,
+                        id,
+                        data?.toDto() // Convertimos a DTO
+                    )
                 )
-            )
+            }
         }
     }
 }

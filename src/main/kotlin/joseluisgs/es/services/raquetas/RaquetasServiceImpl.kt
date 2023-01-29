@@ -7,8 +7,10 @@ import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.*
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
@@ -131,16 +133,19 @@ class RaquetasServiceImpl(
     private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Raqueta? = null) {
         logger.debug { "onChange: Cambio en Raquetas: $tipo, notificando a los suscriptores afectada entidad: $data" }
 
+        val myScope = CoroutineScope(Dispatchers.IO)
         // Por cada suscriptor, ejecutamos la función que se ha almacenado
         // Si almacenas el objeto de la sesión, puedes usar el método de la sesión, que es sendSerialized
-        suscriptores.values.forEach {
-            it.invoke(
-                Notificacion(
-                    tipo,
-                    id,
-                    data?.toDto(findRepresentante(data.represetanteId))
+        myScope.launch {
+            suscriptores.values.forEach {
+                it.invoke(
+                    RaquetasNotification(
+                        tipo,
+                        id,
+                        data?.toDto(findRepresentante(data.represetanteId))
+                    )
                 )
-            )
+            }
         }
     }
 }
