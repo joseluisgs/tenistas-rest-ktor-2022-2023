@@ -93,6 +93,8 @@ Se realizará inyección de dependencias y un sistema de logging.
 
 Tendrá una página web de presentación como devolución de recursos estáticos.
 
+Este proyecto tiene a su "gemelo" implementando en Ktor: [tenistas-rest-springboot-2022-2023](https://github.com/joseluisgs/tenistas-rest-springboot-2022-2023)
+
 ### Advertencia
 
 Esta API REST no está pensada para ser usada en producción. Es un proyecto de aprendizaje y por tanto algunas cosas no
