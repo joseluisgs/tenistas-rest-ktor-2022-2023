@@ -101,7 +101,7 @@ class TenistasServiceImpl(
     }
 
     override suspend fun findRaqueta(raquetaId: UUID?): Raqueta? {
-        logger.debug { "findRepresentante: Buscando raqueta en servicio" }
+        logger.debug { "findRaqueta: Buscando raqueta en servicio" }
 
         raquetaId?.let {
             return raquetasRepository.findById(raquetaId)

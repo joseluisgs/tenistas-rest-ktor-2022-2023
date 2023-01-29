@@ -188,7 +188,7 @@ fun Application.raquetasRoutes() {
                             break
                             // Por cada mensaje que nos llegue, lo mostramos por consola
                         } else if (frame is Frame.Text) {
-                            logger.info { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
+                            logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
                         }
                     }
                 } finally {
