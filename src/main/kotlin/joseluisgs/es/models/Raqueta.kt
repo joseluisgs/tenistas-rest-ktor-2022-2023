@@ -12,7 +12,7 @@ data class Raqueta(
     val precio: Double,
 
     // Relaciones
-    val represetanteId: UUID,
+    val representanteId: UUID,
 
     // Historicos y metadata
     val createdAt: LocalDateTime = LocalDateTime.now(),

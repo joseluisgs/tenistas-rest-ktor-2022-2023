@@ -13,6 +13,7 @@ import java.util.*
 // Los tipos de cambios que permito son
 @Serializable
 data class Notificacion<T>(
+    val entity: String,
     val tipo: Tipo,
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,

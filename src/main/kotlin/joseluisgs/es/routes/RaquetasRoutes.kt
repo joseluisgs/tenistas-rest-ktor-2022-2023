@@ -47,13 +47,13 @@ fun Application.raquetasRoutes() {
                     // Procesamos el flow
                     val res = raquetasService.findAllPageable(page - 1, perPage)
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
                         .let { res -> call.respond(HttpStatusCode.OK, RaquetasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
                     val res = raquetasService.findAll()
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 }
             }
@@ -67,7 +67,7 @@ fun Application.raquetasRoutes() {
                     val raqueta = raquetasService.findById(id)
                     call.respond(
                         HttpStatusCode.OK, raqueta.toDto(
-                            raquetasService.findRepresentante(raqueta.represetanteId)
+                            raquetasService.findRepresentante(raqueta.representanteId)
                         )
                     )
                 } catch (e: RaquetaNotFoundException) {
@@ -85,7 +85,7 @@ fun Application.raquetasRoutes() {
                     val raqueta = raquetasService.save(dto.toModel())
                     call.respond(
                         HttpStatusCode.Created, raqueta.toDto(
-                            raquetasService.findRepresentante(raqueta.represetanteId)
+                            raquetasService.findRepresentante(raqueta.representanteId)
                         )
                     )
                 } catch (e: RepresentanteNotFoundException) {
@@ -105,7 +105,7 @@ fun Application.raquetasRoutes() {
                     val representante = raquetasService.update(id, dto.toModel())
                     call.respond(
                         HttpStatusCode.OK, representante.toDto(
-                            raquetasService.findRepresentante(representante.represetanteId)
+                            raquetasService.findRepresentante(representante.representanteId)
                         )
                     )
                     // Vamos a captar las excepciones de nuestro dominio
@@ -147,7 +147,7 @@ fun Application.raquetasRoutes() {
                 marca?.let {
                     val res = raquetasService.findByMarca(marca)
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
@@ -159,7 +159,7 @@ fun Application.raquetasRoutes() {
                 try {
                     val id = call.parameters["id"]?.toUUID()!!
                     val raqueta = raquetasService.findById(id)
-                    val representante = raquetasService.findRepresentante(raqueta.represetanteId)
+                    val representante = raquetasService.findRepresentante(raqueta.representanteId)
                     call.respond(HttpStatusCode.OK, representante.toDto())
                 } catch (e: RaquetaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
@@ -169,31 +169,32 @@ fun Application.raquetasRoutes() {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 }
             }
-
-            // WebSockets para tiempo real
-            webSocket("/updates") {
-                try {
-                    // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
-                    // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
-                    // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
-                    raquetasService.addSuscriptor(this.hashCode()) {
-                        // Al darnos de alta con esta función,
-                        // cuando la invoquemos mandará los datos serializados que le pasemos
-                        // https://ktor.io/docs/websocket-serialization.html#send_data
-                        sendSerialized(it) // Enviamos las cosas
-                    }
-                    // Por cada mensaje que nos llegue
-                    for (frame in incoming) {
-                        if (frame.frameType == FrameType.CLOSE) {
-                            break
-                            // Por cada mensaje que nos llegue, lo mostramos por consola
-                        } else if (frame is Frame.Text) {
-                            logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
-                        }
-                    }
-                } finally {
-                    raquetasService.removeSuscriptor(this.hashCode())
+        }
+        // Lo he sacado de esta ruta para que sea más fácil de leer desde updates!!
+        // WebSockets para tiempo real
+        webSocket("api/updates/raquetas") {
+            try {
+                // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
+                // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
+                // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
+                raquetasService.addSuscriptor(this.hashCode()) {
+                    // Al darnos de alta con esta función,
+                    // cuando la invoquemos mandará los datos serializados que le pasemos
+                    // https://ktor.io/docs/websocket-serialization.html#send_data
+                    sendSerialized(it) // Enviamos las cosas
                 }
+                sendSerialized("Updates Web socket: Raquetas - Tenistas API REST Ktor")
+                // Por cada mensaje que nos llegue
+                for (frame in incoming) {
+                    if (frame.frameType == FrameType.CLOSE) {
+                        break
+                        // Por cada mensaje que nos llegue, lo mostramos por consola
+                    } else if (frame is Frame.Text) {
+                        logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
+                    }
+                }
+            } finally {
+                raquetasService.removeSuscriptor(this.hashCode())
             }
         }
     }

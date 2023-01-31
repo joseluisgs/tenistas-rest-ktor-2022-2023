@@ -32,7 +32,7 @@ class RaquetasServiceImplTest {
         id = UUID.fromString("044e6ec7-aa6c-46bb-9433-8094ef4ae8bc"),
         marca = "Test",
         precio = 199.9,
-        represetanteId = UUID.fromString("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf")
+        representanteId = UUID.fromString("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf")
     )
 
     val representante = Representante(
@@ -114,7 +114,7 @@ class RaquetasServiceImplTest {
     }
 
     @Test
-    fun findByNombre() = runTest {
+    fun findByMarca() = runTest {
         coEvery { repository.findByMarca(any()) } returns flowOf(raqueta)
 
         val result = service.findByMarca(raqueta.marca).toList()
@@ -145,14 +145,14 @@ class RaquetasServiceImplTest {
 
     @Test
     fun saveRepresentanteNotExists() = runTest {
-        coEvery { represetantesRepository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${raqueta.represetanteId}")
+        coEvery { represetantesRepository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${raqueta.representanteId}")
         coEvery { repository.save(any()) } returns raqueta
 
         val res = assertThrows<RepresentanteNotFoundException> {
             service.save(raqueta)
         }
 
-        assertEquals("No se ha encontrado el representante con id: ${raqueta.represetanteId}", res.message)
+        assertEquals("No se ha encontrado el representante con id: ${raqueta.representanteId}", res.message)
 
         coVerify { repository.save(any()) }
 
@@ -191,14 +191,14 @@ class RaquetasServiceImplTest {
 
     @Test
     fun updateRepresentanteNotExists() = runTest {
-        coEvery { represetantesRepository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${raqueta.represetanteId}")
+        coEvery { represetantesRepository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${raqueta.representanteId}")
         coEvery { repository.update(any(), any()) } returns raqueta
 
         val res = assertThrows<RepresentanteNotFoundException> {
             service.update(raqueta.id, raqueta)
         }
 
-        assertEquals("No se ha encontrado el representante con id: ${raqueta.represetanteId}", res.message)
+        assertEquals("No se ha encontrado el representante con id: ${raqueta.representanteId}", res.message)
 
         coVerify { repository.update(any(), any()) }
 

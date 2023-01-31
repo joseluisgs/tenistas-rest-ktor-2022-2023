@@ -9,73 +9,73 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
 ![imagen](./images/ktor.png)
 
 - [Tenistas REST Ktor](#tenistas-rest-ktor)
-  - [Descripción](#descripción)
-    - [Advertencia](#advertencia)
-    - [Tecnologías](#tecnologías)
-  - [Dominio](#dominio)
-    - [Representante](#representante)
-    - [Raqueta](#raqueta)
-    - [Tenista](#tenista)
-    - [Usuario](#usuario)
-  - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
-  - [Arquitectura](#arquitectura)
-  - [Endpoints](#endpoints)
-    - [Representantes](#representantes)
-    - [Raquetas](#raquetas)
-    - [Tenistas](#tenistas)
-    - [Usuarios](#usuarios)
-    - [Storage](#storage)
-    - [Test](#test)
-  - [Ktor](#ktor)
-    - [Creando un proyecto](#creando-un-proyecto)
-    - [Punto de Entrada](#punto-de-entrada)
-    - [Parametrizando la aplicación](#parametrizando-la-aplicación)
-    - [Usando Plugins](#usando-plugins)
-    - [Creando rutas](#creando-rutas)
-      - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
-    - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
-    - [Otros plugins](#otros-plugins)
-      - [Cache Headers](#cache-headers)
-      - [Comprensión de contenido](#comprensión-de-contenido)
-      - [CORS](#cors)
-    - [Responses](#responses)
-      - [Enviando datos serializados](#enviando-datos-serializados)
-    - [Requests](#requests)
-      - [Parámetros de ruta](#parámetros-de-ruta)
-      - [Parámetros de consulta](#parámetros-de-consulta)
-      - [Peticiones datos serializados](#peticiones-datos-serializados)
-      - [Peticiones con formularios](#peticiones-con-formularios)
-      - [Peticiones multiparte](#peticiones-multiparte)
-      - [Subida de información](#subida-de-información)
-      - [Request validation](#request-validation)
-    - [WebSockets](#websockets)
-    - [SSL y Certificados](#ssl-y-certificados)
-    - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
-    - [Testing](#testing)
-    - [Despliegue](#despliegue)
-      - [JAR](#jar)
-      - [Aplicación](#aplicación)
-      - [Docker](#docker)
-    - [Documentación](#documentación)
-  - [Reactividad](#reactividad)
-  - [Inmutabilidad](#inmutabilidad)
-  - [Caché](#caché)
-  - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
-  - [Proveedor de Dependencias](#proveedor-de-dependencias)
-  - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
-    - [SSL/TLS](#ssltls)
-    - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
-    - [CORS](#cors-1)
-    - [BCrypt](#bcrypt)
-  - [Testing](#testing-1)
-    - [Postman](#postman)
-  - [Distribución y Despliegue](#distribución-y-despliegue)
-  - [Documentación](#documentación-1)
-  - [Recursos](#recursos)
-  - [Autor](#autor)
-    - [Contacto](#contacto)
-    - [¿Un café?](#un-café)
-  - [Licencia de uso](#licencia-de-uso)
+    - [Descripción](#descripción)
+        - [Advertencia](#advertencia)
+        - [Tecnologías](#tecnologías)
+    - [Dominio](#dominio)
+        - [Representante](#representante)
+        - [Raqueta](#raqueta)
+        - [Tenista](#tenista)
+        - [Usuario](#usuario)
+    - [Proyectos y documentación anteriores](#proyectos-y-documentación-anteriores)
+    - [Arquitectura](#arquitectura)
+    - [Endpoints](#endpoints)
+        - [Representantes](#representantes)
+        - [Raquetas](#raquetas)
+        - [Tenistas](#tenistas)
+        - [Usuarios](#usuarios)
+        - [Storage](#storage)
+        - [Test](#test)
+    - [Ktor](#ktor)
+        - [Creando un proyecto](#creando-un-proyecto)
+        - [Punto de Entrada](#punto-de-entrada)
+        - [Parametrizando la aplicación](#parametrizando-la-aplicación)
+        - [Usando Plugins](#usando-plugins)
+        - [Creando rutas](#creando-rutas)
+            - [Type-Safe Routing y Locations](#type-safe-routing-y-locations)
+        - [Serialización y Content Negotiation](#serialización-y-content-negotiation)
+        - [Otros plugins](#otros-plugins)
+            - [Cache Headers](#cache-headers)
+            - [Comprensión de contenido](#comprensión-de-contenido)
+            - [CORS](#cors)
+        - [Responses](#responses)
+            - [Enviando datos serializados](#enviando-datos-serializados)
+        - [Requests](#requests)
+            - [Parámetros de ruta](#parámetros-de-ruta)
+            - [Parámetros de consulta](#parámetros-de-consulta)
+            - [Peticiones datos serializados](#peticiones-datos-serializados)
+            - [Peticiones con formularios](#peticiones-con-formularios)
+            - [Peticiones multiparte](#peticiones-multiparte)
+            - [Subida de información](#subida-de-información)
+            - [Request validation](#request-validation)
+        - [WebSockets](#websockets)
+        - [SSL y Certificados](#ssl-y-certificados)
+        - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
+        - [Testing](#testing)
+        - [Despliegue](#despliegue)
+            - [JAR](#jar)
+            - [Aplicación](#aplicación)
+            - [Docker](#docker)
+        - [Documentación](#documentación)
+    - [Reactividad](#reactividad)
+    - [Inmutabilidad](#inmutabilidad)
+    - [Caché](#caché)
+    - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
+    - [Proveedor de Dependencias](#proveedor-de-dependencias)
+    - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
+        - [SSL/TLS](#ssltls)
+        - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
+        - [CORS](#cors-1)
+        - [BCrypt](#bcrypt)
+    - [Testing](#testing-1)
+        - [Postman](#postman)
+    - [Distribución y Despliegue](#distribución-y-despliegue)
+    - [Documentación](#documentación-1)
+    - [Recursos](#recursos)
+    - [Autor](#autor)
+        - [Contacto](#contacto)
+        - [¿Un café?](#un-café)
+    - [Licencia de uso](#licencia-de-uso)
 
 ## Descripción
 
@@ -93,7 +93,8 @@ Se realizará inyección de dependencias y un sistema de logging.
 
 Tendrá una página web de presentación como devolución de recursos estáticos.
 
-Este proyecto tiene a su "gemelo" implementando en Ktor: [tenistas-rest-springboot-2022-2023](https://github.com/joseluisgs/tenistas-rest-springboot-2022-2023)
+Este proyecto tiene a su "gemelo" implementando en
+Ktor: [tenistas-rest-springboot-2022-2023](https://github.com/joseluisgs/tenistas-rest-springboot-2022-2023)
 
 ### Advertencia
 
@@ -229,7 +230,7 @@ usaremos Postman:
 | PUT    | /representantes/{id}             | No   | Actualiza un representante por su id                                           | 200              | JSON       |
 | DELETE | /representantes/{id}             | No   | Elimina un representante por su id                                             | 204              | No Content |
 | GET    | /representantes/find?nombre=X    | No   | Devuelve los representantes con nombre X                                       | 200              | JSON       |
-| WS     | /representantes/updates          | No   | Websocket para notificaciones los cambios en los representantes en tiempo real | ---              | JSON       |
+| WS     | /updates/representantes          | No   | Websocket para notificaciones los cambios en los representantes en tiempo real | ---              | JSON       |
 
 ### Raquetas
 
@@ -243,7 +244,7 @@ usaremos Postman:
 | DELETE | /raquetas/{id}               | No   | Elimina una raqueta por su id                                            | 204              | No Content |
 | GET    | /raquetas/find?marca=X       | No   | Devuelve las raquetas con marca X                                        | 200              | JSON       |
 | GET    | /raquetas/{id}/representante | No   | Devuelve el representante de la raqueta dado su id                       | 200              | JSON       |
-| WS     | /raquetas/updates            | No   | Websocket para notificaciones los cambios en las raquetas en tiempo real | ---              | JSON       |
+| WS     | /updates/raquetas            | No   | Websocket para notificaciones los cambios en las raquetas en tiempo real | ---              | JSON       |
 
 ### Tenistas
 
@@ -258,7 +259,7 @@ usaremos Postman:
 | GET    | /tenistas/find?nombre=X     | No   | Devuelve los tenistas con nombre X                                       | 200              | JSON       |
 | GET    | /tenistas/{id}/raqueta      | No   | Devuelve la raqueta del tenista dado su id                               | 200              | JSON       |
 | GET    | /tenistas/ranking/{ranking} | No   | Devuelve el tenista con ranking X                                        | 200              | JSON       |
-| WS     | /tenistas/updates           | No   | Websocket para notificaciones los cambios en los tenistas en tiempo real | ---              | JSON       |
+| WS     | /updates/tenistas           | No   | Websocket para notificaciones los cambios en los tenistas en tiempo real | ---              | JSON       |
 
 ### Usuarios
 

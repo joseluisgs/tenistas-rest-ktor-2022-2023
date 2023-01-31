@@ -170,6 +170,7 @@ class RepresentantesServiceImpl(
             suscriptores.values.forEach {
                 it.invoke(
                     RepresentantesNotification(
+                        "REPRESENTANTE",
                         tipo,
                         id,
                         data?.toDto() // Convertimos a DTO

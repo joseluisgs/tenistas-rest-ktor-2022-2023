@@ -45,7 +45,7 @@ class TenistasServiceImplTest {
         id = UUID.fromString("e4a7b78e-f9ca-43df-b186-3811554eeeb2"),
         marca = "Head",
         precio = 225.0,
-        represetanteId = UUID.fromString("a33cd6a6-e767-48c3-b07b-ab7e015a73cd")
+        representanteId = UUID.fromString("a33cd6a6-e767-48c3-b07b-ab7e015a73cd")
     )
 
 

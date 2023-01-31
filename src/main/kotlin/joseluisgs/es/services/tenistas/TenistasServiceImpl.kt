@@ -139,6 +139,7 @@ class TenistasServiceImpl(
         suscriptores.values.forEach {
             it.invoke(
                 Notificacion(
+                    "TENISTA",
                     tipo,
                     id,
                     data?.toDto(findRaqueta(data.raquetaId))

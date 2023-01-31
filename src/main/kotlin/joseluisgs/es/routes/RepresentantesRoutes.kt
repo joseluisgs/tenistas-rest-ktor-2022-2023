@@ -132,31 +132,32 @@ fun Application.representantesRoutes() {
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
-
-            // WebSockets para tiempo real
-            webSocket("/updates") {
-                try {
-                    // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
-                    // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
-                    // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
-                    representantesService.addSuscriptor(this.hashCode()) {
-                        // Al darnos de alta con esta función,
-                        // cuando la invoquemos mandará los datos serializados que le pasemos
-                        // https://ktor.io/docs/websocket-serialization.html#send_data
-                        sendSerialized(it) // Enviamos las cosas
-                    }
-                    // Por cada mensaje que nos llegue
-                    for (frame in incoming) {
-                        if (frame.frameType == FrameType.CLOSE) {
-                            break
-                            // Por cada mensaje que nos llegue, lo mostramos por consola
-                        } else if (frame is Frame.Text) {
-                            logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
-                        }
-                    }
-                } finally {
-                    representantesService.removeSuscriptor(this.hashCode())
+        }
+        // Lo he sacado de esta ruta para que sea más fácil de leer desde updates!!
+        // WebSockets para tiempo real
+        webSocket("api/updates/representantes") {
+            try {
+                // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
+                // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
+                // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
+                representantesService.addSuscriptor(this.hashCode()) {
+                    // Al darnos de alta con esta función,
+                    // cuando la invoquemos mandará los datos serializados que le pasemos
+                    // https://ktor.io/docs/websocket-serialization.html#send_data
+                    sendSerialized(it) // Enviamos las cosas
                 }
+                sendSerialized("Updates Web socket: Representantes - Tenistas API REST Ktor")
+                // Por cada mensaje que nos llegue
+                for (frame in incoming) {
+                    if (frame.frameType == FrameType.CLOSE) {
+                        break
+                        // Por cada mensaje que nos llegue, lo mostramos por consola
+                    } else if (frame is Frame.Text) {
+                        logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
+                    }
+                }
+            } finally {
+                representantesService.removeSuscriptor(this.hashCode())
             }
         }
     }
