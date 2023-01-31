@@ -140,6 +140,7 @@ class RaquetasServiceImpl(
             suscriptores.values.forEach {
                 it.invoke(
                     RaquetasNotification(
+                        "RAQUETA",
                         tipo,
                         id,
                         data?.toDto(findRepresentante(data.representanteId))
