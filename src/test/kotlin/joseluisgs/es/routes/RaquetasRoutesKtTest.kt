@@ -29,13 +29,13 @@ class RaquetasRoutesKtTest {
         id = UUID.fromString("044e6ec7-aa6c-46bb-9433-8094ef4ae8bc"),
         marca = "Test",
         precio = 199.9,
-        represetanteId = UUID.fromString("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf")
+        representanteId = UUID.fromString("b39a2fd2-f7d7-405d-b73c-b68a8dedbcdf")
     )
 
     val create = RaquetaCreateDto(
         marca = raqueta.marca,
         precio = raqueta.precio,
-        representanteId = raqueta.represetanteId
+        representanteId = raqueta.representanteId
     )
 
     // Esto es muy similar a hacerlo con Postman

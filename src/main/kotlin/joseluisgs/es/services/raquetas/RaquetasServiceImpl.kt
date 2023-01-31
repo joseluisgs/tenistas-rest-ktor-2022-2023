@@ -64,7 +64,7 @@ class RaquetasServiceImpl(
         logger.debug { "create: Creando raqueta en servicio" }
 
         // Existe el representante!
-        val representante = findRepresentante(raqueta.represetanteId)
+        val representante = findRepresentante(raqueta.representanteId)
 
         // Insertamos el representante y devolvemos el resultado y avisa a los subscriptores
         return repository.save(raqueta)
@@ -77,7 +77,7 @@ class RaquetasServiceImpl(
         val existe = repository.findById(id)
 
         // Existe el representante!
-        val representante = findRepresentante(raqueta.represetanteId)
+        val representante = findRepresentante(raqueta.representanteId)
 
         existe?.let {
             return repository.update(id, raqueta)
@@ -142,7 +142,7 @@ class RaquetasServiceImpl(
                     RaquetasNotification(
                         tipo,
                         id,
-                        data?.toDto(findRepresentante(data.represetanteId))
+                        data?.toDto(findRepresentante(data.representanteId))
                     )
                 )
             }

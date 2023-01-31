@@ -47,13 +47,13 @@ fun Application.raquetasRoutes() {
                     // Procesamos el flow
                     val res = raquetasService.findAllPageable(page - 1, perPage)
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
                         .let { res -> call.respond(HttpStatusCode.OK, RaquetasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
                     val res = raquetasService.findAll()
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 }
             }
@@ -67,7 +67,7 @@ fun Application.raquetasRoutes() {
                     val raqueta = raquetasService.findById(id)
                     call.respond(
                         HttpStatusCode.OK, raqueta.toDto(
-                            raquetasService.findRepresentante(raqueta.represetanteId)
+                            raquetasService.findRepresentante(raqueta.representanteId)
                         )
                     )
                 } catch (e: RaquetaNotFoundException) {
@@ -85,7 +85,7 @@ fun Application.raquetasRoutes() {
                     val raqueta = raquetasService.save(dto.toModel())
                     call.respond(
                         HttpStatusCode.Created, raqueta.toDto(
-                            raquetasService.findRepresentante(raqueta.represetanteId)
+                            raquetasService.findRepresentante(raqueta.representanteId)
                         )
                     )
                 } catch (e: RepresentanteNotFoundException) {
@@ -105,7 +105,7 @@ fun Application.raquetasRoutes() {
                     val representante = raquetasService.update(id, dto.toModel())
                     call.respond(
                         HttpStatusCode.OK, representante.toDto(
-                            raquetasService.findRepresentante(representante.represetanteId)
+                            raquetasService.findRepresentante(representante.representanteId)
                         )
                     )
                     // Vamos a captar las excepciones de nuestro dominio
@@ -147,7 +147,7 @@ fun Application.raquetasRoutes() {
                 marca?.let {
                     val res = raquetasService.findByMarca(marca)
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.represetanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
@@ -159,7 +159,7 @@ fun Application.raquetasRoutes() {
                 try {
                     val id = call.parameters["id"]?.toUUID()!!
                     val raqueta = raquetasService.findById(id)
-                    val representante = raquetasService.findRepresentante(raqueta.represetanteId)
+                    val representante = raquetasService.findRepresentante(raqueta.representanteId)
                     call.respond(HttpStatusCode.OK, representante.toDto())
                 } catch (e: RaquetaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())

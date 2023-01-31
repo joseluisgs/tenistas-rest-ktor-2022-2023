@@ -29,7 +29,7 @@ data class RaquetaDto(
     val id: UUID? = null,
     val marca: String,
     val precio: Double,
-    val represetante: RepresentanteDto,
+    val representante: RepresentanteDto,
     val metadata: MetaData? = null,
 ) {
     @Serializable
@@ -49,7 +49,7 @@ data class RaquetaTenistaDto(
     val marca: String,
     val precio: Double,
     @Serializable(with = UUIDSerializer::class)
-    val represetanteId: UUID? = null,
+    val representanteId: UUID? = null,
     val metadata: MetaData? = null,
 ) {
     @Serializable
