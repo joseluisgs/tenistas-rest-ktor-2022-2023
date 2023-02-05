@@ -1,6 +1,6 @@
 # Con este Dockerfile se crea una imagen de Docker que
 # compila la aplicación gracias a Gradle
-FROM gradle:7-jdk11 AS build
+FROM gradle:7-jdk17 AS build
 # Copiamos el codigo fuente de la aplicación, es decir, 
 # lo que hay en el directorio actual
 COPY --chown=gradle:gradle . /home/gradle/src
@@ -8,7 +8,7 @@ WORKDIR /home/gradle/src
 RUN gradle buildFatJar --no-daemon
 
 # Con esto hacemos una imagen de Docker que ejecuta la aplicación
-FROM openjdk:11-jre-slim-buster
+FROM openjdk:17-jdk-slim-buster
 EXPOSE 6969:6969
 EXPOSE 6963:6963
 # Directorio donde se guarda la aplicación
