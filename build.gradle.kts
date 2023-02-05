@@ -48,6 +48,7 @@ application {
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+
 }
 
 repositories {
@@ -55,6 +56,8 @@ repositories {
     // Para ktor-swagger-ui
     maven("https://jitpack.io")
 }
+
+
 
 dependencies {
     // Ktor core
@@ -162,7 +165,7 @@ ktor {
     docker {
         localImageName.set("tenistas-rest-ktor")
         imageTag.set("0.0.1-preview")
-        jreVersion.set(io.ktor.plugin.features.JreVersion.JRE_11)
+        jreVersion.set(io.ktor.plugin.features.JreVersion.JRE_17)
         portMappings.set(
             listOf(
                 io.ktor.plugin.features.DockerPortMapping(
@@ -179,3 +182,10 @@ ktor {
         )
     }
 }
+
+// Vamos a usbirlo a Java 17
+// https://kotlinlang.org/docs/get-started-with-jvm-gradle-project.html#explore-the-build-script
+kotlin { // Extension for easy setup
+    jvmToolchain(17) // Target version of generated JVM bytecode
+}
+
