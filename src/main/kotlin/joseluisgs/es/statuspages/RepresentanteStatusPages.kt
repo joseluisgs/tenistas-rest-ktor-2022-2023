@@ -6,7 +6,7 @@ import io.ktor.server.response.*
 import joseluisgs.es.exceptions.RepresentanteException
 
 fun StatusPagesConfig.representantesStatusPages() {
-    // Representantes
+    // Representantes Status Pages
     exception<RepresentanteException.NotFound> { call, cause ->
         call.respond(HttpStatusCode.NotFound, cause.message.toString())
     }

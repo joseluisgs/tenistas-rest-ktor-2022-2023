@@ -42,9 +42,14 @@ class TokensService(
     }
 
     fun verifyJWT(): JWTVerifier {
-        return JWT.require(Algorithm.HMAC512(tokenConfig.secret))
-            .withAudience(tokenConfig.audience)
-            .withIssuer(tokenConfig.issuer)
-            .build()
+
+        return try {
+            JWT.require(Algorithm.HMAC512(tokenConfig.secret))
+                .withAudience(tokenConfig.audience)
+                .withIssuer(tokenConfig.issuer)
+                .build()
+        } catch (e: Exception) {
+            throw TokenException.InvalidTokenException("Token no válido")
+        }
     }
 }

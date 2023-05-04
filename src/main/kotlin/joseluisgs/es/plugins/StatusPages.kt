@@ -9,6 +9,7 @@ import joseluisgs.es.services.tokens.TokenException
 import joseluisgs.es.statuspages.raquetasStatusPages
 import joseluisgs.es.statuspages.representantesStatusPages
 import joseluisgs.es.statuspages.tenistasStatusPages
+import joseluisgs.es.statuspages.usersStatusPages
 import joseluisgs.es.utils.UUIDException
 
 fun Application.configureStatusPages() {
@@ -25,7 +26,7 @@ fun Application.configureStatusPages() {
         exception<UUIDException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message.toString())
         }
-        // Token
+        // Token no es válido, no existe o ha caducado. No autorizado
         exception<TokenException.InvalidTokenException> { call, cause ->
             call.respond(HttpStatusCode.Unauthorized, cause.message.toString())
         }
@@ -36,6 +37,7 @@ fun Application.configureStatusPages() {
         representantesStatusPages()
         raquetasStatusPages()
         tenistasStatusPages()
+        usersStatusPages()
     }
 }
 

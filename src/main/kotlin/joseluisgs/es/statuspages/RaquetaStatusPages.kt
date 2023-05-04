@@ -6,7 +6,7 @@ import io.ktor.server.response.*
 import joseluisgs.es.exceptions.RaquetaException
 
 fun StatusPagesConfig.raquetasStatusPages() {
-    // Raquetas
+    // Raquetas Status Pages
     exception<RaquetaException.NotFound> { call, cause ->
         call.respond(HttpStatusCode.NotFound, cause.message.toString())
     }
