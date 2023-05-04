@@ -6,6 +6,7 @@ import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import joseluisgs.es.services.tokens.TokenException
+import joseluisgs.es.statuspages.raquetasStatusPages
 import joseluisgs.es.statuspages.representantesStatusPages
 import joseluisgs.es.utils.UUIDException
 
@@ -13,6 +14,7 @@ fun Application.configureStatusPages() {
     install(StatusPages) {
 
         // Aquí ponemos las excepciones que queremos que se devuelvan y como
+        // Empiezo con las genéricas
 
         // Validaciones de Datos
         exception<RequestValidationException> { call, cause ->
@@ -31,6 +33,7 @@ fun Application.configureStatusPages() {
         // De los enrutadores, de hecho me los voy a sacar a una nuevas funciones para que quede más limpio
         // Paquete StatusPages
         representantesStatusPages()
+        raquetasStatusPages()
     }
 }
 

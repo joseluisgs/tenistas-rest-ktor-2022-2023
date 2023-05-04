@@ -67,7 +67,7 @@ class RepresentantesServiceImpl(
 
         // return repository.findById(id) ?: throw NoSuchElementException("No se ha encontrado el representante con id: $id")
         return repository.findById(id)
-            ?: throw RepresentanteException.NotFoundException("No se ha encontrado el representante con id: $id")
+            ?: throw RepresentanteException.NotFound("No se ha encontrado el representante con id: $id")
 
     }
 
@@ -110,7 +110,7 @@ class RepresentantesServiceImpl(
         existe?.let {
             return repository.update(id, representante)
                 ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw RepresentanteException.NotFoundException("No se ha encontrado el representante con id: $id")
+        } ?: throw RepresentanteException.NotFound("No se ha encontrado el representante con id: $id")
     }
 
     /**
@@ -131,9 +131,9 @@ class RepresentantesServiceImpl(
                 return repository.delete(existe)
                     .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
             } catch (e: Exception) {
-                throw RepresentanteException.ConflictIntegrityException("No se puede borrar el representante con id: $id porque tiene raquetas asociadas")
+                throw RepresentanteException.ConflictIntegrity("No se puede borrar el representante con id: $id porque tiene raquetas asociadas")
             }
-        } ?: throw RepresentanteException.NotFoundException("No se ha encontrado el representante con id: $id")
+        } ?: throw RepresentanteException.NotFound("No se ha encontrado el representante con id: $id")
 
     }
 

@@ -11,7 +11,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.TenistaCreateDto
 import joseluisgs.es.dto.TenistasPageDto
-import joseluisgs.es.exceptions.RaquetaNotFoundException
+import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.exceptions.TenistaNotFoundException
 import joseluisgs.es.mappers.toDto
@@ -91,7 +91,7 @@ fun Application.tenistasRoutes() {
                     )
                 } catch (e: TenistaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RaquetaNotFoundException) {
+                } catch (e: RaquetaException.NotFound) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: RequestValidationException) {
                     call.respond(HttpStatusCode.BadRequest, e.reasons)
@@ -113,7 +113,7 @@ fun Application.tenistasRoutes() {
                     // Vamos a captar las excepciones de nuestro dominio
                 } catch (e: TenistaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RaquetaNotFoundException) {
+                } catch (e: RaquetaException.NotFound) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: RequestValidationException) {
                     call.respond(HttpStatusCode.BadRequest, e.reasons)
@@ -163,9 +163,9 @@ fun Application.tenistasRoutes() {
                     raqueta?.let {
                         call.respond(HttpStatusCode.OK, raqueta.toTenistaDto())
                     } ?: call.respond(HttpStatusCode.NotFound, "No se ha encontrado la raqueta")
-                } catch (e: RaquetaNotFoundException) {
+                } catch (e: RaquetaException.NotFound) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RepresentanteException.NotFoundException) {
+                } catch (e: RepresentanteException.NotFound) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())

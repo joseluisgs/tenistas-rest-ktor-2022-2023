@@ -1,9 +1,13 @@
 package joseluisgs.es.services.tenistas
 
-import joseluisgs.es.exceptions.RaquetaNotFoundException
+
+import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.exceptions.TenistaNotFoundException
 import joseluisgs.es.mappers.toDto
-import joseluisgs.es.models.*
+import joseluisgs.es.models.Notificacion
+import joseluisgs.es.models.Raqueta
+import joseluisgs.es.models.Tenista
+import joseluisgs.es.models.TenistasNotification
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.tenistas.TenistasRepository
 import kotlinx.coroutines.Dispatchers
@@ -105,7 +109,7 @@ class TenistasServiceImpl(
 
         raquetaId?.let {
             return raquetasRepository.findById(raquetaId)
-                ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $raquetaId")
+                ?: throw RaquetaException.NotFound("No se ha encontrado la raqueta con id: $raquetaId")
         } ?: return null
     }
 
