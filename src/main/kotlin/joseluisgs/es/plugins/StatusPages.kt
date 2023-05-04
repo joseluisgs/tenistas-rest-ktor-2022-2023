@@ -6,7 +6,10 @@ import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import joseluisgs.es.services.tokens.TokenException
-import joseluisgs.es.statuspages.*
+import joseluisgs.es.statuspages.raquetasStatusPages
+import joseluisgs.es.statuspages.representantesStatusPages
+import joseluisgs.es.statuspages.storageStatusPages
+import joseluisgs.es.statuspages.tenistasStatusPages
 import joseluisgs.es.utils.UUIDException
 
 fun Application.configureStatusPages() {
@@ -34,7 +37,7 @@ fun Application.configureStatusPages() {
         representantesStatusPages()
         raquetasStatusPages()
         tenistasStatusPages()
-        usersStatusPages()
+        // usersStatusPages()
         storageStatusPages()
     }
 }
