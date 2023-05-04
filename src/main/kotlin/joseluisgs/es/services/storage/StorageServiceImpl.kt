@@ -3,8 +3,7 @@ package joseluisgs.es.services.storage
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import joseluisgs.es.config.StorageConfig
-import joseluisgs.es.exceptions.StorageFileNotFoundException
-import joseluisgs.es.exceptions.StorageFileNotSaveException
+import joseluisgs.es.exceptions.StorageException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -55,7 +54,7 @@ class StorageServiceImpl(
                     "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
                 )
             } catch (e: Exception) {
-                throw StorageFileNotSaveException("Error al guardar el fichero: ${e.message}")
+                throw StorageException.FileNotFound("Error al guardar el fichero: ${e.message}")
             }
         }
 
@@ -74,7 +73,7 @@ class StorageServiceImpl(
                     "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
                 )
             } catch (e: Exception) {
-                throw StorageFileNotSaveException("Error al guardar el fichero: ${e.message}")
+                throw StorageException.FileNotSave("Error al guardar el fichero: ${e.message}")
             }
         }
 
@@ -83,7 +82,7 @@ class StorageServiceImpl(
         val file = File("${storageConfig.uploadDir}/$fileName")
         logger.debug { "Fichero path: $file" }
         if (!file.exists()) {
-            throw StorageFileNotFoundException("No se ha encontrado el fichero: $fileName")
+            throw StorageException.FileNotFound("No se ha encontrado el fichero: $fileName")
         } else {
             return@withContext file
         }
@@ -94,7 +93,7 @@ class StorageServiceImpl(
         val file = File("${storageConfig.uploadDir}/$fileName")
         logger.debug { "Fichero path: $file" }
         if (!file.exists()) {
-            throw StorageFileNotFoundException("No se ha encontrado el fichero: $fileName")
+            throw StorageException.FileNotFound("No se ha encontrado el fichero: $fileName")
         } else {
             file.delete()
         }
