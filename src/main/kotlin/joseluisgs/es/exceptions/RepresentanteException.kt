@@ -5,7 +5,8 @@ package joseluisgs.es.exceptions
  * RepresentanteException
  * @param message: String Mensaje de la excepción
  */
-sealed class RepresentanteException(message: String) : RuntimeException(message)
-class RepresentanteNotFoundException(message: String) : RepresentanteException(message)
-class RepresentanteBadRequestException(message: String) : RepresentanteException(message)
-class RepresentanteConflictIntegrityException(message: String) : RepresentanteException(message)
+sealed class RepresentanteException(message: String) : RuntimeException(message) {
+    class NotFoundException(message: String) : RepresentanteException(message)
+    class BadRequestException(message: String) : RepresentanteException(message)
+    class ConflictIntegrityException(message: String) : RepresentanteException(message)
+}

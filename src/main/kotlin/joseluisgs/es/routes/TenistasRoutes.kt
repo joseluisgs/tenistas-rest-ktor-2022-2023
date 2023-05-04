@@ -12,7 +12,7 @@ import io.ktor.websocket.*
 import joseluisgs.es.dto.TenistaCreateDto
 import joseluisgs.es.dto.TenistasPageDto
 import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.exceptions.TenistaNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
@@ -165,7 +165,7 @@ fun Application.tenistasRoutes() {
                     } ?: call.respond(HttpStatusCode.NotFound, "No se ha encontrado la raqueta")
                 } catch (e: RaquetaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RepresentanteNotFoundException) {
+                } catch (e: RepresentanteException.NotFoundException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())

@@ -32,6 +32,9 @@ val h2_r2dbc_version: String by project
 // Ktow Swagger UI
 val ktor_swagger_ui_version: String by project
 
+// Result
+val result_version: String by project
+
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -77,6 +80,9 @@ dependencies {
 
     // Content validation
     implementation("io.ktor:ktor-server-request-validation:$ktor_version")
+
+    // Status Pages para coger las excepciones y devolverlas como queramos
+    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
 
     // Caching Headers
     implementation("io.ktor:ktor-server-caching-headers:$ktor_version")
@@ -139,6 +145,9 @@ dependencies {
 
     // Para documentar con Swagger y Open API sobre la marcha en nuestro codigo con DSL
     implementation("io.github.smiley4:ktor-swagger-ui:$ktor_swagger_ui_version")
+
+    // Result
+    implementation("com.michael-bull.kotlin-result:kotlin-result:$result_version")
 
     // Si queremos OpenAPI  generado por Ktor Team
     // implementation("io.ktor:ktor-server-openapi:$ktor_version")

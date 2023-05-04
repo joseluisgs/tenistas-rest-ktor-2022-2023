@@ -11,6 +11,11 @@ import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
+sealed class TokenException(message: String) : RuntimeException(message) {
+    class InvalidTokenException(message: String) : TokenException(message)
+    class ExpiredTokenException(message: String) : TokenException(message)
+}
+
 @Single
 class TokensService(
     private val tokenConfig: TokenConfig

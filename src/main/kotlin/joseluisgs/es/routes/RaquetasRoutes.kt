@@ -13,7 +13,7 @@ import joseluisgs.es.dto.RaquetaCreateDto
 import joseluisgs.es.dto.RaquetasPageDto
 import joseluisgs.es.exceptions.RaquetaConflictIntegrityException
 import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.raquetas.RaquetasService
@@ -88,7 +88,7 @@ fun Application.raquetasRoutes() {
                             raquetasService.findRepresentante(raqueta.representanteId)
                         )
                     )
-                } catch (e: RepresentanteNotFoundException) {
+                } catch (e: RepresentanteException.NotFoundException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
 
                 } catch (e: RequestValidationException) {
@@ -111,7 +111,7 @@ fun Application.raquetasRoutes() {
                     // Vamos a captar las excepciones de nuestro dominio
                 } catch (e: RaquetaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RepresentanteNotFoundException) {
+                } catch (e: RepresentanteException.NotFoundException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: RequestValidationException) {
                     call.respond(HttpStatusCode.BadRequest, e.reasons)
@@ -163,7 +163,7 @@ fun Application.raquetasRoutes() {
                     call.respond(HttpStatusCode.OK, representante.toDto())
                 } catch (e: RaquetaNotFoundException) {
                     call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RepresentanteNotFoundException) {
+                } catch (e: RepresentanteException.NotFoundException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())
                 } catch (e: UUIDException) {
                     call.respond(HttpStatusCode.BadRequest, e.message.toString())

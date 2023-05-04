@@ -2,9 +2,12 @@ package joseluisgs.es.services.raquetas
 
 import joseluisgs.es.exceptions.RaquetaConflictIntegrityException
 import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.exceptions.RepresentanteException
 import joseluisgs.es.mappers.toDto
-import joseluisgs.es.models.*
+import joseluisgs.es.models.Notificacion
+import joseluisgs.es.models.Raqueta
+import joseluisgs.es.models.RaquetasNotification
+import joseluisgs.es.models.Representante
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
 import kotlinx.coroutines.CoroutineScope
@@ -105,7 +108,7 @@ class RaquetasServiceImpl(
         logger.debug { "findRepresentante: Buscando representante en servicio" }
 
         return representantesRepository.findById(id)
-            ?: throw RepresentanteNotFoundException("No se ha encontrado el representante con id: $id")
+            ?: throw RepresentanteException.NotFoundException("No se ha encontrado el representante con id: $id")
     }
 
     /// ---- Tiempo real, patrón observer!!!

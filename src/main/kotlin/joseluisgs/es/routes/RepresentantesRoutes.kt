@@ -3,7 +3,6 @@ package joseluisgs.es.routes
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -11,12 +10,9 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.dto.RepresentantesPageDto
-import joseluisgs.es.exceptions.RepresentanteConflictIntegrityException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.representantes.RepresentantesService
-import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
 import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
@@ -60,62 +56,36 @@ fun Application.representantesRoutes() {
             get("{id}") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}" }
                 // Obtenemos el id
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val representante = representantesService.findById(id)
-                    call.respond(HttpStatusCode.OK, representante.toDto())
-                } catch (e: RepresentanteNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+                val id = call.parameters["id"]?.toUUID()!!
+                val representante = representantesService.findById(id)
+                call.respond(HttpStatusCode.OK, representante.toDto())
             }
 
             // Post -> /
             post {
                 logger.debug { "POST /$ENDPOINT" }
-                try {
-                    val dto = call.receive<RepresentanteDto>()
-                    val representante = representantesService.save(dto.toModel())
-                    call.respond(HttpStatusCode.Created, representante.toDto())
-                } catch (e: RequestValidationException) {
-                    call.respond(HttpStatusCode.BadRequest, e.reasons)
-                }
+                val dto = call.receive<RepresentanteDto>()
+                val representante = representantesService.save(dto.toModel())
+                call.respond(HttpStatusCode.Created, representante.toDto())
             }
 
             // Put -> /{id}
             put("{id}") {
                 logger.debug { "PUT /$ENDPOINT/{id}" }
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val dto = call.receive<RepresentanteDto>()
-                    val representante = representantesService.update(id, dto.toModel())
-                    call.respond(HttpStatusCode.OK, representante.toDto())
-                    // Vamos a captar las excepciones de nuestro dominio
-                } catch (e: RepresentanteNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RequestValidationException) {
-                    call.respond(HttpStatusCode.BadRequest, e.reasons)
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+                val id = call.parameters["id"]?.toUUID()!!
+                val dto = call.receive<RepresentanteDto>()
+                val representante = representantesService.update(id, dto.toModel())
+                call.respond(HttpStatusCode.OK, representante.toDto())
+                // Vamos a captar las excepciones de nuestro dominio
             }
 
             // Delete -> /{id}
             delete("{id}") {
                 logger.debug { "DELETE /$ENDPOINT/{id}" }
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val representante = representantesService.delete(id)
-                    // Decidimos si devolver un 200 o un 204 (No Content)
-                    call.respond(HttpStatusCode.NoContent)
-                } catch (e: RepresentanteNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RepresentanteConflictIntegrityException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+                val id = call.parameters["id"]?.toUUID()!!
+                val representante = representantesService.delete(id)
+                // Decidimos si devolver un 200 o un 204 (No Content)
+                call.respond(HttpStatusCode.NoContent)
             }
 
             // Otros métodos de búsqueda
