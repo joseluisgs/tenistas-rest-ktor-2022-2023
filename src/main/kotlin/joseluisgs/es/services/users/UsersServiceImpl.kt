@@ -1,7 +1,11 @@
 package joseluisgs.es.services.users
 
 
-import joseluisgs.es.exceptions.UserException
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.andThen
+import joseluisgs.es.errors.UserError
 import joseluisgs.es.models.User
 import joseluisgs.es.repositories.users.UsersRepository
 import kotlinx.coroutines.flow.Flow
@@ -27,68 +31,62 @@ class UsersServiceImpl(
         return repository.findAll(limit)
     }
 
-    override suspend fun findById(id: UUID): User {
+    override suspend fun findById(id: UUID): Result<User, UserError> {
         logger.debug { "findById: Buscando usuario con id: $id" }
 
-        return repository.findById(id) ?: throw UserException.NotFound("No se ha encontrado el usuario con id: $id")
+        return repository.findById(id)?.let {
+            Ok(it)
+        } ?: Err(UserError.NotFound("No se ha encontrado el usuario con id: $id"))
     }
 
-    override suspend fun findByUsername(username: String): User {
+    override suspend fun findByUsername(username: String): Result<User, UserError> {
         logger.debug { "findByUsername: Buscando usuario con username: $username" }
 
-        return repository.findByUsername(username)
-            ?: throw UserException.NotFound("No se ha encontrado el usuario con username: $username")
+        return repository.findByUsername(username)?.let {
+            Ok(it)
+        } ?: Err(UserError.NotFound("No se ha encontrado el usuario con username: $username"))
     }
 
-    override fun hashedPassword(password: String): String {
-        logger.debug { "hashedPassword: Hasheando la contraseña" }
 
-        return repository.hashedPassword(password)
-    }
-
-    override suspend fun checkUserNameAndPassword(username: String, password: String): User {
+    override suspend fun checkUserNameAndPassword(username: String, password: String): Result<User, UserError> {
         logger.debug { "checkUserNameAndPassword: Comprobando el usuario y contraseña" }
 
-        return repository.checkUserNameAndPassword(username, password)
-            ?: throw UserException.NotFound("Nombre de usuario o contraseña incorrectos")
+        return repository.checkUserNameAndPassword(username, password)?.let {
+            Ok(it)
+        } ?: Err(UserError.NotFound("Nombre de usuario o contraseña incorrectos"))
     }
 
-    override suspend fun save(entity: User): User {
+    override suspend fun save(entity: User): Result<User, UserError> {
         logger.debug { "save: Creando usuario" }
 
-        // Sus credenciales son validas y su nombre de usuario no existe
-        val existingUser = repository.findByUsername(entity.username)
-        if (existingUser != null) {
-            throw UserException.BadRequest("Ya existe un usuario con username: ${entity.username}")
-        }
-
-        val user =
-            entity.copy(
-                id = UUID.randomUUID(),
-                password = hashedPassword(entity.password),
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now(),
+        repository.findByUsername(entity.username)?.let {
+            return Err(UserError.BadRequest("Ya existe un usuario con username: ${entity.username}"))
+        } ?: run {
+            return Ok(
+                repository.save(
+                    entity.copy(
+                        createdAt = LocalDateTime.now(),
+                        updatedAt = LocalDateTime.now(),
+                        password = repository.hashedPassword(entity.password)
+                    )
+                )
             )
-
-        return repository.save(user)
+        }
     }
 
-    override suspend fun update(id: UUID, entity: User): User {
+    override suspend fun update(id: UUID, entity: User): Result<User, UserError> {
         logger.debug { "update: Actualizando usuario con id: $id" }
 
-        // No lo necesitamos, pero lo dejamos por si acaso
-        val existingUser = repository.findByUsername(entity.username)
-        if (existingUser != null && existingUser.id != id) {
-            throw UserException.BadRequest("Ya existe un usuario con username: ${entity.username}")
+        // buscamos en el repositorio el nombre nuevo de usuario
+        val updated = repository.findByUsername(entity.username)
+            ?: return Ok(repository.update(id, entity.copy(updatedAt = LocalDateTime.now()))!!)
+        // si existe y es el mismo usuario, lo actualizamos
+        return if (updated.id == id) {
+            Ok(repository.update(id, entity.copy(updatedAt = LocalDateTime.now()))!!)
+        } else {
+            // si no, es que ya existe
+            Err(UserError.BadRequest("Ya existe un usuario con username: ${entity.username}"))
         }
-
-        val user =
-            entity.copy(
-                updatedAt = LocalDateTime.now(),
-            )
-
-        return repository.update(id, user)!!
-
     }
 
     override suspend fun delete(id: UUID): User? {
@@ -99,5 +97,12 @@ class UsersServiceImpl(
             repository.delete(it)
         }
         return user
+    }
+
+    override suspend fun isAdmin(id: UUID): Result<Boolean, UserError> {
+        logger.debug { "isAdmin: Comprobando si el usuario con id: $id es administrador" }
+        return findById(id).andThen {
+            Ok(it.role == User.Role.ADMIN)
+        }
     }
 }

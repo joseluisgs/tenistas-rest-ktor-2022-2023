@@ -1,12 +1,14 @@
 package joseluisgs.es.services.users
 
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.getError
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import joseluisgs.es.exceptions.UserException
+import joseluisgs.es.errors.UserError
 import joseluisgs.es.models.User
 import joseluisgs.es.repositories.users.UsersRepositoryImpl
 import kotlinx.coroutines.flow.flowOf
@@ -16,7 +18,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mindrot.jbcrypt.BCrypt
 import java.util.*
@@ -65,7 +66,7 @@ class UsersServiceImplTest {
     fun findById() = runTest {
         coEvery { repository.findById(any()) } returns user
 
-        val result = service.findById(user.id)
+        val result = service.findById(user.id).get()!!
 
         assertAll(
             { assertEquals("Test", result.nombre) },
@@ -79,11 +80,12 @@ class UsersServiceImplTest {
     fun findByIdNotFound() = runTest {
         coEvery { repository.findById(any()) } returns null
 
-        val res = assertThrows<UserException.NotFound> {
-            service.findById(user.id)
-        }
+        val res = service.findById(user.id).getError()!!
 
-        assertEquals("No se ha encontrado el usuario con id: ${user.id}", res.message)
+        assertAll(
+            { assertTrue(res is UserError.NotFound) },
+            { assertEquals("No se ha encontrado el usuario con id: ${user.id}", res.message) },
+        )
 
         coVerify { repository.findById(any()) }
     }
@@ -92,7 +94,7 @@ class UsersServiceImplTest {
     fun findByUsername() = runTest {
         coEvery { repository.findByUsername(any()) } returns user
 
-        val result = service.findByUsername(user.username)
+        val result = service.findByUsername(user.username).get()!!
 
         assertAll(
             { assertEquals("Test", result.nombre) },
@@ -106,31 +108,21 @@ class UsersServiceImplTest {
     fun findByUsernameNotFound() = runTest {
         coEvery { repository.findByUsername(any()) } returns null
 
-        val res = assertThrows<UserException.NotFound> {
-            service.findByUsername(user.username)
-        }
+        val res = service.findByUsername(user.username).getError()!!
 
-        assertEquals("No se ha encontrado el usuario con username: ${user.username}", res.message)
+        assertAll(
+            { assertTrue(res is UserError.NotFound) },
+            { assertEquals("No se ha encontrado el usuario con username: ${user.username}", res.message) },
+        )
 
         coVerify { repository.findByUsername(any()) }
-    }
-
-    @Test
-    fun hashedPassword() = runTest {
-        coEvery { repository.hashedPassword(any()) } returns BCrypt.hashpw("test1234", BCrypt.gensalt(12))
-
-        val result = service.hashedPassword("test1234")
-
-        assertTrue(BCrypt.checkpw("test1234", result))
-
-        coVerify { repository.hashedPassword(any()) }
     }
 
     @Test
     fun checkUserNameAndPassword() = runTest {
         coEvery { repository.checkUserNameAndPassword(any(), any()) } returns user
 
-        val result = service.checkUserNameAndPassword(user.username, "test1234")
+        val result = service.checkUserNameAndPassword(user.username, "test1234").get()!!
 
         assertAll(
             { assertEquals("Test", result.nombre) },
@@ -144,18 +136,20 @@ class UsersServiceImplTest {
     fun checkUserNameAndPasswordNotFound() = runTest {
         coEvery { repository.checkUserNameAndPassword(any(), any()) } returns null
 
-        val res = assertThrows<UserException.NotFound> {
-            service.checkUserNameAndPassword(user.username, "test1234")
-        }
+        val res = service.checkUserNameAndPassword(user.username, "test1234").getError()!!
 
-        assertEquals("Nombre de usuario o contraseña incorrectos", res.message)
+        assertAll(
+            { assertTrue(res is UserError.NotFound) },
+            { assertEquals("Nombre de usuario o contraseña incorrectos", res.message) },
+        )
     }
 
     @Test
     fun save() = runTest {
         coEvery { repository.save(any()) } returns user
+        coEvery { repository.hashedPassword(any()) } returns user.password
 
-        val result = service.save(user)
+        val result = service.save(user).get()!!
 
         assertAll(
             { assertEquals("Test", result.nombre) },
@@ -169,7 +163,7 @@ class UsersServiceImplTest {
     fun update() = runTest {
         coEvery { repository.update(any(), any()) } returns user
 
-        val result = service.update(user.id, user)
+        val result = service.update(user.id, user).get()!!
 
         assertAll(
             { assertEquals("Test", result.nombre) },
