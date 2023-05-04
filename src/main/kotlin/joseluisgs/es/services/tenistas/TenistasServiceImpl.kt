@@ -1,9 +1,12 @@
 package joseluisgs.es.services.tenistas
 
-import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.TenistaNotFoundException
+
+import joseluisgs.es.exceptions.TenistaException
 import joseluisgs.es.mappers.toDto
-import joseluisgs.es.models.*
+import joseluisgs.es.models.Notificacion
+import joseluisgs.es.models.Raqueta
+import joseluisgs.es.models.Tenista
+import joseluisgs.es.models.TenistasNotification
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.tenistas.TenistasRepository
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +47,7 @@ class TenistasServiceImpl(
         logger.debug { "findById: Buscando tenista en servicio con id: $id" }
 
         return repository.findById(id)
-            ?: throw TenistaNotFoundException("No se ha encontrado el tenista con id: $id")
+            ?: throw TenistaException.NotFound("No se ha encontrado el tenista con id: $id")
 
     }
 
@@ -58,7 +61,7 @@ class TenistasServiceImpl(
         logger.debug { "findByRanking: Buscando tenistas en servicio con ranking: $ranking" }
 
         return repository.findByRanking(ranking)
-            ?: throw TenistaNotFoundException("No se ha encontrado el tenista con ranking: $ranking")
+            ?: throw TenistaException.NotFound("No se ha encontrado el tenista con ranking: $ranking")
     }
 
     override suspend fun save(tenista: Tenista): Tenista {
@@ -83,7 +86,7 @@ class TenistasServiceImpl(
         existe?.let {
             return repository.update(id, tenista)
                 ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw TenistaNotFoundException("No se ha encontrado el tenista con id: $id")
+        } ?: throw TenistaException.NotFound("No se ha encontrado el tenista con id: $id")
     }
 
     override suspend fun delete(id: UUID): Tenista {
@@ -96,7 +99,7 @@ class TenistasServiceImpl(
             return repository.delete(existe)
                 .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
 
-        } ?: throw TenistaNotFoundException("No se ha encontrado el tenista con id: $id")
+        } ?: throw TenistaException.NotFound("No se ha encontrado el tenista con id: $id")
 
     }
 
@@ -105,7 +108,7 @@ class TenistasServiceImpl(
 
         raquetaId?.let {
             return raquetasRepository.findById(raquetaId)
-                ?: throw RaquetaNotFoundException("No se ha encontrado la raqueta con id: $raquetaId")
+                ?: throw TenistaException.RaquetaNotFound("No se ha encontrado la raqueta con id: $raquetaId")
         } ?: return null
     }
 

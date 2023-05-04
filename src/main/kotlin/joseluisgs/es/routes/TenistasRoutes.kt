@@ -3,7 +3,6 @@ package joseluisgs.es.routes
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -11,14 +10,11 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.TenistaCreateDto
 import joseluisgs.es.dto.TenistasPageDto
-import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
-import joseluisgs.es.exceptions.TenistaNotFoundException
+import joseluisgs.es.exceptions.TenistaException
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.mappers.toTenistaDto
 import joseluisgs.es.services.tenistas.TenistasService
-import joseluisgs.es.utils.UUIDException
 import joseluisgs.es.utils.toUUID
 import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
@@ -63,78 +59,49 @@ fun Application.tenistasRoutes() {
             get("{id}") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}" }
                 // Obtenemos el id
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val tenista = tenistasService.findById(id)
-                    call.respond(
-                        HttpStatusCode.OK, tenista.toDto(
-                            tenistasService.findRaqueta(tenista.raquetaId)
-                        )
+                val id = call.parameters["id"]?.toUUID()!!
+                val tenista = tenistasService.findById(id)
+                call.respond(
+                    HttpStatusCode.OK, tenista.toDto(
+                        tenistasService.findRaqueta(tenista.raquetaId)
                     )
-                } catch (e: TenistaNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+                )
             }
 
             // Post -> /
             post {
                 logger.debug { "POST /$ENDPOINT" }
-                try {
-                    val dto = call.receive<TenistaCreateDto>()
-                    val tenista = tenistasService.save(dto.toModel())
-                    call.respond(
-                        HttpStatusCode.Created, tenista.toDto(
-                            tenistasService.findRaqueta(tenista.raquetaId)
-                        )
+
+                val dto = call.receive<TenistaCreateDto>()
+                val tenista = tenistasService.save(dto.toModel())
+                call.respond(
+                    HttpStatusCode.Created, tenista.toDto(
+                        tenistasService.findRaqueta(tenista.raquetaId)
                     )
-                } catch (e: TenistaNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RaquetaNotFoundException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                } catch (e: RequestValidationException) {
-                    call.respond(HttpStatusCode.BadRequest, e.reasons)
-                }
+                )
             }
 
             // Put -> /{id}
             put("{id}") {
                 logger.debug { "PUT /$ENDPOINT/{id}" }
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val dto = call.receive<TenistaCreateDto>()
-                    val tenista = tenistasService.update(id, dto.toModel())
-                    call.respond(
-                        HttpStatusCode.OK, tenista.toDto(
-                            tenistasService.findRaqueta(tenista.raquetaId)
-                        )
+                val id = call.parameters["id"]?.toUUID()!!
+                val dto = call.receive<TenistaCreateDto>()
+                val tenista = tenistasService.update(id, dto.toModel())
+                call.respond(
+                    HttpStatusCode.OK, tenista.toDto(
+                        tenistasService.findRaqueta(tenista.raquetaId)
                     )
-                    // Vamos a captar las excepciones de nuestro dominio
-                } catch (e: TenistaNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RaquetaNotFoundException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                } catch (e: RequestValidationException) {
-                    call.respond(HttpStatusCode.BadRequest, e.reasons)
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+                )
             }
 
             // Delete -> /{id}
             delete("{id}") {
                 logger.debug { "DELETE /$ENDPOINT/{id}" }
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val representante = tenistasService.delete(id)
-                    // Decidimos si devolver un 200 o un 204 (No Content)
-                    call.respond(HttpStatusCode.NoContent)
-                } catch (e: TenistaNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+
+                val id = call.parameters["id"]?.toUUID()!!
+                val representante = tenistasService.delete(id)
+                // Decidimos si devolver un 200 o un 204 (No Content)
+                call.respond(HttpStatusCode.NoContent)
             }
 
             // Otros métodos de búsqueda
@@ -156,38 +123,27 @@ fun Application.tenistasRoutes() {
             get("{id}/raqueta") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}/raqueta" }
                 // Obtenemos el id
-                try {
-                    val id = call.parameters["id"]?.toUUID()!!
-                    val tenista = tenistasService.findById(id)
-                    val raqueta = tenistasService.findRaqueta(tenista.raquetaId)
-                    raqueta?.let {
-                        call.respond(HttpStatusCode.OK, raqueta.toTenistaDto())
-                    } ?: call.respond(HttpStatusCode.NotFound, "No se ha encontrado la raqueta")
-                } catch (e: RaquetaNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: RepresentanteNotFoundException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+
+                val id = call.parameters["id"]?.toUUID()!!
+                val tenista = tenistasService.findById(id)
+                val raqueta = tenistasService.findRaqueta(tenista.raquetaId)
+                raqueta?.let {
+                    call.respond(HttpStatusCode.OK, raqueta.toTenistaDto())
+                } ?: throw TenistaException.RaquetaNotFound("No se ha encontrado la raqueta")
             }
 
             get("/ranking/{ranking}") {
                 logger.debug { "GET BY ID /$ENDPOINT/ranking/{ranking}" }
                 // Obtenemos el id
-                try {
-                    val id = call.parameters["ranking"]?.toIntOrNull() ?: 0
-                    val tenista = tenistasService.findByRanking(id)
-                    call.respond(
-                        HttpStatusCode.OK, tenista.toDto(
-                            tenistasService.findRaqueta(tenista.raquetaId)
-                        )
+
+                val id = call.parameters["ranking"]?.toIntOrNull() ?: 0
+                val tenista = tenistasService.findByRanking(id)
+                call.respond(
+                    HttpStatusCode.OK, tenista.toDto(
+                        tenistasService.findRaqueta(tenista.raquetaId)
                     )
-                } catch (e: TenistaNotFoundException) {
-                    call.respond(HttpStatusCode.NotFound, e.message.toString())
-                } catch (e: UUIDException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
+                )
+
             }
         }
 

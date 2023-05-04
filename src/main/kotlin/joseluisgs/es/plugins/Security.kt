@@ -1,11 +1,10 @@
 package joseluisgs.es.plugins
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.response.*
 import joseluisgs.es.config.TokenConfig
+import joseluisgs.es.services.tokens.TokenException
 import joseluisgs.es.services.tokens.TokensService
 import org.koin.core.parameter.parametersOf
 import org.koin.ktor.ext.get
@@ -47,7 +46,9 @@ fun Application.configureSecurity() {
             }
 
             challenge { defaultScheme, realm ->
-                call.respond(HttpStatusCode.Unauthorized, "Token invalido o expirado")
+                // call.respond(HttpStatusCode.Unauthorized, "Token invalido o expirado")
+                // Así me lo llevo al status pages plugin!!!
+                throw TokenException.InvalidTokenException("Token invalido o expirado")
             }
         }
     }

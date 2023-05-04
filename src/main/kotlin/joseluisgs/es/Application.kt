@@ -41,6 +41,9 @@ fun Application.module() {
     // Configuramos la validación de body en requests, puedes hacerlo a mano, pero es más cómodo con este plugin
     configureValidation()
 
+    // Configuramos los status pages para devolver execepciones de manera predefinida
+    configureStatusPages()
+
     // Opcionales segun el problema interesantes para el desarrollo
 
     // Configuramos el CORS, fudamentales si tenemos origenes cruzados

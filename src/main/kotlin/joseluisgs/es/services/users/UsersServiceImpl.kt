@@ -1,8 +1,7 @@
 package joseluisgs.es.services.users
 
-import joseluisgs.es.exceptions.UserBadRequestException
-import joseluisgs.es.exceptions.UserNotFoundException
-import joseluisgs.es.exceptions.UserUnauthorizedException
+
+import joseluisgs.es.exceptions.UserException
 import joseluisgs.es.models.User
 import joseluisgs.es.repositories.users.UsersRepository
 import kotlinx.coroutines.flow.Flow
@@ -31,14 +30,14 @@ class UsersServiceImpl(
     override suspend fun findById(id: UUID): User {
         logger.debug { "findById: Buscando usuario con id: $id" }
 
-        return repository.findById(id) ?: throw UserNotFoundException("No se ha encontrado el usuario con id: $id")
+        return repository.findById(id) ?: throw UserException.NotFound("No se ha encontrado el usuario con id: $id")
     }
 
     override suspend fun findByUsername(username: String): User {
         logger.debug { "findByUsername: Buscando usuario con username: $username" }
 
         return repository.findByUsername(username)
-            ?: throw UserNotFoundException("No se ha encontrado el usuario con username: $username")
+            ?: throw UserException.NotFound("No se ha encontrado el usuario con username: $username")
     }
 
     override fun hashedPassword(password: String): String {
@@ -51,7 +50,7 @@ class UsersServiceImpl(
         logger.debug { "checkUserNameAndPassword: Comprobando el usuario y contraseña" }
 
         return repository.checkUserNameAndPassword(username, password)
-            ?: throw UserUnauthorizedException("Nombre de usuario o contraseña incorrectos")
+            ?: throw UserException.NotFound("Nombre de usuario o contraseña incorrectos")
     }
 
     override suspend fun save(entity: User): User {
@@ -60,7 +59,7 @@ class UsersServiceImpl(
         // Sus credenciales son validas y su nombre de usuario no existe
         val existingUser = repository.findByUsername(entity.username)
         if (existingUser != null) {
-            throw UserBadRequestException("Ya existe un usuario con username: ${entity.username}")
+            throw UserException.BadRequest("Ya existe un usuario con username: ${entity.username}")
         }
 
         val user =
@@ -80,7 +79,7 @@ class UsersServiceImpl(
         // No lo necesitamos, pero lo dejamos por si acaso
         val existingUser = repository.findByUsername(entity.username)
         if (existingUser != null && existingUser.id != id) {
-            throw UserBadRequestException("Ya existe un usuario con username: ${entity.username}")
+            throw UserException.BadRequest("Ya existe un usuario con username: ${entity.username}")
         }
 
         val user =

@@ -48,6 +48,8 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Subida de información](#subida-de-información)
       - [Request validation](#request-validation)
+      - [Status Pages](#status-pages)
+    - [Excepciones personalizadas](#excepciones-personalizadas)
     - [WebSockets](#websockets)
     - [SSL y Certificados](#ssl-y-certificados)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
@@ -596,6 +598,50 @@ install(RequestValidation) {
 }
 ```
 
+#### Status Pages
+Ktor nos ofrece poder [personalizar las páginas de error](https://ktor.io/docs/status-pages.html) que se muestran al usuario.
+
+De esta manera, a la hora de trabajar con las excepciones podemos desviarlas a este sistema y ofrecer una respuesta con su código de estado de error correspondiente y un mensaje personalizado.
+
+```kotlin
+install(StatusPages) {
+    exception<AuthenticationException> { cause ->
+        call.respond(HttpStatusCode.Unauthorized, "Not Authenticated")
+    }
+    exception<AuthorizationException> { cause ->
+        call.respond(HttpStatusCode.Forbidden, "Not Authorized")
+    }
+    exception<UserException.NotFound> { cause ->
+        call.respond(HttpStatusCode.NotFound, cause.message)
+    }
+
+}
+```
+
+### Excepciones personalizadas
+Aunque no es la mejor técnica, pues hay otras mejores como Railway Oriented Programming, podemos usar excepciones personalizadas para controlar los errores de nuestra aplicación.
+
+Podemos lanzarlas con throw, y capturarlas con try/catch, o podemos usar la Status Pages para capturarlas y devolver una respuesta predeterminada
+
+```kotlin
+sealed class RaquetaException(message: String) : RuntimeException(message) {
+    class NotFound(message: String) : RaquetaException(message)
+    class BadRequest(message: String) : RaquetaException(message)
+    class ConflictIntegrity(message: String) : RaquetaException(message)
+    class RepresentanteNotFound(message: String) : RaquetaException(message)
+}
+```
+
+```kotlin
+override suspend fun findById(id: UUID): Raqueta {
+    logger.debug { "findById: Buscando raqueta en servicio con id: $id" }
+
+    return repository.findById(id)
+        ?: throw RaquetaException.NotFound("No se ha encontrado la raqueta con id: $id")
+
+}
+```
+
 ### WebSockets
 
 Ktor soporta [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) para crear aplicaciones que
@@ -1030,7 +1076,7 @@ La documentación de los endpoints se puede consultar en HTML realizada con Swag
 
 ## Recursos
 
-- Twitter: https://twitter.com/joseluisgonsan
+- Twitter: https://twitter.com/JoseLuisGS_
 - GitHub: https://github.com/joseluisgs
 - Web: https://joseluisgs.github.io
 - Discord del módulo: https://discord.gg/RRGsXfFDya
@@ -1038,9 +1084,9 @@ La documentación de los endpoints se puede consultar en HTML realizada con Swag
 
 ## Autor
 
-Codificado con :sparkling_heart: por [José Luis González Sánchez](https://twitter.com/joseluisgonsan)
+Codificado con :sparkling_heart: por [José Luis González Sánchez](https://twitter.com/JoseLuisGS_)
 
-[![Twitter](https://img.shields.io/twitter/follow/JoseLuisGS_?style=social)](https://twitter.com/joseluisgonsan)
+[![Twitter](https://img.shields.io/twitter/follow/JoseLuisGS_?style=social)](https://twitter.com/JoseLuisGS_)
 [![GitHub](https://img.shields.io/github/followers/joseluisgs?style=social)](https://github.com/joseluisgs)
 [![GitHub](https://img.shields.io/github/stars/joseluisgs?style=social)](https://github.com/joseluisgs)
 
@@ -1050,7 +1096,7 @@ Codificado con :sparkling_heart: por [José Luis González Sánchez](https://twi
   Cualquier cosa que necesites házmelo saber por si puedo ayudarte 💬.
 </p>
 <p>
- <a href="https://joseluisgs.github.io/" target="_blank">
+ <a href="https://joseluisgs.dev" target="_blank">
         <img src="https://joseluisgs.github.io/img/favicon.png" 
     height="30">
     </a>  &nbsp;&nbsp;
@@ -1058,7 +1104,7 @@ Codificado con :sparkling_heart: por [José Luis González Sánchez](https://twi
         <img src="https://distreau.com/github.svg" 
     height="30">
     </a> &nbsp;&nbsp;
-        <a href="https://twitter.com/joseluisgonsan" target="_blank">
+        <a href="https://twitter.com/JoseLuisGS_" target="_blank">
         <img src="https://i.imgur.com/U4Uiaef.png" 
     height="30">
     </a> &nbsp;&nbsp;
