@@ -48,6 +48,8 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Peticiones multiparte](#peticiones-multiparte)
       - [Subida de información](#subida-de-información)
       - [Request validation](#request-validation)
+      - [Status Pages](#status-pages)
+    - [Excepciones personalizadas](#excepciones-personalizadas)
     - [WebSockets](#websockets)
     - [SSL y Certificados](#ssl-y-certificados)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
@@ -593,6 +595,50 @@ install(RequestValidation) {
             ValidationResult.Invalid("A customer ID should be greater than 0")
         else ValidationResult.Valid
     }
+}
+```
+
+#### Status Pages
+Ktor nos ofrece poder [personalizar las páginas de error](https://ktor.io/docs/status-pages.html) que se muestran al usuario.
+
+De esta manera, a la hora de trabajar con las excepciones podemos desviarlas a este sistema y ofrecer una respuesta con su código de estado de error correspondiente y un mensaje personalizado.
+
+```kotlin
+install(StatusPages) {
+    exception<AuthenticationException> { cause ->
+        call.respond(HttpStatusCode.Unauthorized, "Not Authenticated")
+    }
+    exception<AuthorizationException> { cause ->
+        call.respond(HttpStatusCode.Forbidden, "Not Authorized")
+    }
+    exception<UserException.NotFound> { cause ->
+        call.respond(HttpStatusCode.NotFound, cause.message)
+    }
+
+}
+```
+
+### Excepciones personalizadas
+Aunque no es la mejor técnica, pues hay otras mejores como Railway Oriented Programming, podemos usar excepciones personalizadas para controlar los errores de nuestra aplicación.
+
+Podemos lanzarlas con throw, y capturarlas con try/catch, o podemos usar la Status Pages para capturarlas y devolver una respuesta predeterminada
+
+```kotlin
+sealed class RaquetaException(message: String) : RuntimeException(message) {
+    class NotFound(message: String) : RaquetaException(message)
+    class BadRequest(message: String) : RaquetaException(message)
+    class ConflictIntegrity(message: String) : RaquetaException(message)
+    class RepresentanteNotFound(message: String) : RaquetaException(message)
+}
+```
+
+```kotlin
+override suspend fun findById(id: UUID): Raqueta {
+    logger.debug { "findById: Buscando raqueta en servicio con id: $id" }
+
+    return repository.findById(id)
+        ?: throw RaquetaException.NotFound("No se ha encontrado la raqueta con id: $id")
+
 }
 ```
 
