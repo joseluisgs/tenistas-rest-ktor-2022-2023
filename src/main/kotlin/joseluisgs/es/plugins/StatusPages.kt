@@ -8,6 +8,7 @@ import io.ktor.server.response.*
 import joseluisgs.es.services.tokens.TokenException
 import joseluisgs.es.statuspages.raquetasStatusPages
 import joseluisgs.es.statuspages.representantesStatusPages
+import joseluisgs.es.statuspages.tenistasStatusPages
 import joseluisgs.es.utils.UUIDException
 
 fun Application.configureStatusPages() {
@@ -34,6 +35,7 @@ fun Application.configureStatusPages() {
         // Paquete StatusPages
         representantesStatusPages()
         raquetasStatusPages()
+        tenistasStatusPages()
     }
 }
 
