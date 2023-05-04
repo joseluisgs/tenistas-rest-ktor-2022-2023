@@ -6,8 +6,7 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import joseluisgs.es.exceptions.UserNotFoundException
-import joseluisgs.es.exceptions.UserUnauthorizedException
+import joseluisgs.es.exceptions.UserException
 import joseluisgs.es.models.User
 import joseluisgs.es.repositories.users.UsersRepositoryImpl
 import kotlinx.coroutines.flow.flowOf
@@ -80,7 +79,7 @@ class UsersServiceImplTest {
     fun findByIdNotFound() = runTest {
         coEvery { repository.findById(any()) } returns null
 
-        val res = assertThrows<UserNotFoundException> {
+        val res = assertThrows<UserException.NotFound> {
             service.findById(user.id)
         }
 
@@ -107,7 +106,7 @@ class UsersServiceImplTest {
     fun findByUsernameNotFound() = runTest {
         coEvery { repository.findByUsername(any()) } returns null
 
-        val res = assertThrows<UserNotFoundException> {
+        val res = assertThrows<UserException.NotFound> {
             service.findByUsername(user.username)
         }
 
@@ -145,7 +144,7 @@ class UsersServiceImplTest {
     fun checkUserNameAndPasswordNotFound() = runTest {
         coEvery { repository.checkUserNameAndPassword(any(), any()) } returns null
 
-        val res = assertThrows<UserUnauthorizedException> {
+        val res = assertThrows<UserException.NotFound> {
             service.checkUserNameAndPassword(user.username, "test1234")
         }
 

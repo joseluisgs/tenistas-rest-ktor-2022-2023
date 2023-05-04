@@ -74,7 +74,7 @@ fun Application.storageRoutes() {
                 delete("{fileName}") {
                     logger.debug { "DELETE /$ENDPOINT/{fileName}" }
 
-                    val jwt = call.principal<JWTPrincipal>()
+                    call.principal<JWTPrincipal>()
                     // Recuperamos el nombre del fichero
                     val fileName = call.parameters["fileName"].toString()
                     // Recuperamos el fichero

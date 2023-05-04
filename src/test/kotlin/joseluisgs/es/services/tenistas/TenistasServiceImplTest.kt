@@ -6,7 +6,7 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import joseluisgs.es.exceptions.TenistaNotFoundException
+import joseluisgs.es.exceptions.TenistaException
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.Tenista
 import joseluisgs.es.repositories.raquetas.RaquetasRepositoryImpl
@@ -110,7 +110,7 @@ class TenistasServiceImplTest {
     fun findByIdNotFound() = runTest {
         coEvery { repository.findById(any()) } returns null
 
-        val res = assertThrows<TenistaNotFoundException> {
+        val res = assertThrows<TenistaException.NotFound> {
             service.findById(tenista.id)
         }
 
@@ -181,10 +181,10 @@ class TenistasServiceImplTest {
 
     @Test
     fun updateNotFound() = runTest {
-        coEvery { repository.findById(any()) } throws TenistaNotFoundException("No se ha encontrado el tenista con id: ${tenista.id}")
+        coEvery { repository.findById(any()) } throws TenistaException.NotFound("No se ha encontrado el tenista con id: ${tenista.id}")
         coEvery { repository.update(any(), any()) } returns null
 
-        val res = assertThrows<TenistaNotFoundException> {
+        val res = assertThrows<TenistaException.NotFound> {
             service.update(tenista.id, tenista)
         }
 
@@ -212,9 +212,9 @@ class TenistasServiceImplTest {
 
     @Test
     fun deleteNotFound() = runTest {
-        coEvery { repository.findById(any()) } throws TenistaNotFoundException("No se ha encontrado el tenista con id: ${tenista.id}")
+        coEvery { repository.findById(any()) } throws TenistaException.NotFound("No se ha encontrado el tenista con id: ${tenista.id}")
 
-        val res = assertThrows<TenistaNotFoundException> {
+        val res = assertThrows<TenistaException.NotFound> {
             service.delete(UUID.randomUUID())
         }
 

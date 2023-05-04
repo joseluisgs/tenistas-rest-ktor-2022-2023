@@ -113,7 +113,7 @@ fun Application.usersRoutes() {
                     // ya tenemos el usuario, ahora actualizamos porque es multiparte
                     // Pueden venir los datos y la imagen
                     logger.debug { "Tomando datos multiparte" }
-                    var newFileName: String = ""
+                    var newFileName = ""
                     val multipartData = call.receiveMultipart()
                     multipartData.forEachPart { part ->
                         // Analizamos el tipo si es fichero

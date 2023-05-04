@@ -6,9 +6,7 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import joseluisgs.es.exceptions.RaquetaConflictIntegrityException
-import joseluisgs.es.exceptions.RaquetaNotFoundException
-import joseluisgs.es.exceptions.RepresentanteNotFoundException
+import joseluisgs.es.exceptions.RaquetaException
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.Representante
 import joseluisgs.es.repositories.raquetas.RaquetasCachedRepositoryImpl
@@ -103,7 +101,7 @@ class RaquetasServiceImplTest {
     fun findByIdNotFound() = runTest {
         coEvery { repository.findById(any()) } returns null
 
-        val res = assertThrows<RaquetaNotFoundException> {
+        val res = assertThrows<RaquetaException.NotFound> {
             service.findById(raqueta.id)
         }
 
@@ -145,10 +143,10 @@ class RaquetasServiceImplTest {
 
     @Test
     fun saveRepresentanteNotExists() = runTest {
-        coEvery { represetantesRepository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${raqueta.representanteId}")
+        coEvery { represetantesRepository.findById(any()) } throws RaquetaException.RepresentanteNotFound("No se ha encontrado el representante con id: ${raqueta.representanteId}")
         coEvery { repository.save(any()) } returns raqueta
 
-        val res = assertThrows<RepresentanteNotFoundException> {
+        val res = assertThrows<RaquetaException.RepresentanteNotFound> {
             service.save(raqueta)
         }
 
@@ -176,10 +174,10 @@ class RaquetasServiceImplTest {
 
     @Test
     fun updateNotFound() = runTest {
-        coEvery { repository.findById(any()) } throws RaquetaNotFoundException("No se ha encontrado la raqueta con id: ${raqueta.id}")
+        coEvery { repository.findById(any()) } throws RaquetaException.NotFound("No se ha encontrado la raqueta con id: ${raqueta.id}")
         coEvery { repository.update(any(), any()) } returns null
 
-        val res = assertThrows<RaquetaNotFoundException> {
+        val res = assertThrows<RaquetaException.NotFound> {
             service.update(raqueta.id, raqueta)
         }
 
@@ -191,10 +189,10 @@ class RaquetasServiceImplTest {
 
     @Test
     fun updateRepresentanteNotExists() = runTest {
-        coEvery { represetantesRepository.findById(any()) } throws RepresentanteNotFoundException("No se ha encontrado el representante con id: ${raqueta.representanteId}")
+        coEvery { represetantesRepository.findById(any()) } throws RaquetaException.RepresentanteNotFound("No se ha encontrado el representante con id: ${raqueta.representanteId}")
         coEvery { repository.update(any(), any()) } returns raqueta
 
-        val res = assertThrows<RepresentanteNotFoundException> {
+        val res = assertThrows<RaquetaException.RepresentanteNotFound> {
             service.update(raqueta.id, raqueta)
         }
 
@@ -222,9 +220,9 @@ class RaquetasServiceImplTest {
 
     @Test
     fun deleteNotFound() = runTest {
-        coEvery { repository.findById(any()) } throws RaquetaNotFoundException("No se ha encontrado la raqueta con id: ${raqueta.id}")
+        coEvery { repository.findById(any()) } throws RaquetaException.RepresentanteNotFound("No se ha encontrado la raqueta con id: ${raqueta.id}")
 
-        val res = assertThrows<RaquetaNotFoundException> {
+        val res = assertThrows<RaquetaException.RepresentanteNotFound> {
             service.delete(UUID.randomUUID())
         }
 
@@ -237,9 +235,9 @@ class RaquetasServiceImplTest {
     fun deleteNotRaquetaConflict() = runTest {
         val uuid = "86084458-4733-4d71-a3db-34b50cd8d68f".toUUID()
         coEvery { repository.findById(any()) } returns raqueta
-        coEvery { repository.delete(any()) } throws RaquetaConflictIntegrityException("No se puede borrar la raqueta con id: $uuid porque tiene tenista asociados")
+        coEvery { repository.delete(any()) } throws RaquetaException.ConflictIntegrity("No se puede borrar la raqueta con id: $uuid porque tiene tenista asociados")
 
-        val res = assertThrows<RaquetaConflictIntegrityException> {
+        val res = assertThrows<RaquetaException.ConflictIntegrity> {
             service.delete(uuid)
         }
 

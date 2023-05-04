@@ -7,7 +7,7 @@ import io.ktor.server.routing.*
 // Vamos a crear una ruta web, para ello usamos una función de extensión de la clase Router
 // La llamamos webContent y le decimos el contenido que queremos que se muestre
 fun Application.webRoutes() {
-    
+
     routing {
         // Contenido estático, desde la carpeta resources cuando entran a /web
         static {
