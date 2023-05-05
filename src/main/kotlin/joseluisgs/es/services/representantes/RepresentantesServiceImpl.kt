@@ -1,6 +1,10 @@
 package joseluisgs.es.services.representantes
 
-import joseluisgs.es.exceptions.RepresentanteException
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.andThen
+import joseluisgs.es.errors.RepresentanteError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Representante
@@ -62,13 +66,12 @@ class RepresentantesServiceImpl(
      * @return representante en base a su id
      * @throws RepresentanteNotFoundException representante no encontrado con el identificador
      */
-    override suspend fun findById(id: UUID): Representante {
+    override suspend fun findById(id: UUID): Result<Representante, RepresentanteError> {
         logger.debug { "findById: Buscando representante en servicio con id: $id" }
 
-        // return repository.findById(id) ?: throw NoSuchElementException("No se ha encontrado el representante con id: $id")
-        return repository.findById(id)
-            ?: throw RepresentanteException.NotFound("No se ha encontrado el representante con id: $id")
-
+        return repository.findById(id)?.let {
+            Ok(it)
+        } ?: Err(RepresentanteError.NotFound("No se ha encontrado el representante con id: $id"))
     }
 
     /**
@@ -87,12 +90,11 @@ class RepresentantesServiceImpl(
      * @param representante Representante a salvar
      * @return Representante en el sistema de almacenamiento
      */
-    override suspend fun save(representante: Representante): Representante {
+    override suspend fun save(representante: Representante): Result<Representante, RepresentanteError> {
         logger.debug { "create: Creando representante en servicio" }
 
-        // Insertamos el representante y devolvemos el resultado y avisa a los subscriptores
-        return repository.save(representante)
-            .also { onChange(Notificacion.Tipo.CREATE, it.id, it) }
+        return Ok(repository.save(representante))
+            .also { onChange(Notificacion.Tipo.CREATE, it.value.id, it.value) }
     }
 
     /**
@@ -102,15 +104,13 @@ class RepresentantesServiceImpl(
      * @return Representante actualizado
      * @throws RepresentanteNotFoundException representante no encontrado con el identificador
      */
-    override suspend fun update(id: UUID, representante: Representante): Representante {
+    override suspend fun update(id: UUID, representante: Representante): Result<Representante, RepresentanteError> {
         logger.debug { "update: Actualizando representante en servicio" }
 
-        val existe = repository.findById(id)
-
-        existe?.let {
-            return repository.update(id, representante)
-                ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw RepresentanteException.NotFound("No se ha encontrado el representante con id: $id")
+        return findById(id).andThen {
+            Ok(repository.update(id, representante)!!)
+                .also { onChange(Notificacion.Tipo.UPDATE, it.value.id, it.value) }
+        }
     }
 
     /**
@@ -120,21 +120,17 @@ class RepresentantesServiceImpl(
      * @throws RepresentanteNotFoundException representante no encontrado con el identificador
      * @throws RepresentanteConflictIntegrityException no se pudo eliminar debido a que tiene raquetas asociadas
      */
-    override suspend fun delete(id: UUID): Representante {
+    override suspend fun delete(id: UUID): Result<Representante, RepresentanteError> {
         logger.debug { "delete: Borrando representante en servicio" }
 
-        val existe = repository.findById(id)
-
-        existe?.let {
-            // meto el try catch para que no se caiga la aplicación si no se puede borrar por tener raquetas asociadas
+        return findById(id).andThen { it ->
             try {
-                return repository.delete(existe)
-                    .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
+                Ok(repository.delete(it)!!)
+                    .also { r -> onChange(Notificacion.Tipo.DELETE, r.value.id, r.value) }
             } catch (e: Exception) {
-                throw RepresentanteException.ConflictIntegrity("No se puede borrar el representante con id: $id porque tiene raquetas asociadas")
+                Err(RepresentanteError.ConflictIntegrity("No se puede borrar el representante con id: $id porque tiene raquetas asociadas"))
             }
-        } ?: throw RepresentanteException.NotFound("No se ha encontrado el representante con id: $id")
-
+        }
     }
 
     /// ---- Tiempo real, patrón observer!!!

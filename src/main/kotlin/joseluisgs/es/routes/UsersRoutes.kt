@@ -51,7 +51,7 @@ fun Application.usersRoutes() {
                 usersService.save(dto)
                     .mapBoth(
                         success = { call.respond(HttpStatusCode.Created, it.toDto()) },
-                        failure = { handleError(it) }
+                        failure = { handleUserError(it) }
                     )
             }
 
@@ -66,7 +66,7 @@ fun Application.usersRoutes() {
                             val token = tokenService.generateJWT(user)
                             call.respond(HttpStatusCode.OK, UserWithTokenDto(user.toDto(), token))
                         },
-                        failure = { handleError(it) }
+                        failure = { handleUserError(it) }
                     )
             }
 
@@ -86,7 +86,7 @@ fun Application.usersRoutes() {
                     usersService.findById(userUuid)
                         .mapBoth(
                             success = { call.respond(HttpStatusCode.OK, it.toDto()) },
-                            failure = { handleError(it) }
+                            failure = { handleUserError(it) }
                         )
                 }
 
@@ -112,7 +112,7 @@ fun Application.usersRoutes() {
                         )
                     }.mapBoth(
                         success = { call.respond(HttpStatusCode.OK, it.toDto()) },
-                        failure = { handleError(it) }
+                        failure = { handleUserError(it) }
                     )
                 }
 
@@ -154,7 +154,7 @@ fun Application.usersRoutes() {
                         usersService.update(it.id, it.copy(avatar = newFileName))
                     }.mapBoth(
                         success = { call.respond(HttpStatusCode.OK, it.toDto()) },
-                        failure = { handleError(it) }
+                        failure = { handleUserError(it) }
                     )
                 }
 
@@ -172,7 +172,7 @@ fun Application.usersRoutes() {
                                 .map { it.toDto() }
                                 .let { call.respond(HttpStatusCode.OK, it) }
                         }.onFailure {
-                            handleError(it)
+                            handleUserError(it)
                         }
                 }
             }
@@ -181,12 +181,11 @@ fun Application.usersRoutes() {
 }
 
 // Manejador de errores
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleError(
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleUserError(
     error: UserError
 ) {
     when (error) {
         is UserError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
-        is UserError.HashPassword -> call.respond(HttpStatusCode.InternalServerError, error.message)
         is UserError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
         is UserError.Unauthorized -> call.respond(HttpStatusCode.Unauthorized, error.message)
         is UserError.Forbidden -> call.respond(HttpStatusCode.Forbidden, error.message)
