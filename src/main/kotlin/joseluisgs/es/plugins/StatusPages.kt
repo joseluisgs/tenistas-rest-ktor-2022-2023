@@ -7,7 +7,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import joseluisgs.es.exceptions.StorageException
 import joseluisgs.es.services.tokens.TokenException
-import joseluisgs.es.statuspages.tenistasStatusPages
 import joseluisgs.es.utils.UUIDException
 
 fun Application.configureStatusPages() {
@@ -42,7 +41,6 @@ fun Application.configureStatusPages() {
         // Ahora podemos poner los que queramos, poco a poco los vamos poniendo y limpiando el código
         // De los enrutadores, de hecho me los voy a sacar a una nuevas funciones para que quede más limpio
         // Paquete StatusPages
-        tenistasStatusPages()
     }
 }
 
