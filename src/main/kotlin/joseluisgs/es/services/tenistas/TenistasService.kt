@@ -1,5 +1,7 @@
 package joseluisgs.es.services.tenistas
 
+import com.github.michaelbull.result.Result
+import joseluisgs.es.errors.TenistaError
 import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.Tenista
 import joseluisgs.es.models.TenistasNotification
@@ -9,13 +11,13 @@ import java.util.*
 interface TenistasService {
     suspend fun findAll(): Flow<Tenista>
     suspend fun findAllPageable(page: Int, perPage: Int): Flow<Tenista>
-    suspend fun findById(id: UUID): Tenista
+    suspend fun findById(id: UUID): Result<Tenista, TenistaError>
     suspend fun findByNombre(nombre: String): Flow<Tenista>
-    suspend fun findByRanking(ranking: Int): Tenista
-    suspend fun save(tenista: Tenista): Tenista
-    suspend fun update(id: UUID, tenista: Tenista): Tenista
-    suspend fun delete(id: UUID): Tenista
-    suspend fun findRaqueta(raquetaId: UUID?): Raqueta?
+    suspend fun findByRanking(ranking: Int): Result<Tenista, TenistaError>
+    suspend fun save(tenista: Tenista): Result<Tenista, TenistaError>
+    suspend fun update(id: UUID, tenista: Tenista): Result<Tenista, TenistaError>
+    suspend fun delete(id: UUID): Result<Tenista, TenistaError>
+    suspend fun findRaqueta(raquetaId: UUID?): Result<Raqueta?, TenistaError>
 
     // Suscripción a cambios para notificar tiempo real
     fun addSuscriptor(id: Int, suscriptor: suspend (TenistasNotification) -> Unit)

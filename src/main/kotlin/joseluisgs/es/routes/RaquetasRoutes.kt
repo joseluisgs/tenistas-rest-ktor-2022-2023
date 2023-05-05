@@ -191,7 +191,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleRaquetaErrors(
     when (error) {
         is RaquetaError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
         is RaquetaError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
-        is RaquetaError.ConflictIntegrity -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is RaquetaError.ConflictIntegrity -> call.respond(HttpStatusCode.Conflict, error.message)
         is RaquetaError.RepresentanteNotFound -> call.respond(HttpStatusCode.BadRequest, error.message)
     }
 }

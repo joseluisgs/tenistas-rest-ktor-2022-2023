@@ -163,6 +163,6 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleRepresentanteEr
     when (error) {
         is RepresentanteError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
         is RepresentanteError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
-        is RepresentanteError.ConflictIntegrity -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is RepresentanteError.ConflictIntegrity -> call.respond(HttpStatusCode.Conflict, error.message)
     }
 }

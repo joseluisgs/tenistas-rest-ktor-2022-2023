@@ -1,7 +1,8 @@
 package joseluisgs.es.services.tenistas
 
 
-import joseluisgs.es.exceptions.TenistaException
+import com.github.michaelbull.result.*
+import joseluisgs.es.errors.TenistaError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Raqueta
@@ -43,12 +44,12 @@ class TenistasServiceImpl(
         return@withContext repository.findAllPageable(page, perPage)
     }
 
-    override suspend fun findById(id: UUID): Tenista {
+    override suspend fun findById(id: UUID): Result<Tenista, TenistaError> {
         logger.debug { "findById: Buscando tenista en servicio con id: $id" }
 
         return repository.findById(id)
-            ?: throw TenistaException.NotFound("No se ha encontrado el tenista con id: $id")
-
+            ?.let { Ok(it) }
+            ?: Err(TenistaError.NotFound("No se ha encontrado el tenista con id: $id"))
     }
 
     override suspend fun findByNombre(nombre: String): Flow<Tenista> {
@@ -57,59 +58,69 @@ class TenistasServiceImpl(
         return repository.findByNombre(nombre)
     }
 
-    override suspend fun findByRanking(ranking: Int): Tenista {
+    override suspend fun findByRanking(ranking: Int): Result<Tenista, TenistaError> {
         logger.debug { "findByRanking: Buscando tenistas en servicio con ranking: $ranking" }
 
         return repository.findByRanking(ranking)
-            ?: throw TenistaException.NotFound("No se ha encontrado el tenista con ranking: $ranking")
+            ?.let { Ok(it) }
+            ?: Err(TenistaError.NotFound("No se ha encontrado el tenista con ranking: $ranking"))
     }
 
-    override suspend fun save(tenista: Tenista): Tenista {
+    override suspend fun save(tenista: Tenista): Result<Tenista, TenistaError> {
         logger.debug { "create: Creando tenistas en servicio" }
 
-        // Existe la raqueta!!
-        val raqueta = findRaqueta(tenista.raquetaId)
-
-        // Insertamos el representante y devolvemos el resultado y avisa a los subscriptores
-        return repository.save(tenista)
-            .also { onChange(Notificacion.Tipo.CREATE, it.id, it) }
+        // Es verdad cuando falla, pues no existe el el ranking!!!
+        return findByRanking(tenista.ranking).onSuccess {
+            // Si no hay otro con el mismo ranking, error
+            return Err(TenistaError.BadRequest("Ya existe un tenista con el ranking: ${tenista.ranking} y es: ${it.nombre}"))
+        }.onFailure {
+            // Hsy otro con el mismo tanking??
+            return findRaqueta(tenista.raquetaId).andThen {
+                Ok(repository.save(tenista)).also {
+                    onChange(Notificacion.Tipo.CREATE, it.value.id, it.value)
+                }
+            }
+        }
     }
 
-    override suspend fun update(id: UUID, tenista: Tenista): Tenista {
+    override suspend fun update(id: UUID, tenista: Tenista): Result<Tenista, TenistaError> {
         logger.debug { "update: Actualizando tenista en servicio" }
 
-        val existe = repository.findById(id)
-
-        // Existe la raqueta!!
-        val raqueta = findRaqueta(tenista.raquetaId)
-
-        existe?.let {
-            return repository.update(id, tenista)
-                ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw TenistaException.NotFound("No se ha encontrado el tenista con id: $id")
+        return findById(id).andThen {
+            findRaqueta(tenista.raquetaId)
+        }.andThen {
+            // Buscamos si hay otro con el mismo ranking
+            findByRanking(tenista.ranking).onSuccess {
+                // Si el id es el mismo, no hay problema, soy yo!!!
+                if (it.id != id) {
+                    return Err(TenistaError.BadRequest("Ya existe un tenista con el ranking: ${tenista.ranking} y es: ${it.nombre}"))
+                }
+            }
+            // Si no hay otro con el mismo ranking, actualizamos
+            return Ok(repository.update(id, tenista)!!).also {
+                onChange(Notificacion.Tipo.UPDATE, it.value.id, it.value)
+            }
+        }
     }
 
-    override suspend fun delete(id: UUID): Tenista {
+    override suspend fun delete(id: UUID): Result<Tenista, TenistaError> {
         logger.debug { "delete: Borrando tenista en servicio" }
 
-        val existe = repository.findById(id)
-
-        existe?.let {
-            // meto el try catch para que no se caiga la aplicación si no se puede borrar por tener raquetas asociadas
-            return repository.delete(existe)
-                .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
-
-        } ?: throw TenistaException.NotFound("No se ha encontrado el tenista con id: $id")
-
+        return findById(id).andThen {
+            Ok(repository.delete(it)!!).also { r ->
+                onChange(Notificacion.Tipo.DELETE, r.value.id, r.value)
+            }
+        }
     }
 
-    override suspend fun findRaqueta(raquetaId: UUID?): Raqueta? {
+    override suspend fun findRaqueta(raquetaId: UUID?): Result<Raqueta?, TenistaError> {
         logger.debug { "findRaqueta: Buscando raqueta en servicio" }
 
         raquetaId?.let {
-            return raquetasRepository.findById(raquetaId)
-                ?: throw TenistaException.RaquetaNotFound("No se ha encontrado la raqueta con id: $raquetaId")
-        } ?: return null
+            return raquetasRepository.findById(it)
+                ?.let { r -> Ok(r) }
+                ?: Err(TenistaError.RaquetaNotFound("No se ha encontrado la raqueta con id: $raquetaId"))
+        } ?: return Ok(null)
     }
 
     /// ---- Tiempo real, patrón observer!!!
@@ -145,7 +156,7 @@ class TenistasServiceImpl(
                     "TENISTA",
                     tipo,
                     id,
-                    data?.toDto(findRaqueta(data.raquetaId))
+                    data?.toDto(findRaqueta(data.raquetaId).get())
                 )
             )
         }
