@@ -131,7 +131,6 @@ class RepresentantesServiceImplTest {
         )
 
         coVerify { repository.save(any()) }
-
     }
 
     @Test
@@ -178,7 +177,6 @@ class RepresentantesServiceImplTest {
         )
 
         coVerify { repository.delete(any()) }
-
     }
 
     @Test

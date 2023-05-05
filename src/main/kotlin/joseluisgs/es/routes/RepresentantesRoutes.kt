@@ -36,6 +36,7 @@ fun Application.representantesRoutes() {
         route("/$ENDPOINT") {
             // Get all -> /
             get {
+
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
@@ -58,6 +59,7 @@ fun Application.representantesRoutes() {
             // Get by id -> /{id}
             get("{id}") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}" }
+
                 // Obtenemos el id
                 val id = call.parameters["id"]?.toUUID()!!
 
@@ -98,6 +100,7 @@ fun Application.representantesRoutes() {
             // Delete -> /{id}
             delete("{id}") {
                 logger.debug { "DELETE /$ENDPOINT/{id}" }
+
                 val id = call.parameters["id"]?.toUUID()!!
 
                 representantesService.delete(id)
@@ -113,7 +116,9 @@ fun Application.representantesRoutes() {
                 // Es similar a la página, podemos crear las busquedas que queramos o necesitemos
                 // se puede combinar varias
                 logger.debug { "GET BY NOMBRE /$ENDPOINT/find?nombre={nombre}" }
+
                 val nombre = call.request.queryParameters["nombre"]
+
                 nombre?.let {
                     representantesService.findByNombre(nombre)
                         .toList()

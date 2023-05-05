@@ -1,15 +1,20 @@
 package joseluisgs.es.routes
 
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
+import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.mapBoth
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.RaquetaCreateDto
 import joseluisgs.es.dto.RaquetasPageDto
+import joseluisgs.es.errors.RaquetaError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.raquetas.RaquetasService
@@ -33,6 +38,7 @@ fun Application.raquetasRoutes() {
         route("/$ENDPOINT") {
             // Get all -> /
             get {
+
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
@@ -42,13 +48,13 @@ fun Application.raquetasRoutes() {
                     // Procesamos el flow
                     val res = raquetasService.findAllPageable(page - 1, perPage)
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!) }
                         .let { res -> call.respond(HttpStatusCode.OK, RaquetasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
                     val res = raquetasService.findAll()
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 }
             }
@@ -56,38 +62,53 @@ fun Application.raquetasRoutes() {
             // Get by id -> /{id}
             get("{id}") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}" }
+
                 // Obtenemos el id
                 val id = call.parameters["id"]?.toUUID()!!
-                val raqueta = raquetasService.findById(id)
-                call.respond(
-                    HttpStatusCode.OK, raqueta.toDto(
-                        raquetasService.findRepresentante(raqueta.representanteId)
-                    )
+
+                raquetasService.findById(id).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!)
+                        )
+                    },
+                    failure = { handleRaquetaErrors(it) }
                 )
             }
 
             // Post -> /
             post {
                 logger.debug { "POST /$ENDPOINT" }
+
                 val dto = call.receive<RaquetaCreateDto>()
-                val raqueta = raquetasService.save(dto.toModel())
-                call.respond(
-                    HttpStatusCode.Created, raqueta.toDto(
-                        raquetasService.findRepresentante(raqueta.representanteId)
-                    )
+
+                raquetasService.save(dto.toModel()).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.Created,
+                            it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!)
+                        )
+                    },
+                    failure = { handleRaquetaErrors(it) }
                 )
             }
 
             // Put -> /{id}
             put("{id}") {
                 logger.debug { "PUT /$ENDPOINT/{id}" }
+
                 val id = call.parameters["id"]?.toUUID()!!
                 val dto = call.receive<RaquetaCreateDto>()
-                val representante = raquetasService.update(id, dto.toModel())
-                call.respond(
-                    HttpStatusCode.OK, representante.toDto(
-                        raquetasService.findRepresentante(representante.representanteId)
-                    )
+
+                raquetasService.update(id, dto.toModel()).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!)
+                        )
+                    },
+                    failure = { handleRaquetaErrors(it) }
                 )
             }
 
@@ -96,10 +117,11 @@ fun Application.raquetasRoutes() {
                 logger.debug { "DELETE /$ENDPOINT/{id}" }
 
                 val id = call.parameters["id"]?.toUUID()!!
-                val representante = raquetasService.delete(id)
-                // Decidimos si devolver un 200 o un 204 (No Content)
-                call.respond(HttpStatusCode.NoContent)
 
+                raquetasService.delete(id).mapBoth(
+                    success = { call.respond(HttpStatusCode.NoContent) },
+                    failure = { handleRaquetaErrors(it) }
+                )
             }
 
             // Otros métodos de búsqueda
@@ -108,11 +130,13 @@ fun Application.raquetasRoutes() {
                 // Es similar a la página, podemos crear las busquedas que queramos o necesitemos
                 // se puede combinar varias
                 logger.debug { "GET BY MARCA /$ENDPOINT/find?marca={marca}" }
+
                 val marca = call.request.queryParameters["marca"]
+
                 marca?.let {
                     val res = raquetasService.findByMarca(marca)
                         .toList()
-                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId)) }
+                        .map { it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
@@ -122,9 +146,13 @@ fun Application.raquetasRoutes() {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}/representante" }
 
                 val id = call.parameters["id"]?.toUUID()!!
-                val raqueta = raquetasService.findById(id)
-                val representante = raquetasService.findRepresentante(raqueta.representanteId)
-                call.respond(HttpStatusCode.OK, representante.toDto())
+
+                raquetasService.findById(id).andThen {
+                    raquetasService.findRepresentante(it.representanteId)
+                }.mapBoth(
+                    success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                    failure = { handleRaquetaErrors(it) }
+                )
             }
         }
         // Lo he sacado de esta ruta para que sea más fácil de leer desde updates!!
@@ -154,5 +182,16 @@ fun Application.raquetasRoutes() {
                 raquetasService.removeSuscriptor(this.hashCode())
             }
         }
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleRaquetaErrors(
+    error: RaquetaError,
+) {
+    when (error) {
+        is RaquetaError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
+        is RaquetaError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is RaquetaError.ConflictIntegrity -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is RaquetaError.RepresentanteNotFound -> call.respond(HttpStatusCode.BadRequest, error.message)
     }
 }
