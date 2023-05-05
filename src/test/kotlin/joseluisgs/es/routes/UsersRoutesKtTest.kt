@@ -96,6 +96,7 @@ class UsersRoutesKtTest {
             setBody(userDto)
         }
 
+
         // Lanzamos la consulta
         val responseLogin = client.post("/api/users/login") {
             contentType(ContentType.Application.Json)

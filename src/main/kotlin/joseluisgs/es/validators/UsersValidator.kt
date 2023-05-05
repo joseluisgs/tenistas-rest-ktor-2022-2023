@@ -16,7 +16,7 @@ fun RequestValidationConfig.usersValidation() {
             ValidationResult.Invalid("El email no puede estar vacío")
             // validar email con regex
         } else if (!user.email.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)\$"))) {
-            ValidationResult.Invalid("El email no es válido")
+            ValidationResult.Invalid("El email no es válido o no tiene el formato correcto")
         } else if (user.username.isBlank() && user.username.length < 3) {
             ValidationResult.Invalid("El nombre de usuario no puede estar vacío")
         } else if (user.password.isBlank() || user.password.length < 7) {

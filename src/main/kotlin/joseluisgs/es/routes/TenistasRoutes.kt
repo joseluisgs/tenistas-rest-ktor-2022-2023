@@ -1,16 +1,20 @@
 package joseluisgs.es.routes
 
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
+import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.mapBoth
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.TenistaCreateDto
 import joseluisgs.es.dto.TenistasPageDto
-import joseluisgs.es.exceptions.TenistaException
+import joseluisgs.es.errors.TenistaError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.mappers.toTenistaDto
@@ -35,6 +39,7 @@ fun Application.tenistasRoutes() {
         route("/$ENDPOINT") {
             // Get all -> /
             get {
+
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
@@ -42,15 +47,15 @@ fun Application.tenistasRoutes() {
                 if (page != null && page > 0) {
                     logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
                     // Procesamos el flow
-                    val res = tenistasService.findAllPageable(page - 1, perPage)
+                    tenistasService.findAllPageable(page - 1, perPage)
                         .toList()
-                        .map { it.toDto(tenistasService.findRaqueta(it.raquetaId)) }
+                        .map { it.toDto(tenistasService.findRaqueta(it.raquetaId).get()) }
                         .let { res -> call.respond(HttpStatusCode.OK, TenistasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
-                    val res = tenistasService.findAll()
+                    tenistasService.findAll()
                         .toList()
-                        .map { it.toDto(tenistasService.findRaqueta(it.raquetaId)) }
+                        .map { it.toDto(tenistasService.findRaqueta(it.raquetaId).get()) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 }
             }
@@ -58,13 +63,17 @@ fun Application.tenistasRoutes() {
             // Get by id -> /{id}
             get("{id}") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}" }
-                // Obtenemos el id
+
                 val id = call.parameters["id"]?.toUUID()!!
-                val tenista = tenistasService.findById(id)
-                call.respond(
-                    HttpStatusCode.OK, tenista.toDto(
-                        tenistasService.findRaqueta(tenista.raquetaId)
-                    )
+
+                tenistasService.findById(id).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            it.toDto(tenistasService.findRaqueta(it.raquetaId).get())
+                        )
+                    },
+                    failure = { handleTenistaErrors(it) }
                 )
             }
 
@@ -73,24 +82,33 @@ fun Application.tenistasRoutes() {
                 logger.debug { "POST /$ENDPOINT" }
 
                 val dto = call.receive<TenistaCreateDto>()
-                val tenista = tenistasService.save(dto.toModel())
-                call.respond(
-                    HttpStatusCode.Created, tenista.toDto(
-                        tenistasService.findRaqueta(tenista.raquetaId)
-                    )
+
+                tenistasService.save(dto.toModel()).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.Created,
+                            it.toDto(tenistasService.findRaqueta(it.raquetaId).get())
+                        )
+                    },
+                    failure = { handleTenistaErrors(it) }
                 )
             }
 
             // Put -> /{id}
             put("{id}") {
                 logger.debug { "PUT /$ENDPOINT/{id}" }
+
                 val id = call.parameters["id"]?.toUUID()!!
                 val dto = call.receive<TenistaCreateDto>()
-                val tenista = tenistasService.update(id, dto.toModel())
-                call.respond(
-                    HttpStatusCode.OK, tenista.toDto(
-                        tenistasService.findRaqueta(tenista.raquetaId)
-                    )
+
+                tenistasService.update(id, dto.toModel()).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            it.toDto(tenistasService.findRaqueta(it.raquetaId).get())
+                        )
+                    },
+                    failure = { handleTenistaErrors(it) }
                 )
             }
 
@@ -99,9 +117,11 @@ fun Application.tenistasRoutes() {
                 logger.debug { "DELETE /$ENDPOINT/{id}" }
 
                 val id = call.parameters["id"]?.toUUID()!!
-                val representante = tenistasService.delete(id)
-                // Decidimos si devolver un 200 o un 204 (No Content)
-                call.respond(HttpStatusCode.NoContent)
+
+                tenistasService.delete(id).mapBoth(
+                    success = { call.respond(HttpStatusCode.NoContent) },
+                    failure = { handleTenistaErrors(it) }
+                )
             }
 
             // Otros métodos de búsqueda
@@ -109,12 +129,14 @@ fun Application.tenistasRoutes() {
             get("find") {
                 // Es similar a la página, podemos crear las busquedas que queramos o necesitemos
                 // se puede combinar varias
+
                 logger.debug { "GET BY MARCA /$ENDPOINT/find?nombre={nombre}" }
                 val nombre = call.request.queryParameters["nombre"]
+
                 nombre?.let {
-                    val res = tenistasService.findByNombre(nombre)
+                    tenistasService.findByNombre(nombre)
                         .toList()
-                        .map { it.toDto(tenistasService.findRaqueta(it.raquetaId)) }
+                        .map { it.toDto(tenistasService.findRaqueta(it.raquetaId).get()) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
                 } ?: call.respond(HttpStatusCode.BadRequest, "Falta el parámetro nombre")
             }
@@ -122,28 +144,35 @@ fun Application.tenistasRoutes() {
             // Get representante -> /{id}/representante
             get("{id}/raqueta") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}/raqueta" }
-                // Obtenemos el id
 
                 val id = call.parameters["id"]?.toUUID()!!
-                val tenista = tenistasService.findById(id)
-                val raqueta = tenistasService.findRaqueta(tenista.raquetaId)
-                raqueta?.let {
-                    call.respond(HttpStatusCode.OK, raqueta.toTenistaDto())
-                } ?: throw TenistaException.RaquetaNotFound("No se ha encontrado la raqueta")
+
+                tenistasService.findById(id).andThen {
+                    tenistasService.findRaqueta(it.raquetaId)
+                }.mapBoth(
+                    success = {
+                        it?.let {
+                            call.respond(HttpStatusCode.OK, it.toTenistaDto())
+                        } ?: call.respond(HttpStatusCode.NotFound, "No se ha encontrado la raqueta")
+                    },
+                    failure = { handleTenistaErrors(it) }
+                )
             }
 
             get("/ranking/{ranking}") {
                 logger.debug { "GET BY ID /$ENDPOINT/ranking/{ranking}" }
-                // Obtenemos el id
 
-                val id = call.parameters["ranking"]?.toIntOrNull() ?: 0
-                val tenista = tenistasService.findByRanking(id)
-                call.respond(
-                    HttpStatusCode.OK, tenista.toDto(
-                        tenistasService.findRaqueta(tenista.raquetaId)
-                    )
+                val ranking = call.parameters["ranking"]?.toIntOrNull() ?: 0
+
+                tenistasService.findByRanking(ranking).mapBoth(
+                    success = {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            it.toDto(tenistasService.findRaqueta(it.raquetaId).get())
+                        )
+                    },
+                    failure = { handleTenistaErrors(it) }
                 )
-
             }
         }
 
@@ -174,5 +203,16 @@ fun Application.tenistasRoutes() {
                 tenistasService.removeSuscriptor(this.hashCode())
             }
         }
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleTenistaErrors(
+    error: TenistaError,
+) {
+    when (error) {
+        is TenistaError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is TenistaError.ConflictIntegrity -> call.respond(HttpStatusCode.Conflict, error.message)
+        is TenistaError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
+        is TenistaError.RaquetaNotFound -> call.respond(HttpStatusCode.NotFound, error.message)
     }
 }

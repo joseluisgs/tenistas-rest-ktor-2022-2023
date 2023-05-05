@@ -50,6 +50,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
       - [Request validation](#request-validation)
       - [Status Pages](#status-pages)
     - [Excepciones personalizadas](#excepciones-personalizadas)
+    - [Gestiones de Errores con Result](#gestiones-de-errores-con-result)
     - [WebSockets](#websockets)
     - [SSL y Certificados](#ssl-y-certificados)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt)
@@ -64,6 +65,7 @@ Api REST de Tenistas con Ktor para Programación de Servicios y Procesos de 2º 
   - [Caché](#caché)
   - [Notificaciones en tiempo real](#notificaciones-en-tiempo-real)
   - [Proveedor de Dependencias](#proveedor-de-dependencias)
+  - [Railway Oriented Programming](#railway-oriented-programming)
   - [Seguridad de las comunicaciones](#seguridad-de-las-comunicaciones)
     - [SSL/TLS](#ssltls)
     - [Autenticación y Autorización con JWT](#autenticación-y-autorización-con-jwt-1)
@@ -118,6 +120,8 @@ Si quieres colaborar, puedes hacerlo contactando [conmigo](#contacto).
 - Proveedor de dependencias: [Koin](https://insert-koin.io/) - Framework para la inyección de dependencias.
 - Asincronía: [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Librería de Kotlin para la
   programación asíncrona.
+- Result: [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) - Patrón de programación para el
+  control de errores.
 - Logger: [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging) - Framework para la gestión de logs.
 - Caché: [Cache4k](https://reactivecircus.github.io/cache4k/) - Versión 100% Kotlin asíncrona y multiplataforma
   de [Caffeine](https://github.com/ben-manes/caffeine).
@@ -642,6 +646,48 @@ override suspend fun findById(id: UUID): Raqueta {
 }
 ```
 
+### Gestiones de Errores con Result
+Para evitar que las excepciones se propaguen por la aplicación, podemos usar el patrón Result, que nos permite devolver un valor o un error, siguiendo la filosofía de Railway Oriented Programming. De esta manera, podemos controlar los errores en la capa de servicio, y devolver un valor o un error, que será gestionado en la capa de controladores. De esta manera tendremos un control de errores centralizado, y evitaremos que las excepciones se propaguen por la aplicación.
+
+Además, tener una jerarquía de errores nos permite tener un control de errores más granular, y poder devolver un código de error más específico.
+
+
+```kotlin
+
+sealed class RaquetaError(val message: String) {
+    class NotFound(message: String) : RaquetaError(message)
+    class BadRequest(message: String) : RaquetaError(message)
+    class ConflictIntegrity(message: String) : RaquetaError(message)
+    class RepresentanteNotFound(message: String) : RaquetaError(message)
+}
+
+
+override suspend fun findByUuid(uuid: UUID): Result<Raqueta, RaquetaError> {
+    logger.debug { "Servicio de raquetas findByUuid con uuid: $uuid" }
+
+    return raquetasRepository.findByUuid(uuid)
+        ?.let { Ok(it) }
+        ?: Err(RaquetaError.NotFound("No se ha encontrado la raqueta con uuid: $uuid"))
+}
+
+@GetMapping("/{id}")
+suspend fun findById(@PathVariable id: UUID): ResponseEntity<RaquetaDto> {
+    logger.info { "GET By ID Raqueta con id: $id" }
+
+    raquetasService.findByUuid(id).mapBoth(
+        success = {
+            return ResponseEntity.ok(
+                it.toDto(
+                    raquetasService.findRepresentante(it.representanteId).get()!!
+                )
+            )
+        },
+        failure = { return handleErrors(it) }
+    )
+}
+
+```
+
 ### WebSockets
 
 Ktor soporta [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) para crear aplicaciones que
@@ -985,6 +1031,15 @@ para [Ktor](https://insert-koin.io/docs/reference/koin-ktor/ktor) y
 sus [anotaciones](https://insert-koin.io/docs/reference/koin-annotations/start) para hacerlo mucho más directo.
 
 ![koin](./images/koin.png)
+
+## Railway Oriented Programming
+[Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) es un patrón de diseño que nos permite escribir código más limpio y mantenible. Este patrón se basa en el concepto de [programación funcional](https://es.wikipedia.org/wiki/Programaci%C3%B3n_funcional) y en el uso de [monadas](https://es.wikipedia.org/wiki/Monada_(programaci%C3%B3n_funcional)). 
+
+Es una técnica de programación funcional que nos permite manejar errores de forma más sencilla y segura. En lugar de usar excepciones, se usan valores de retorno o tipos de error para indicar si una operación ha tenido éxito o no. En el caso de que la operación haya fallado, se devuelve un valor que indica el error.
+
+Se van encadenando operaciones que pueden fallar, y en caso de que alguna de ellas falle, se devuelve el error. De esta forma, se evita el uso de excepciones, que pueden ser difíciles de manejar. Tampoco tenemos que esperar que se ejecuten todas las operaciones para saber si ha fallado alguna, sino que en cuanto una operación falle, se devuelve el error.
+
+![rop](./images/railway.png)
 
 ## Seguridad de las comunicaciones
 

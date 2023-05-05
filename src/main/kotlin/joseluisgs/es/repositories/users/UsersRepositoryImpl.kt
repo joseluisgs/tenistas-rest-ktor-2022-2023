@@ -50,6 +50,7 @@ class UsersRepositoryImpl(
     override suspend fun checkUserNameAndPassword(username: String, password: String): User? =
         withContext(Dispatchers.IO) {
             val user = findByUsername(username)
+            println(user?.password)
             return@withContext user?.let {
                 if (BCrypt.checkpw(password, user.password)) {
                     return@withContext user

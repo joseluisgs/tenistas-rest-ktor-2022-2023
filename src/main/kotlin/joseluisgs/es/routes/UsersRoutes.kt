@@ -1,6 +1,10 @@
 package joseluisgs.es.routes
 
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
+import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.mapBoth
+import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onSuccess
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -10,15 +14,19 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import joseluisgs.es.dto.*
-import joseluisgs.es.exceptions.UserException
+import io.ktor.util.pipeline.*
+import joseluisgs.es.dto.UserCreateDto
+import joseluisgs.es.dto.UserLoginDto
+import joseluisgs.es.dto.UserUpdateDto
+import joseluisgs.es.dto.UserWithTokenDto
+import joseluisgs.es.errors.UserError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
-import joseluisgs.es.models.User
 import joseluisgs.es.services.storage.StorageService
 import joseluisgs.es.services.tokens.TokensService
 import joseluisgs.es.services.users.UsersService
 import joseluisgs.es.utils.toUUID
+import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
 
@@ -39,9 +47,12 @@ fun Application.usersRoutes() {
             post("/register") {
                 logger.debug { "POST Register /$ENDPOINT/register" }
 
-                val dto = call.receive<UserCreateDto>()
-                val user = usersService.save(dto.toModel())
-                call.respond(HttpStatusCode.Created, user.toDto())
+                val dto = call.receive<UserCreateDto>().toModel()
+                usersService.save(dto)
+                    .mapBoth(
+                        success = { call.respond(HttpStatusCode.Created, it.toDto()) },
+                        failure = { handleUserError(it) }
+                    )
             }
 
             // Post -> /login
@@ -49,12 +60,14 @@ fun Application.usersRoutes() {
                 logger.debug { "POST Login /$ENDPOINT/login" }
 
                 val dto = call.receive<UserLoginDto>()
-                val user = usersService.checkUserNameAndPassword(dto.username, dto.password)
-                user?.let {
-                    val token = tokenService.generateJWT(user)
-                    call.respond(HttpStatusCode.OK, UserWithTokenDto(user.toDto(), token))
-                }
-
+                usersService.checkUserNameAndPassword(dto.username, dto.password)
+                    .mapBoth(
+                        success = { user ->
+                            val token = tokenService.generateJWT(user)
+                            call.respond(HttpStatusCode.OK, UserWithTokenDto(user.toDto(), token))
+                        },
+                        failure = { handleUserError(it) }
+                    )
             }
 
             // Estas rutas están autenticadas --> Protegidas por JWT
@@ -63,114 +76,118 @@ fun Application.usersRoutes() {
                 // Get -> /me
                 get("/me") {
                     logger.debug { "GET Me /$ENDPOINT/me" }
-                    // Por el token me llega como principal (autenticado) el usuario en sus claims
 
-                    val jwt = call.principal<JWTPrincipal>()
-                    // Cuidado que vienen con comillas!!!
-                    // val username = jwt?.payload?.getClaim("username").toString().replace("\"", "")
-                    val userId = jwt?.payload?.getClaim("userId")
-                        .toString().replace("\"", "")
-                    val user = usersService.findById(userId.toUUID())
-                    user.let {
-                        call.respond(HttpStatusCode.OK, user.toDto())
-                    }
+                    // Por el token me llega como principal (autenticado) el usuario en sus claims
+                    // Cuidado que viene con comillas!!!
+                    val userUuid = call.principal<JWTPrincipal>()
+                        ?.payload?.getClaim("userId")
+                        .toString().replace("\"", "").toUUID()
+
+                    usersService.findById(userUuid)
+                        .mapBoth(
+                            success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                            failure = { handleUserError(it) }
+                        )
                 }
 
                 // Actualizar datos del usuario
                 put("/me") {
                     logger.debug { "PUT Me /$ENDPOINT/me" }
+
                     // Por el token me llega como principal (autenticado) el usuario en sus claims
-                    val jwt = call.principal<JWTPrincipal>()
                     // Cuidado que vienen con comillas!!!
-                    // val username = jwt?.payload?.getClaim("username").toString().replace("\"", "")
-                    val userId = jwt?.payload?.getClaim("userId")
+                    val userUuid = call.principal<JWTPrincipal>()
+                        ?.payload?.getClaim("userId")
                         .toString().replace("\"", "").toUUID()
-                    val user = usersService.findById(userId)
-                    // Tomamos l
+
                     val dto = call.receive<UserUpdateDto>()
-                    user.let {
-                        var userUpdated = user.copy(
-                            nombre = dto.nombre,
-                            username = dto.username,
-                            email = dto.email,
+
+                    usersService.findById(userUuid).andThen {
+                        usersService.update(
+                            userUuid, it.copy(
+                                nombre = dto.nombre,
+                                username = dto.username,
+                                email = dto.email,
+                            )
                         )
-                        userUpdated = usersService.update(userId, userUpdated)!!
-                        call.respond(HttpStatusCode.OK, userUpdated.toDto())
-                    }
+                    }.mapBoth(
+                        success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                        failure = { handleUserError(it) }
+                    )
                 }
 
                 // Actualizar avatar del usuario
                 // Otra forma de subir imaagenes con multipart
                 patch("/me") {
                     logger.debug { "PUT Me /$ENDPOINT/me" }
+
                     // Por el token me llega como principal (autenticado) el usuario en sus claims
-                    val jwt = call.principal<JWTPrincipal>()
-                    // Cuidado que vienen con comillas!!!
-                    // val username = jwt?.payload?.getClaim("username").toString().replace("\"", "")
-                    val userId = jwt?.payload?.getClaim("userId")
-                        .toString().replace("\"", "")
-                    val user = usersService.findById(userId.toUUID())
-                    // ya tenemos el usuario, ahora actualizamos porque es multiparte
-                    // Pueden venir los datos y la imagen
-                    logger.debug { "Tomando datos multiparte" }
-                    var newFileName = ""
-                    val multipartData = call.receiveMultipart()
-                    multipartData.forEachPart { part ->
-                        // Analizamos el tipo si es fichero
-                        if (part is PartData.FileItem) {
-                            val fileName = part.originalFileName as String
-                            val fileBytes = part.streamProvider().readBytes()
-                            val fileExtension = fileName.substringAfterLast(".")
-                            newFileName = "$userId.$fileExtension"
-                            val res = storageService.saveFile(newFileName, fileBytes)
-                            // Dependiendo de si estamos en SSL siempre o sin SSL salvamos la ruta
-                            newFileName = if (call.request.origin.scheme == "https") {
-                                //"https://${call.request.host()}:6963/api/storage/$newFileName"
-                                res["secureUrl"].toString()
-                            } else {
-                                //"http://${call.request.host()}:6969/api/storage/$newFileName"
-                                res["baseUrl"].toString()
+                    val userUuid = call.principal<JWTPrincipal>()
+                        ?.payload?.getClaim("userId")
+                        .toString().replace("\"", "").toUUID()
 
+                    usersService.findById(userUuid).andThen {
+                        logger.debug { "Tomando datos multiparte" }
+                        var newFileName = ""
+                        val multipartData = call.receiveMultipart()
+                        multipartData.forEachPart { part ->
+                            // Analizamos el tipo si es fichero
+                            if (part is PartData.FileItem) {
+                                val fileName = part.originalFileName as String
+                                val fileBytes = part.streamProvider().readBytes()
+                                val fileExtension = fileName.substringAfterLast(".")
+                                newFileName = "$userUuid.$fileExtension"
+                                val res = storageService.saveFile(newFileName, fileBytes)
+                                // Dependiendo de si estamos en SSL siempre o sin SSL salvamos la ruta
+                                newFileName = if (call.request.origin.scheme == "https") {
+                                    //"https://${call.request.host()}:6963/api/storage/$newFileName"
+                                    res["secureUrl"].toString()
+                                } else {
+                                    //"http://${call.request.host()}:6969/api/storage/$newFileName"
+                                    res["baseUrl"].toString()
+
+                                }
                             }
+                            part.dispose()
                         }
-                        part.dispose()
-                    }
-
-                    user.let {
-                        val userUpdated = user.copy(avatar = newFileName)
-                        usersService.update(user.id, userUpdated)
-                        call.respond(HttpStatusCode.OK, userUpdated.toDto())
-                    }
+                        // Actualizamos el usuario
+                        usersService.update(it.id, it.copy(avatar = newFileName))
+                    }.mapBoth(
+                        success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                        failure = { handleUserError(it) }
+                    )
                 }
-
 
                 // Get -> /users --> solo si eres admin
                 get("/list") {
                     logger.debug { "GET Users /$ENDPOINT/list" }
 
-                    val jwt = call.principal<JWTPrincipal>()
-                    // Cuidado que vienen con comillas!!!
-                    // val username = jwt?.payload?.getClaim("username").toString().replace("\"", "")
-                    val userId = jwt?.payload?.getClaim("userId")
-                        .toString().replace("\"", "")
-                    // Buscamos el usuario
-                    val user = usersService.findById(userId.toUUID())
-                    user.let {
-                        // Si es admin
-                        if (user.role == User.Role.ADMIN) {
-                            // Devolvemos todos los usuarios
-                            val res = mutableListOf<UserDto>()
-                            usersService.findAll(null).collect {
-                                res.add(it.toDto())
-                            }
-                            call.respond(HttpStatusCode.OK, res)
-                        } else {
-                            // Si no es admin, no puede ver la lista de usuarios
-                            throw UserException.Forbidden("No tienes permisos para ver la lista de usuarios")
+                    val userUuid = call.principal<JWTPrincipal>()
+                        ?.payload?.getClaim("userId")
+                        .toString().replace("\"", "").toUUID()
+
+                    usersService.isAdmin(userUuid)
+                        .onSuccess {
+                            usersService.findAll(null).toList()
+                                .map { it.toDto() }
+                                .let { call.respond(HttpStatusCode.OK, it) }
+                        }.onFailure {
+                            handleUserError(it)
                         }
-                    }
                 }
             }
         }
+    }
+}
+
+// Manejador de errores
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleUserError(
+    error: UserError
+) {
+    when (error) {
+        is UserError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is UserError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
+        is UserError.Unauthorized -> call.respond(HttpStatusCode.Unauthorized, error.message)
+        is UserError.Forbidden -> call.respond(HttpStatusCode.Forbidden, error.message)
     }
 }

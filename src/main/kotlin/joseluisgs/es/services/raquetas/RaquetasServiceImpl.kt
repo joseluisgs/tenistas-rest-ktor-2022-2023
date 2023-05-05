@@ -1,6 +1,7 @@
 package joseluisgs.es.services.raquetas
 
-import joseluisgs.es.exceptions.RaquetaException
+import com.github.michaelbull.result.*
+import joseluisgs.es.errors.RaquetaError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.models.Notificacion
 import joseluisgs.es.models.Raqueta
@@ -17,6 +18,7 @@ import mu.KotlinLogging
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 import java.util.*
+import kotlin.collections.set
 
 private val logger = KotlinLogging.logger {}
 
@@ -45,13 +47,12 @@ class RaquetasServiceImpl(
         return@withContext repository.findAllPageable(page, perPage)
     }
 
-    override suspend fun findById(id: UUID): Raqueta {
+    override suspend fun findById(id: UUID): Result<Raqueta, RaquetaError> {
         logger.debug { "findById: Buscando raqueta en servicio con id: $id" }
 
-        // return repository.findById(id) ?: throw NoSuchElementException("No se ha encontrado el representante con id: $id")
         return repository.findById(id)
-            ?: throw RaquetaException.NotFound("No se ha encontrado la raqueta con id: $id")
-
+            ?.let { Ok(it) }
+            ?: Err(RaquetaError.NotFound("No se ha encontrado la raqueta con id: $id"))
     }
 
     override suspend fun findByMarca(marca: String): Flow<Raqueta> {
@@ -61,52 +62,48 @@ class RaquetasServiceImpl(
     }
 
 
-    override suspend fun save(raqueta: Raqueta): Raqueta {
+    override suspend fun save(raqueta: Raqueta): Result<Raqueta, RaquetaError> {
         logger.debug { "create: Creando raqueta en servicio" }
 
-        // Existe el representante!
-        val representante = findRepresentante(raqueta.representanteId)
-
-        // Insertamos el representante y devolvemos el resultado y avisa a los subscriptores
-        return repository.save(raqueta)
-            .also { onChange(Notificacion.Tipo.CREATE, it.id, it) }
+        return findRepresentante(raqueta.representanteId).andThen {
+            Ok(repository.save(raqueta)).also {
+                onChange(Notificacion.Tipo.CREATE, it.value.id, it.value)
+            }
+        }
     }
 
-    override suspend fun update(id: UUID, raqueta: Raqueta): Raqueta {
+    override suspend fun update(id: UUID, raqueta: Raqueta): Result<Raqueta, RaquetaError> {
         logger.debug { "update: Actualizando raqueta en servicio" }
 
-        val existe = repository.findById(id)
-
-        // Existe el representante!
-        val representante = findRepresentante(raqueta.representanteId)
-
-        existe?.let {
-            return repository.update(id, raqueta)
-                ?.also { onChange(Notificacion.Tipo.UPDATE, it.id, it) }!!
-        } ?: throw RaquetaException.NotFound("No se ha encontrado la raqueta con id: $id")
+        return findById(id).andThen {
+            findRepresentante(raqueta.representanteId)
+        }.andThen {
+            Ok(repository.update(id, raqueta)!!).also {
+                onChange(Notificacion.Tipo.UPDATE, it.value.id, it.value)
+            }
+        }
     }
 
-    override suspend fun delete(id: UUID): Raqueta {
+    override suspend fun delete(id: UUID): Result<Raqueta, RaquetaError> {
         logger.debug { "delete: Borrando raqueta en servicio" }
 
-        val existe = repository.findById(id)
-
-        existe?.let {
-            // meto el try catch para que no se caiga la aplicación si no se puede borrar por tener raquetas asociadas
+        return findById(id).andThen {
             try {
-                return repository.delete(existe)
-                    .also { onChange(Notificacion.Tipo.DELETE, it!!.id, it) }!!
+                Ok(repository.delete(it)!!).also { r ->
+                    onChange(Notificacion.Tipo.DELETE, r.value.id, r.value)
+                }
             } catch (e: Exception) {
-                throw RaquetaException.ConflictIntegrity("No se puede borrar la raqueta con id: $id porque tiene tenistas asociados")
+                Err(RaquetaError.ConflictIntegrity("No se puede borrar la raqueta con id: $id porque tiene tenistas asociados"))
             }
-        } ?: throw RaquetaException.NotFound("No se ha encontrado la raqueta con id: $id")
+        }
     }
 
-    override suspend fun findRepresentante(id: UUID): Representante {
+    override suspend fun findRepresentante(id: UUID): Result<Representante, RaquetaError> {
         logger.debug { "findRepresentante: Buscando representante en servicio" }
 
         return representantesRepository.findById(id)
-            ?: throw RaquetaException.RepresentanteNotFound("No se ha encontrado el representante con id: $id")
+            ?.let { Ok(it) }
+            ?: Err(RaquetaError.RepresentanteNotFound("No se ha encontrado el representante con id: $id"))
     }
 
     /// ---- Tiempo real, patrón observer!!!
@@ -144,7 +141,7 @@ class RaquetasServiceImpl(
                         "RAQUETA",
                         tipo,
                         id,
-                        data?.toDto(findRepresentante(data.representanteId))
+                        data?.toDto(findRepresentante(data.representanteId).get()!!)
                     )
                 )
             }

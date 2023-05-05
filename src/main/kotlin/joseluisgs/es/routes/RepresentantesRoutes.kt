@@ -1,15 +1,18 @@
 package joseluisgs.es.routes
 
 // import org.koin.ktor.ext.get as koinGet // define un alias o te dará problemas con el get de Ktor
+import com.github.michaelbull.result.mapBoth
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import joseluisgs.es.dto.RepresentanteDto
 import joseluisgs.es.dto.RepresentantesPageDto
+import joseluisgs.es.errors.RepresentanteError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.representantes.RepresentantesService
@@ -33,6 +36,7 @@ fun Application.representantesRoutes() {
         route("/$ENDPOINT") {
             // Get all -> /
             get {
+
                 // Tenemos QueryParams ??
                 val page = call.request.queryParameters["page"]?.toIntOrNull()
                 val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
@@ -55,37 +59,55 @@ fun Application.representantesRoutes() {
             // Get by id -> /{id}
             get("{id}") {
                 logger.debug { "GET BY ID /$ENDPOINT/{id}" }
+
                 // Obtenemos el id
                 val id = call.parameters["id"]?.toUUID()!!
-                val representante = representantesService.findById(id)
-                call.respond(HttpStatusCode.OK, representante.toDto())
+
+                representantesService.findById(id)
+                    .mapBoth(
+                        success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                        failure = { handleRepresentanteErrors(it) }
+                    )
             }
 
             // Post -> /
             post {
                 logger.debug { "POST /$ENDPOINT" }
+
                 val dto = call.receive<RepresentanteDto>()
-                val representante = representantesService.save(dto.toModel())
-                call.respond(HttpStatusCode.Created, representante.toDto())
+
+                representantesService.save(dto.toModel())
+                    .mapBoth(
+                        success = { call.respond(HttpStatusCode.Created, it.toDto()) },
+                        failure = { handleRepresentanteErrors(it) }
+                    )
             }
 
             // Put -> /{id}
             put("{id}") {
                 logger.debug { "PUT /$ENDPOINT/{id}" }
+
                 val id = call.parameters["id"]?.toUUID()!!
                 val dto = call.receive<RepresentanteDto>()
-                val representante = representantesService.update(id, dto.toModel())
-                call.respond(HttpStatusCode.OK, representante.toDto())
-                // Vamos a captar las excepciones de nuestro dominio
+
+                representantesService.update(id, dto.toModel())
+                    .mapBoth(
+                        success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                        failure = { handleRepresentanteErrors(it) }
+                    )
             }
 
             // Delete -> /{id}
             delete("{id}") {
                 logger.debug { "DELETE /$ENDPOINT/{id}" }
+
                 val id = call.parameters["id"]?.toUUID()!!
-                val representante = representantesService.delete(id)
-                // Decidimos si devolver un 200 o un 204 (No Content)
-                call.respond(HttpStatusCode.NoContent)
+
+                representantesService.delete(id)
+                    .mapBoth(
+                        success = { call.respond(HttpStatusCode.NoContent) },
+                        failure = { handleRepresentanteErrors(it) }
+                    )
             }
 
             // Otros métodos de búsqueda
@@ -94,7 +116,9 @@ fun Application.representantesRoutes() {
                 // Es similar a la página, podemos crear las busquedas que queramos o necesitemos
                 // se puede combinar varias
                 logger.debug { "GET BY NOMBRE /$ENDPOINT/find?nombre={nombre}" }
+
                 val nombre = call.request.queryParameters["nombre"]
+
                 nombre?.let {
                     representantesService.findByNombre(nombre)
                         .toList()
@@ -130,5 +154,15 @@ fun Application.representantesRoutes() {
                 representantesService.removeSuscriptor(this.hashCode())
             }
         }
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleRepresentanteErrors(
+    error: RepresentanteError,
+) {
+    when (error) {
+        is RepresentanteError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
+        is RepresentanteError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
+        is RepresentanteError.ConflictIntegrity -> call.respond(HttpStatusCode.Conflict, error.message)
     }
 }
