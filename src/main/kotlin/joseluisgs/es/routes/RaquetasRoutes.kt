@@ -46,13 +46,13 @@ fun Application.raquetasRoutes() {
                 if (page != null && page > 0) {
                     logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
                     // Procesamos el flow
-                    val res = raquetasService.findAllPageable(page - 1, perPage)
+                    raquetasService.findAllPageable(page - 1, perPage)
                         .toList()
                         .map { it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!) }
                         .let { res -> call.respond(HttpStatusCode.OK, RaquetasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
-                    val res = raquetasService.findAll()
+                    raquetasService.findAll()
                         .toList()
                         .map { it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
@@ -134,7 +134,7 @@ fun Application.raquetasRoutes() {
                 val marca = call.request.queryParameters["marca"]
 
                 marca?.let {
-                    val res = raquetasService.findByMarca(marca)
+                    raquetasService.findByMarca(marca)
                         .toList()
                         .map { it.toDto(raquetasService.findRepresentante(it.representanteId).get()!!) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }

@@ -47,13 +47,13 @@ fun Application.tenistasRoutes() {
                 if (page != null && page > 0) {
                     logger.debug { "GET ALL /$ENDPOINT?page=$page&perPage=$perPage" }
                     // Procesamos el flow
-                    val res = tenistasService.findAllPageable(page - 1, perPage)
+                    tenistasService.findAllPageable(page - 1, perPage)
                         .toList()
                         .map { it.toDto(tenistasService.findRaqueta(it.raquetaId).get()) }
                         .let { res -> call.respond(HttpStatusCode.OK, TenistasPageDto(page, perPage, res)) }
                 } else {
                     logger.debug { "GET ALL /$ENDPOINT" }
-                    val res = tenistasService.findAll()
+                    tenistasService.findAll()
                         .toList()
                         .map { it.toDto(tenistasService.findRaqueta(it.raquetaId).get()) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
@@ -134,7 +134,7 @@ fun Application.tenistasRoutes() {
                 val nombre = call.request.queryParameters["nombre"]
 
                 nombre?.let {
-                    val res = tenistasService.findByNombre(nombre)
+                    tenistasService.findByNombre(nombre)
                         .toList()
                         .map { it.toDto(tenistasService.findRaqueta(it.raquetaId).get()) }
                         .let { res -> call.respond(HttpStatusCode.OK, res) }
