@@ -999,17 +999,20 @@ servidor envíe información al cliente sin que el cliente tenga que solicitarla
 enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando
 al servidor.
 
-Para ello usaremos [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API) junto al
-patrón [Observer](https://refactoring.guru/es/design-patterns/observer) para que el servidor pueda enviar información al
-cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor.
+Para ello usaremos [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API). A partir de aquñi tenemos dos opciones que te he dejado en el código.
 
-Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesión y se guarda en una lista de clientes
-conectados. Cuando se produce un evento, se recorre la lista de clientes conectados y se envía la información a cada uno
-de ellos, ejecutando la función de callback que se le ha pasado al servidor.
+Aplicar el patrón [Observer](https://refactoring.guru/es/design-patterns/observer) para que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor. Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesión y se guarda en una lista de clientes
+conectados. Cuando se produce un evento, se recorre la lista de clientes conectados y se envía la información a cada uno de ellos, ejecutando la función de callback que se le ha pasado al servidor. El patrón Observer es una buena opción cuando tienes una lista de suscriptores que necesita recibir notificaciones en tiempo real y deseas mantener un registro de los suscriptores activos. En este caso, cuando ocurre un cambio, deberás recorrer la lista de suscriptores y notificar a cada uno de ellos individualmente. Esto puede ser adecuado si la lista de suscriptores no es muy grande y no hay una gran cantidad de cambios que se produzcan con frecuencia. En esta solución te he dejado los Representantes.
 
 Además, podemos hacer uso de las funciones de serialización para enviar objetos complejos como JSON.
 
 ![observer](./images/observer.png)
+
+La siguiente opción es usar estados reactivos con [StateFlow](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/). El uso de StateFlow en Kotlin puede ser beneficioso cuando deseas tener un flujo de datos reactivo. StateFlow es una implementación de la interfaz Flow de Kotlin que te permite emitir cambios de estado de manera asincrónica. Puedes observar los cambios en el flujo y reaccionar solo cuando hay un cambio de estado relevante. Esto evita tener que recorrer manualmente una lista de suscriptores en cada cambio, ya que StateFlow se encargará de notificar automáticamente a los observadores a través del websocket interesados cuando se produzca un cambio en el estado. Siguiendo esta forma te he dejado Tenistas y Raquetas.
+
+![Flow](./images/flows.png)
+
+La elección entre ambos enfoques depende de tus necesidades específicas. Si la lista de suscriptores es pequeña y los cambios ocurren con poca frecuencia, el patrón Observer puede ser una solución simple y adecuada. Sin embargo, si deseas aprovechar las capacidades reactivas de Kotlin y tener un flujo de datos que notifique automáticamente a los observadores cuando ocurra un cambio relevante, entonces StateFlow podría ser una mejor opción.
 
 ## Proveedor de Dependencias
 

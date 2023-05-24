@@ -16,16 +16,16 @@ data class Notificacion<T>(
     val entity: String,
     val tipo: Tipo,
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID,
-    val data: T,
+    val id: UUID?,
+    val data: T?,
     @Serializable(with = LocalDateTimeSerializer::class)
-    val createdAt: LocalDateTime? = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now()
 ) {
-    enum class Tipo { CREATE, UPDATE, DELETE }
+    enum class Tipo { CREATE, UPDATE, DELETE, OTHER }
 }
 
 // Mis alias, para no estar con los genéricos, mando el DTO por que es lo que quiero que se envíe con sus datos
 // visibles en el DTO igual que se ven en las llamadas REST
-typealias RepresentantesNotification = Notificacion<RepresentanteDto?> // RepresentanteDto?
-typealias RaquetasNotification = Notificacion<RaquetaDto?> // RaquetaDto?
-typealias TenistasNotification = Notificacion<TenistaDto?> // TenistaDto?
+typealias RepresentantesNotification = Notificacion<RepresentanteDto> // RepresentanteDto
+typealias RaquetasNotification = Notificacion<RaquetaDto> // RaquetaDto
+typealias TenistasNotification = Notificacion<TenistaDto> // TenistaDto
