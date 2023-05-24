@@ -12,6 +12,8 @@ import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.tenistas.TenistasRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
@@ -125,40 +127,24 @@ class TenistasServiceImpl(
 
     /// ---- Tiempo real, patrón observer!!!
 
-    // Mis suscriptores, un mapa de codigo, con la función que se ejecutará
-    // Si no te gusta usar la función como parámetro, puedes usar el objeto de la sesión (pero para eso Kotlin
-    // es funcional ;)
-    private val suscriptores =
-        mutableMapOf<Int, suspend (TenistasNotification) -> Unit>()
+    private val _notificationState: MutableStateFlow<TenistasNotification> = MutableStateFlow(
+        TenistasNotification(
+            entity = "",
+            tipo = Notificacion.Tipo.OTHER,
+            id = null,
+            data = null
+        )
+    )
+    override val notificationState: StateFlow<TenistasNotification> = _notificationState
 
-    override fun addSuscriptor(id: Int, suscriptor: suspend (TenistasNotification) -> Unit) {
-        logger.debug { "addSuscriptor: Añadiendo suscriptor con id: $id" }
-
-        // Añadimos el suscriptor, que es la función que se ejecutará
-        suscriptores[id] = suscriptor
-    }
-
-    override fun removeSuscriptor(id: Int) {
-        logger.debug { "removeSuscriptor: Desconectando suscriptor con id: $" }
-
-        suscriptores.remove(id)
-    }
-
-    // Se ejecuta en cada cambio
-    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Tenista? = null) {
+    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Tenista) {
         logger.debug { "onChange: Cambio en Tenistas: $tipo, notificando a los suscriptores afectada entidad: $data" }
-
-        // Por cada suscriptor, ejecutamos la función que se ha almacenado
-        // Si almacenas el objeto de la sesión, puedes usar el método de la sesión, que es sendSerialized
-        suscriptores.values.forEach {
-            it.invoke(
-                Notificacion(
-                    "TENISTA",
-                    tipo,
-                    id,
-                    data?.toDto(findRaqueta(data.raquetaId).get())
-                )
-            )
-        }
+        // actualizamos el estado
+        _notificationState.value = TenistasNotification(
+            entity = "RAQUETA",
+            tipo = tipo,
+            id = id,
+            data = data.toDto(findRaqueta(data.raquetaId).get())
+        )
     }
 }

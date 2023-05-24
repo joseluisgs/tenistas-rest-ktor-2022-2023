@@ -20,9 +20,11 @@ import joseluisgs.es.mappers.toModel
 import joseluisgs.es.mappers.toTenistaDto
 import joseluisgs.es.services.tenistas.TenistasService
 import joseluisgs.es.utils.toUUID
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -178,30 +180,18 @@ fun Application.tenistasRoutes() {
 
         // WebSockets para tiempo real
         webSocket("api/updates/tenistas") {
-            try {
-                // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
-                // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
-                // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
-                tenistasService.addSuscriptor(this.hashCode()) {
-                    // Al darnos de alta con esta función,
-                    // cuando la invoquemos mandará los datos serializados que le pasemos
-                    // https://ktor.io/docs/websocket-serialization.html#send_data
-                    sendSerialized(it) // Enviamos las cosas
+            sendSerialized("Updates Web socket: Tenistas - Tenistas API REST Ktor")
+            val initTime = LocalDateTime.now()
+            // actualizaciones de del estado y reaccionamos
+            tenistasService.notificationState
+                // Sometimes we need to do something when we start
+                .filter {
+                    // Podemos filtrar y descartar los que no nos interesen
+                    it.entity.isNotEmpty() && it.createdAt.isAfter(initTime)
+                }.collect {
+                    // Cuando llegue un nuevo estado, lo enviamos serializado
+                    sendSerialized(it)
                 }
-
-                sendSerialized("Updates Web socket: Tenistas - Tenistas API REST Ktor")
-                // Por cada mensaje que nos llegue
-                for (frame in incoming) {
-                    if (frame.frameType == FrameType.CLOSE) {
-                        break
-                        // Por cada mensaje que nos llegue, lo mostramos por consola
-                    } else if (frame is Frame.Text) {
-                        logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
-                    }
-                }
-            } finally {
-                tenistasService.removeSuscriptor(this.hashCode())
-            }
         }
     }
 }

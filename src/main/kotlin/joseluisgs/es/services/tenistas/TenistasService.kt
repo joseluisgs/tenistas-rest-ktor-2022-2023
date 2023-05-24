@@ -6,6 +6,7 @@ import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.Tenista
 import joseluisgs.es.models.TenistasNotification
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.*
 
 interface TenistasService {
@@ -19,7 +20,6 @@ interface TenistasService {
     suspend fun delete(id: UUID): Result<Tenista, TenistaError>
     suspend fun findRaqueta(raquetaId: UUID?): Result<Raqueta?, TenistaError>
 
-    // Suscripción a cambios para notificar tiempo real
-    fun addSuscriptor(id: Int, suscriptor: suspend (TenistasNotification) -> Unit)
-    fun removeSuscriptor(id: Int)
+    // Estado de notificación
+    val notificationState: StateFlow<TenistasNotification>
 }

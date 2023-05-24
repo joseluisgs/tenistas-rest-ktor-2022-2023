@@ -11,7 +11,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
-import io.ktor.websocket.*
 import joseluisgs.es.dto.RaquetaCreateDto
 import joseluisgs.es.dto.RaquetasPageDto
 import joseluisgs.es.errors.RaquetaError
@@ -19,9 +18,11 @@ import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.raquetas.RaquetasService
 import joseluisgs.es.utils.toUUID
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -158,29 +159,18 @@ fun Application.raquetasRoutes() {
         // Lo he sacado de esta ruta para que sea más fácil de leer desde updates!!
         // WebSockets para tiempo real
         webSocket("api/updates/raquetas") {
-            try {
-                // Podría usar un uuid para identificar al cliente, pero mejor su hasCode()
-                // si no te gusta que lo haya llamado con la función, puedes pasar el objeto this, si
-                // lo cabias, pero para eso Kotlin es un lenguaje con características de funcional, acustúmbrate :)
-                raquetasService.addSuscriptor(this.hashCode()) {
-                    // Al darnos de alta con esta función,
-                    // cuando la invoquemos mandará los datos serializados que le pasemos
-                    // https://ktor.io/docs/websocket-serialization.html#send_data
-                    sendSerialized(it) // Enviamos las cosas
+            sendSerialized("Updates Web socket: Raquetas - Tenistas API REST Ktor")
+            val initTime = LocalDateTime.now()
+            // actualizaciones de del estado y reaccionamos
+            raquetasService.notificationState
+                // Sometimes we need to do something when we start
+                .filter {
+                    // Podemos filtrar y descartar los que no nos interesen
+                    it.entity.isNotEmpty() && it.createdAt.isAfter(initTime)
+                }.collect {
+                    // Cuando llegue un nuevo estado, lo enviamos serializado
+                    sendSerialized(it)
                 }
-                sendSerialized("Updates Web socket: Raquetas - Tenistas API REST Ktor")
-                // Por cada mensaje que nos llegue
-                for (frame in incoming) {
-                    if (frame.frameType == FrameType.CLOSE) {
-                        break
-                        // Por cada mensaje que nos llegue, lo mostramos por consola
-                    } else if (frame is Frame.Text) {
-                        logger.debug { "Mensaje recibido por WS Representantes: ${frame.readText()}" }
-                    }
-                }
-            } finally {
-                raquetasService.removeSuscriptor(this.hashCode())
-            }
         }
     }
 }

@@ -9,16 +9,15 @@ import joseluisgs.es.models.RaquetasNotification
 import joseluisgs.es.models.Representante
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.representantes.RepresentantesRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 import java.util.*
-import kotlin.collections.set
 
 private val logger = KotlinLogging.logger {}
 
@@ -106,45 +105,25 @@ class RaquetasServiceImpl(
             ?: Err(RaquetaError.RepresentanteNotFound("No se ha encontrado el representante con id: $id"))
     }
 
-    /// ---- Tiempo real, patrón observer!!!
+    /// ---- Tiempo real, estado reactivo ----
+    private val _notificationState: MutableStateFlow<RaquetasNotification> = MutableStateFlow(
+        RaquetasNotification(
+            entity = "",
+            tipo = Notificacion.Tipo.OTHER,
+            id = null,
+            data = null
+        )
+    )
+    override val notificationState: StateFlow<RaquetasNotification> = _notificationState
 
-    // Mis suscriptores, un mapa de codigo, con la función que se ejecutará
-    // Si no te gusta usar la función como parámetro, puedes usar el objeto de la sesión (pero para eso Kotlin
-    // es funcional ;)
-    private val suscriptores =
-        mutableMapOf<Int, suspend (RaquetasNotification) -> Unit>()
-
-    override fun addSuscriptor(id: Int, suscriptor: suspend (RaquetasNotification) -> Unit) {
-        logger.debug { "addSuscriptor: Añadiendo suscriptor con id: $id" }
-
-        // Añadimos el suscriptor, que es la función que se ejecutará
-        suscriptores[id] = suscriptor
-    }
-
-    override fun removeSuscriptor(id: Int) {
-        logger.debug { "removeSuscriptor: Desconectando suscriptor con id: $" }
-
-        suscriptores.remove(id)
-    }
-
-    // Se ejecuta en cada cambio
-    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Raqueta? = null) {
+    private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Raqueta) {
         logger.debug { "onChange: Cambio en Raquetas: $tipo, notificando a los suscriptores afectada entidad: $data" }
-
-        val myScope = CoroutineScope(Dispatchers.IO)
-        // Por cada suscriptor, ejecutamos la función que se ha almacenado
-        // Si almacenas el objeto de la sesión, puedes usar el método de la sesión, que es sendSerialized
-        myScope.launch {
-            suscriptores.values.forEach {
-                it.invoke(
-                    RaquetasNotification(
-                        "RAQUETA",
-                        tipo,
-                        id,
-                        data?.toDto(findRepresentante(data.representanteId).get()!!)
-                    )
-                )
-            }
-        }
+        // actualizamos el estado
+        _notificationState.value = RaquetasNotification(
+            entity = "RAQUETA",
+            tipo = tipo,
+            id = id,
+            data = data.toDto(findRepresentante(data.representanteId).get()!!)
+        )
     }
 }
