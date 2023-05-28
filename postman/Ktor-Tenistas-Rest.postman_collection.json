@@ -678,7 +678,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"nombre\": \"Updated\",\n    \"ranking\": 99,\n    \"fechaNacimiento\": \"2003-05-05\",\n    \"añoProfesional\": 2019,\n    \"altura\": 185,\n    \"peso\": 80,\n    \"manoDominante\": \"DERECHA\",\n    \"tipoReves\": \"DOS_MANOS\",\n    \"puntos\": 6880,\n    \"pais\": \"España\",\n    \"raquetaId\": \"86084458-4733-4d71-a3db-34b50cd8d68f\"\n}",
+							"raw": "{\n    \"nombre\": \"Updated\",\n    \"ranking\":99,\n    \"fechaNacimiento\": \"2003-05-05\",\n    \"añoProfesional\": 2019,\n    \"altura\": 185,\n    \"peso\": 80,\n    \"manoDominante\": \"DERECHA\",\n    \"tipoReves\": \"DOS_MANOS\",\n    \"puntos\": 6880,\n    \"pais\": \"España\",\n    \"raquetaId\": \"86084458-4733-4d71-a3db-34b50cd8d68f\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -686,7 +686,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:6969/api/tenistas/a711040a-fb0d-4fe4-b726-75883ca8d907",
+							"raw": "http://localhost:6969/api/tenistas/13692a32-7c29-4fd4-974c-41b934bd719a",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -695,7 +695,7 @@
 							"path": [
 								"api",
 								"tenistas",
-								"a711040a-fb0d-4fe4-b726-75883ca8d907"
+								"13692a32-7c29-4fd4-974c-41b934bd719a"
 							]
 						}
 					},
@@ -1049,6 +1049,38 @@
 								"api",
 								"users",
 								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ0ZW5pc3Rhcy1rdG9yLWF1dGgiLCJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6InRlbmlzdGFzLWt0b3IiLCJ1c2VybWFpbCI6InBlcGVAcGVyZXouY29tIiwiZXhwIjoxNjg1MjYwNjgzLCJ1c2VySWQiOiJiMzlhMmZkMi1mN2Q3LTQwNWQtYjczYy1iNjhhOGRlZGJjZGYiLCJ1c2VybmFtZSI6InBlcGUifQ.viaKWB1sgOZOhS652bHg-YWu1KTGx7TqWlHAYRyrOzg1Q4f4ooyUT5BpYgfIRIUj-K_fe0JpY_EAO4t3lCcFDA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6969/api/users/delete/c53062e4-31ea-4f5e-a99d-36c228ed01a3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6969",
+							"path": [
+								"api",
+								"users",
+								"delete",
+								"c53062e4-31ea-4f5e-a99d-36c228ed01a3"
 							]
 						}
 					},
