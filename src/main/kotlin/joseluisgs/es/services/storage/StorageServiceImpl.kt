@@ -40,6 +40,8 @@ class StorageServiceImpl(
         }
     }
 
+    // Esta es la forma que más me gusta usando multipart
+
     override suspend fun saveFile(
         fileName: String,
         fileUrl: String,
@@ -62,6 +64,8 @@ class StorageServiceImpl(
             }
         }
 
+    // Otra forma que me gusta menos usando canales, muy efectiva
+    // pero pirdes alguna información del fichero
     override suspend fun saveFile(
         fileName: String,
         fileUrl: String,
