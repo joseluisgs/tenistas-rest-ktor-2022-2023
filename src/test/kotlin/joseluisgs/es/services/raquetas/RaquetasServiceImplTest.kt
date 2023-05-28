@@ -210,6 +210,7 @@ class RaquetasServiceImplTest {
     fun delete() = runTest {
         coEvery { repository.findById(any()) } returns raqueta
         coEvery { repository.delete(any()) } returns raqueta
+        coEvery { represetantesRepository.findById(any()) } returns representante
 
         val result = service.delete(raqueta.id).get()!!
 

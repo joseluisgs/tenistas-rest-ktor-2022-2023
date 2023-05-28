@@ -37,7 +37,7 @@ fun Application.configureSwagger() {
             }
         }
         server {
-            url = environment.config.property("server.baseUrl").getString()
+            url = environment.config.propertyOrNull("ktor.deployment.host")?.getString() ?: "http://localhost:8080"
             description = "Servidor de la API Rest usando Ktor y tecnologías Kotlin."
         }
 

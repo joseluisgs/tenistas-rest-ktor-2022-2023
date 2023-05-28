@@ -1,14 +1,19 @@
 package joseluisgs.es.services.storage
 
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import joseluisgs.es.config.StorageConfig
-import joseluisgs.es.exceptions.StorageException
+import joseluisgs.es.errors.StorageError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Single
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
@@ -28,75 +33,74 @@ class StorageServiceImpl(
 
     override fun initStorageDirectory() {
         logger.debug { "Iniciando el directorio de almacenamiento en: ${storageConfig.uploadDir}" }
-        if (!File(storageConfig.uploadDir).exists()) {
-            logger.debug { "Creando el directorio de almacenamiento en: ${storageConfig.uploadDir}" }
-            File(storageConfig.uploadDir).mkdir()
-        } else {
-            // Si existe, borramos todos los ficheros // solo en dev
-            if (storageConfig.environment == "dev") {
-                logger.debug { "Modo de desarrollo. Borrando el contenido del almacenamiento" }
-                File(storageConfig.uploadDir).listFiles()?.forEach { it.delete() }
-            }
+        Files.createDirectories(Path.of(storageConfig.uploadDir))
+        if (storageConfig.environment == "dev") {
+            logger.debug { "Modo de desarrollo. Borrando el contenido del almacenamiento" }
+            File(storageConfig.uploadDir).listFiles()?.forEach { it.delete() }
         }
     }
 
-    override suspend fun saveFile(fileName: String, fileBytes: ByteArray): Map<String, String> =
+    // Esta es la forma que más me gusta usando multipart
+
+    override suspend fun saveFile(
+        fileName: String,
+        fileUrl: String,
+        fileBytes: ByteArray
+    ): Result<Map<String, String>, StorageError> =
         withContext(Dispatchers.IO) {
-            try {
-                val file = File("${storageConfig.uploadDir}/$fileName")
-                file.writeBytes(fileBytes) // sobreescritura si existe
-                logger.debug { "Fichero guardado en: ${file.absolutePath}" }
-                return@withContext mapOf(
-                    "fileName" to fileName,
-                    "createdAt" to LocalDateTime.now().toString(),
-                    "size" to fileBytes.size.toString(),
-                    "baseUrl" to storageConfig.baseUrl + "/" + storageConfig.endpoint + "/" + fileName,
-                    "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
+            logger.debug { "Saving file in: $fileName" }
+            return@withContext try {
+                File("${storageConfig.uploadDir}/$fileName").writeBytes(fileBytes)
+                Ok(
+                    mapOf(
+                        "fileName" to fileName,
+                        "createdAt" to LocalDateTime.now().toString(),
+                        "size" to fileBytes.size.toString(),
+                        "url" to fileUrl,
+                    )
                 )
             } catch (e: Exception) {
-                throw StorageException.FileNotFound("Error al guardar el fichero: ${e.message}")
+                Err(StorageError.FileNotSave("Error saving file: $fileName"))
             }
         }
 
-    override suspend fun saveFile(fileName: String, fileBytes: ByteReadChannel): Map<String, String> =
+    // Otra forma que me gusta menos usando canales, muy efectiva
+    // pero pirdes alguna información del fichero
+    override suspend fun saveFile(
+        fileName: String,
+        fileUrl: String,
+        fileBytes: ByteReadChannel
+    ): Result<Map<String, String>, StorageError> =
         withContext(Dispatchers.IO) {
-            try {
-                logger.debug { "Guardando fichero en: $fileName" }
-                val file = File("${storageConfig.uploadDir}/$fileName")
-                val res = fileBytes.copyAndClose(file.writeChannel())
-                logger.debug { "Fichero guardado en: $file" }
-                return@withContext mapOf(
-                    "fileName" to fileName,
-                    "createdAt" to LocalDateTime.now().toString(),
-                    "size" to res.toString(),
-                    "baseUrl" to storageConfig.baseUrl + "/" + storageConfig.endpoint + "/" + fileName,
-                    "secureUrl" to storageConfig.secureUrl + "/" + storageConfig.endpoint + "/" + fileName,
+            logger.debug { "Saving file in: $fileName" }
+            return@withContext try {
+                val res = fileBytes.copyAndClose(File("${storageConfig.uploadDir}/$fileName").writeChannel())
+                Ok(
+                    mapOf(
+                        "fileName" to fileName,
+                        "createdAt" to LocalDateTime.now().toString(),
+                        "size" to res.toString(),
+                        "url" to fileUrl,
+                    )
                 )
             } catch (e: Exception) {
-                throw StorageException.FileNotSave("Error al guardar el fichero: ${e.message}")
+                Err(StorageError.FileNotSave("Error saving file: $fileName"))
             }
         }
 
-    override suspend fun getFile(fileName: String): File = withContext(Dispatchers.IO) {
-        logger.debug { "Buscando fichero en: $fileName" }
-        val file = File("${storageConfig.uploadDir}/$fileName")
-        logger.debug { "Fichero path: $file" }
-        if (!file.exists()) {
-            throw StorageException.FileNotFound("No se ha encontrado el fichero: $fileName")
+    override suspend fun getFile(fileName: String): Result<File, StorageError> = withContext(Dispatchers.IO) {
+        logger.debug { "Get file: $fileName" }
+        return@withContext if (!File("${storageConfig.uploadDir}/$fileName").exists()) {
+            Err(StorageError.FileNotFound("File Not Found in storage: $fileName"))
         } else {
-            return@withContext file
+            Ok(File("${storageConfig.uploadDir}/$fileName"))
         }
     }
 
-    override suspend fun deleteFile(fileName: String): Unit = withContext(Dispatchers.IO) {
-        logger.debug { "Borrando fichero en: $fileName" }
-        val file = File("${storageConfig.uploadDir}/$fileName")
-        logger.debug { "Fichero path: $file" }
-        if (!file.exists()) {
-            throw StorageException.FileNotFound("No se ha encontrado el fichero: $fileName")
-        } else {
-            file.delete()
-        }
+    override suspend fun deleteFile(fileName: String): Result<String, StorageError> = withContext(Dispatchers.IO) {
+        logger.debug { "Remove file: $fileName" }
+        Files.deleteIfExists(Path.of("${storageConfig.uploadDir}/$fileName"))
+        Ok(fileName)
     }
 
 }

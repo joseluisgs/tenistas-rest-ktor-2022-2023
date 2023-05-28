@@ -1,10 +1,7 @@
 package joseluisgs.es.services.users
 
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.*
 import joseluisgs.es.errors.UserError
 import joseluisgs.es.models.User
 import joseluisgs.es.repositories.users.UsersRepository
@@ -59,9 +56,11 @@ class UsersServiceImpl(
     override suspend fun save(entity: User): Result<User, UserError> {
         logger.debug { "save: Creando usuario" }
 
-        repository.findByUsername(entity.username)?.let {
+        // buscamos en el repositorio el nombre nuevo de usuario si no existe lo creamos
+        return findByUsername(entity.username).onSuccess {
             return Err(UserError.BadRequest("Ya existe un usuario con username: ${entity.username}"))
-        } ?: run {
+        }.onFailure {
+            // si no existe, lo creamos
             return Ok(
                 repository.save(
                     entity.copy(
@@ -72,31 +71,33 @@ class UsersServiceImpl(
                 )
             )
         }
+
     }
 
     override suspend fun update(id: UUID, entity: User): Result<User, UserError> {
         logger.debug { "update: Actualizando usuario con id: $id" }
 
         // buscamos en el repositorio el nombre nuevo de usuario
-        val updated = repository.findByUsername(entity.username)
-            ?: return Ok(repository.update(id, entity.copy(updatedAt = LocalDateTime.now()))!!)
-        // si existe y es el mismo usuario, lo actualizamos
-        return if (updated.id == id) {
-            Ok(repository.update(id, entity.copy(updatedAt = LocalDateTime.now()))!!)
-        } else {
-            // si no, es que ya existe
-            Err(UserError.BadRequest("Ya existe un usuario con username: ${entity.username}"))
+        return findByUsername(entity.username).onSuccess { user ->
+            // si existe y es el mismo usuario, lo actualizamos
+            return if (user.id == id) {
+                Ok(repository.update(id, entity.copy(updatedAt = LocalDateTime.now()))!!)
+            } else {
+                // si no, es que ya existe
+                Err(UserError.BadRequest("Ya existe un usuario con username: ${entity.username}"))
+            }
+        }.onFailure {
+            // si no existe, lo actualizamos
+            return Ok(repository.update(id, entity.copy(updatedAt = LocalDateTime.now()))!!)
         }
     }
 
-    override suspend fun delete(id: UUID): User? {
+    override suspend fun delete(id: UUID): Result<User, UserError> {
         logger.debug { "delete: Borrando usuario con id: $id" }
 
-        val user = repository.findById(id)
-        user?.let {
-            repository.delete(it)
+        return findById(id).andThen {
+            Ok(repository.delete(it)!!)
         }
-        return user
     }
 
     override suspend fun isAdmin(id: UUID): Result<Boolean, UserError> {

@@ -13,17 +13,8 @@ import org.koin.ktor.ext.inject
 // Seguridad en base a JWT
 fun Application.configureSecurity() {
 
-    // Leemos la configuración de tokens de nuestro fichero de configuración
-    val tokenConfigParams = mapOf<String, String>(
-        "audience" to environment.config.property("jwt.audience").getString(),
-        "secret" to environment.config.property("jwt.secret").getString(),
-        "issuer" to environment.config.property("jwt.issuer").getString(),
-        "realm" to environment.config.property("jwt.realm").getString(),
-        "expiration" to environment.config.property("jwt.expiration").getString()
-    )
-
     // Inyectamos la configuración de Tokens
-    val tokenConfig: TokenConfig = get { parametersOf(tokenConfigParams) }
+    val tokenConfig: TokenConfig = get { parametersOf(environment.config) }
 
     // Inyectamos el servicio de tokens
     val jwtService: TokensService by inject()
