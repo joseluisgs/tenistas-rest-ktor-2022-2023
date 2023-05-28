@@ -40,6 +40,9 @@ fun Application.storageRoutes() {
                     )
                 )
             }
+
+            // Aquí esta un ejemplo de como hacerlo con canales.
+            // Para muchas cosas es mejor hacerlo con multipart qu everás en user
             post {
                 val baseUrl =
                     call.request.origin.scheme + "://" + call.request.host() + ":" + call.request.port() + "/$ENDPOINT/"
