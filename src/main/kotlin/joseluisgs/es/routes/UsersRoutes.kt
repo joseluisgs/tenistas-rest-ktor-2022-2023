@@ -19,6 +19,7 @@ import joseluisgs.es.dto.UserCreateDto
 import joseluisgs.es.dto.UserLoginDto
 import joseluisgs.es.dto.UserUpdateDto
 import joseluisgs.es.dto.UserWithTokenDto
+import joseluisgs.es.errors.StorageError
 import joseluisgs.es.errors.UserError
 import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
@@ -126,36 +127,36 @@ fun Application.usersRoutes() {
                         ?.payload?.getClaim("userId")
                         .toString().replace("\"", "").toUUID()
 
-                    usersService.findById(userUuid).andThen {
-                        logger.debug { "Tomando datos multiparte" }
-                        var newFileName = ""
-                        val multipartData = call.receiveMultipart()
-                        multipartData.forEachPart { part ->
-                            // Analizamos el tipo si es fichero
-                            if (part is PartData.FileItem) {
-                                val fileName = part.originalFileName as String
-                                val fileBytes = part.streamProvider().readBytes()
-                                val fileExtension = fileName.substringAfterLast(".")
-                                newFileName = "$userUuid.$fileExtension"
-                                val res = storageService.saveFile(newFileName, fileBytes)
-                                // Dependiendo de si estamos en SSL siempre o sin SSL salvamos la ruta
-                                newFileName = if (call.request.origin.scheme == "https") {
-                                    //"https://${call.request.host()}:6963/api/storage/$newFileName"
-                                    res["secureUrl"].toString()
-                                } else {
-                                    //"http://${call.request.host()}:6969/api/storage/$newFileName"
-                                    res["baseUrl"].toString()
+                    val baseUrl =
+                        call.request.origin.scheme + "://" + call.request.host() + ":" + call.request.port() + "/api/storage/"
+                    logger.debug { "Tomando datos multiparte" }
 
-                                }
-                            }
-                            part.dispose()
+                    val multipartData = call.receiveMultipart()
+                    multipartData.forEachPart { part ->
+                        // Analizamos el tipo si es fichero
+                        if (part is PartData.FileItem) {
+                            val fileName = part.originalFileName as String
+                            val fileBytes = part.streamProvider().readBytes()
+                            val fileExtension = fileName.substringAfterLast(".")
+                            val newFileName = "$userUuid.$fileExtension"
+                            val newFileUrl = "$baseUrl$newFileName"
+                            // Buscar usuario,
+                            usersService.findById(userUuid).onSuccess {
+                                // Subir fichero
+                                storageService.saveFile(newFileName, newFileUrl, fileBytes)
+                            }.andThen {
+                                // Actualizar usuario
+                                usersService.update(
+                                    userUuid, it.copy(
+                                        avatar = newFileUrl
+                                    )
+                                )
+                            }.mapBoth(
+                                success = { call.respond(HttpStatusCode.OK, it.toDto()) },
+                                failure = { handleUserError(it) }
+                            )
                         }
-                        // Actualizamos el usuario
-                        usersService.update(it.id, it.copy(avatar = newFileName))
-                    }.mapBoth(
-                        success = { call.respond(HttpStatusCode.OK, it.toDto()) },
-                        failure = { handleUserError(it) }
-                    )
+                    }
                 }
 
                 // Get -> /users --> solo si eres admin
@@ -175,6 +176,32 @@ fun Application.usersRoutes() {
                             handleUserError(it)
                         }
                 }
+
+                // Eliminar usuario --> solo si eres admin
+                delete("delete/{id}") {
+                    logger.debug { "DELETE User /$ENDPOINT/{id}" }
+
+                    val userUuid = call.principal<JWTPrincipal>()
+                        ?.payload?.getClaim("userId")
+                        .toString().replace("\"", "").toUUID()
+
+                    val id = call.parameters["id"]?.toUUID()!!
+
+                    usersService.isAdmin(userUuid).andThen {
+                        // buscar usuario
+                        usersService.findById(id).andThen { user ->
+                            // eliminar usuario
+                            usersService.delete(user.id).andThen {
+                                // elimina el avatar
+                                storageService.deleteFile(user.avatar)
+                            }
+                        }
+                    }.mapBoth(
+                        success = { call.respond(HttpStatusCode.NoContent) },
+                        failure = { handleUserError(it) }
+                    )
+
+                }
             }
         }
     }
@@ -182,12 +209,15 @@ fun Application.usersRoutes() {
 
 // Manejador de errores
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleUserError(
-    error: UserError
+    error: Any
 ) {
     when (error) {
+        // Errores de usuario
         is UserError.BadRequest -> call.respond(HttpStatusCode.BadRequest, error.message)
         is UserError.NotFound -> call.respond(HttpStatusCode.NotFound, error.message)
         is UserError.Unauthorized -> call.respond(HttpStatusCode.Unauthorized, error.message)
         is UserError.Forbidden -> call.respond(HttpStatusCode.Forbidden, error.message)
+        // Storage
+        is StorageError.FileNotFound -> call.respond(HttpStatusCode.NotFound, error.message)
     }
 }

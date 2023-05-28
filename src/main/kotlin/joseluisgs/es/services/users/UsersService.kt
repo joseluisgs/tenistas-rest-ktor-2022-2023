@@ -8,12 +8,11 @@ import java.util.*
 
 interface UsersService {
     suspend fun findAll(limit: Int?): Flow<User>
-
     suspend fun findById(id: UUID): Result<User, UserError>
     suspend fun findByUsername(username: String): Result<User, UserError>
     suspend fun checkUserNameAndPassword(username: String, password: String): Result<User, UserError>
     suspend fun save(entity: User): Result<User, UserError>
     suspend fun update(id: UUID, entity: User): Result<User, UserError>
-    suspend fun delete(id: UUID): User?
+    suspend fun delete(id: UUID): Result<User, UserError>
     suspend fun isAdmin(id: UUID): Result<Boolean, UserError>
 }
