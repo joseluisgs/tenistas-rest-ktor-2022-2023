@@ -42,7 +42,7 @@ class DataBaseService(
         .get(connectionOptions)
         .sqlClient(getTables())
 
-    val initData get() = dataBaseConfig.initDatabaseData
+    private val initData get() = dataBaseConfig.initDatabaseData
 
 
     fun initDataBaseService() {
