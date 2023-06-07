@@ -103,7 +103,11 @@ class UsersServiceImpl(
     override suspend fun isAdmin(id: UUID): Result<Boolean, UserError> {
         logger.debug { "isAdmin: Comprobando si el usuario con id: $id es administrador" }
         return findById(id).andThen {
-            Ok(it.role == User.Role.ADMIN)
+            if (it.role == User.Role.ADMIN) {
+                Ok(true)
+            } else {
+                Err(UserError.BadRequest("El usuario con id: $id no es administrador"))
+            }
         }
     }
 }

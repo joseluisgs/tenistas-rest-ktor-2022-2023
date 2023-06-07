@@ -11,7 +11,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
-import io.ktor.websocket.*
 import joseluisgs.es.dto.TenistaCreateDto
 import joseluisgs.es.dto.TenistasPageDto
 import joseluisgs.es.errors.TenistaError
@@ -20,11 +19,9 @@ import joseluisgs.es.mappers.toModel
 import joseluisgs.es.mappers.toTenistaDto
 import joseluisgs.es.services.tenistas.TenistasService
 import joseluisgs.es.utils.toUUID
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
-import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -181,17 +178,11 @@ fun Application.tenistasRoutes() {
         // WebSockets para tiempo real
         webSocket("api/updates/tenistas") {
             sendSerialized("Updates Web socket: Tenistas - Tenistas API REST Ktor")
-            val initTime = LocalDateTime.now()
             // actualizaciones de del estado y reaccionamos
-            tenistasService.notificationState
-                // Sometimes we need to do something when we start
-                .filter {
-                    // Podemos filtrar y descartar los que no nos interesen
-                    it.entity.isNotEmpty() && it.createdAt.isAfter(initTime)
-                }.collect {
-                    // Cuando llegue un nuevo estado, lo enviamos serializado
-                    sendSerialized(it)
-                }
+            tenistasService.notificationState.collect {
+                // Cuando llegue un nuevo estado, lo enviamos serializado
+                sendSerialized(it)
+            }
         }
     }
 }

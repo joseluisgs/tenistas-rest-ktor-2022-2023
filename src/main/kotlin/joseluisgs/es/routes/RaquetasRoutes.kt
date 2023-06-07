@@ -18,11 +18,9 @@ import joseluisgs.es.mappers.toDto
 import joseluisgs.es.mappers.toModel
 import joseluisgs.es.services.raquetas.RaquetasService
 import joseluisgs.es.utils.toUUID
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import mu.KotlinLogging
 import org.koin.ktor.ext.inject
-import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -160,17 +158,11 @@ fun Application.raquetasRoutes() {
         // WebSockets para tiempo real
         webSocket("api/updates/raquetas") {
             sendSerialized("Updates Web socket: Raquetas - Tenistas API REST Ktor")
-            val initTime = LocalDateTime.now()
             // actualizaciones de del estado y reaccionamos
-            raquetasService.notificationState
-                // Sometimes we need to do something when we start
-                .filter {
-                    // Podemos filtrar y descartar los que no nos interesen
-                    it.entity.isNotEmpty() && it.createdAt.isAfter(initTime)
-                }.collect {
-                    // Cuando llegue un nuevo estado, lo enviamos serializado
-                    sendSerialized(it)
-                }
+            raquetasService.notificationState.collect {
+                // Cuando llegue un nuevo estado, lo enviamos serializado
+                sendSerialized(it)
+            }
         }
     }
 }
