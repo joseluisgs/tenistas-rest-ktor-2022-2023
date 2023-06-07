@@ -21,7 +21,7 @@ data class Notificacion<T>(
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime = LocalDateTime.now()
 ) {
-    enum class Tipo { CREATE, UPDATE, DELETE, OTHER }
+    enum class Tipo { CREATE, UPDATE, DELETE }
 }
 
 // Mis alias, para no estar con los genéricos, mando el DTO por que es lo que quiero que se envíe con sus datos

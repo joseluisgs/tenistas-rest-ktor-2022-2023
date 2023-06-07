@@ -6,7 +6,7 @@ import joseluisgs.es.models.Raqueta
 import joseluisgs.es.models.RaquetasNotification
 import joseluisgs.es.models.Representante
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import java.util.*
 
 interface RaquetasService {
@@ -20,5 +20,5 @@ interface RaquetasService {
     suspend fun findRepresentante(id: UUID): Result<Representante, RaquetaError>
 
     // Estado de notificación
-    val notificationState: StateFlow<RaquetasNotification>
+    val notificationState: SharedFlow<RaquetasNotification>
 }
