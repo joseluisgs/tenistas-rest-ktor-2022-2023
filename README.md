@@ -999,7 +999,7 @@ servidor envíe información al cliente sin que el cliente tenga que solicitarla
 enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando
 al servidor.
 
-Para ello usaremos [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API). A partir de aquñi tenemos dos opciones que te he dejado en el código.
+Para ello usaremos [WebSockets](https://developer.mozilla.org/es/docs/Web/API/WebSockets_API). A partir de aquí tenemos dos opciones que te he dejado en el código.
 
 Aplicar el patrón [Observer](https://refactoring.guru/es/design-patterns/observer) para que el servidor pueda enviar información al cliente cuando se produzca un evento sin que el cliente tenga que estar constantemente consultando al servidor. Para ello, una vez el cliente se conecta al servidor, se le asigna un ID de sesión y se guarda en una lista de clientes
 conectados. Cuando se produce un evento, se recorre la lista de clientes conectados y se envía la información a cada uno de ellos, ejecutando la función de callback que se le ha pasado al servidor. El patrón Observer es una buena opción cuando tienes una lista de suscriptores que necesita recibir notificaciones en tiempo real y deseas mantener un registro de los suscriptores activos. En este caso, cuando ocurre un cambio, deberás recorrer la lista de suscriptores y notificar a cada uno de ellos individualmente. Esto puede ser adecuado si la lista de suscriptores no es muy grande y no hay una gran cantidad de cambios que se produzcan con frecuencia. En esta solución te he dejado los Representantes.
