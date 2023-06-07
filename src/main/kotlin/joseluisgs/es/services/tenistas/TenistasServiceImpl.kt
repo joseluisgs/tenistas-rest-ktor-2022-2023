@@ -11,9 +11,10 @@ import joseluisgs.es.models.TenistasNotification
 import joseluisgs.es.repositories.raquetas.RaquetasRepository
 import joseluisgs.es.repositories.tenistas.TenistasRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.koin.core.annotation.Named
@@ -126,25 +127,20 @@ class TenistasServiceImpl(
     }
 
     /// ---- Tiempo real, patrón observer!!!
-
-    private val _notificationState: MutableStateFlow<TenistasNotification> = MutableStateFlow(
-        TenistasNotification(
-            entity = "",
-            tipo = Notificacion.Tipo.OTHER,
-            id = null,
-            data = null
-        )
-    )
-    override val notificationState: StateFlow<TenistasNotification> = _notificationState
+    private val _notificationState: MutableSharedFlow<TenistasNotification> =
+        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    override val notificationState = _notificationState.asSharedFlow()
 
     private suspend fun onChange(tipo: Notificacion.Tipo, id: UUID, data: Tenista) {
         logger.debug { "onChange: Cambio en Tenistas: $tipo, notificando a los suscriptores afectada entidad: $data" }
         // actualizamos el estado
-        _notificationState.value = TenistasNotification(
-            entity = "RAQUETA",
-            tipo = tipo,
-            id = id,
-            data = data.toDto(findRaqueta(data.raquetaId).get())
+        _notificationState.tryEmit(
+            TenistasNotification(
+                entity = "RAQUETA",
+                tipo = tipo,
+                id = id,
+                data = data.toDto(findRaqueta(data.raquetaId).get())
+            )
         )
     }
 }
